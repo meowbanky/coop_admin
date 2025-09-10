@@ -1,0 +1,5 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<info>
+	<infoitem key="UD_masterTransaction" value="name:CoopID;datatype:string,name:FirstName;datatype:string,name:MiddleName;datatype:string,name:LastName;datatype:string,name:PayrollPeriod;datatype:string,name:savingsAmount;datatype:real,name:sharesAmount;datatype:real,name:InterestPaid;datatype:real,name:DevLevy;datatype:real,name:Stationery;datatype:real,name:EntryFee;datatype:real,name:Commodity;datatype:real,name:CommodityRepayment;datatype:real,name:loan;datatype:real,name:loanRepayment;datatype:real" />
+	<infoitem key="UD_coopid" value="name:CoopID;datatype:string" />
+</info>

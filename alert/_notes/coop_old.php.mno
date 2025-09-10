@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<info>
+	<infoitem key="UD_commodity" value="name:CommodityRepayment;datatype:real" />
+	<infoitem key="UD_coopid2" value="name:CoopID;datatype:string,name:MobileNumber;datatype:string" />
+	<infoitem key="UD_savings" value="name:Savings;datatype:real" />
+</info>

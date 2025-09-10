@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<info>
+	<infoitem key="UD_batch" value="name:batch;datatype:string,name:batchid;datatype:int" />
+	<infoitem key="UD_coopID" value="name:coopname;datatype:string,name:coopid;datatype:string,name:Bank;datatype:string,name:AccountNo;datatype:string" />
+	<infoitem key="UD_Bank" value="name:bank;datatype:string,name:bankcode;datatype:string" />
+</info>

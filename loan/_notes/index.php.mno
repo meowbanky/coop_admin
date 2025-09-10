@@ -1,0 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<info>
+	<infoitem key="UD_batch" value="name:batch;datatype:string,name:batchid;datatype:int" />
+</info>

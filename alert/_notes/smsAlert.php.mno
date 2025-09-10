@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<info>
+	<infoitem key="UD_coopid" value="name:right( tblemployees.CoopID,5);datatype:string" />
+	<infoitem key="UD_masterTransaction" value="name:Savings;datatype:real,name:Shares;datatype:real,name:loan;datatype:real,name:repayment;datatype:real,name:outstanding;datatype:real,name:COOPID;datatype:string,name:MobileNumber;datatype:string,name:MaxPeriodID;datatype:int" />
+	<infoitem key="UD_grandTotal" value="name:savings;datatype:real,name:shares;datatype:real,name:outstanding;datatype:real" />
+</info>

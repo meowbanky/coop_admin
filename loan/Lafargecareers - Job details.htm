@@ -1,0 +1,833 @@
+
+<!-- saved from url=(0236)http://www.lafargecareers.com/cgi-bin/erecrut/scripts/imgr_scripts/rechercher_jobs/job_detail.jsp?BV_SessionID=@@@@1389412685.1305136918@@@@&BV_EngineID=cccdadfdidlghflcfngcfkmdhgfdggi.0&lang=EN&jobOID=126304&null=null&null=null&lang=EN -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Lafargecareers - Job details</title>
+
+
+<link rel="stylesheet" href="./Lafargecareers - Job details_files/global.css" type="text/css">
+
+
+
+  <!--debut entete-->
+ 
+
+
+<!--script src="/erecrut/jsscripts/lib.js"></script-->
+
+
+
+
+<script>
+<!--
+function openTheWindow(url_val) {
+	window.open(url_val, 'new','width=615,height=500,menubar=no,toolbar=no,scrollbars=no,status=no,resizable=no,top=200,left=150,reload=no');
+}
+
+// Pour pr&eacute;sentation des m&eacute;tiers
+function openTheWindow2(url_val) {
+	window.open(url_val, 'new','width=600,height=500,menubar=no,toolbar=no,scrollbars=yes,status=no,resizable=no,top=200,left=150,reload=no');
+}
+
+// Pour pr&eacute;sentation des m&eacute;tiers
+function openTheWindow3(url_val) {
+	window.open(url_val, 'new','width=675,height=500,menubar=no,toolbar=no,scrollbars=yes,status=no,resizable=no,top=200,left=150,reload=no');
+}
+
+
+// Pour forgot password
+function openTheWindow4(url_val) {
+	window.open(url_val, 'new','width=450,height=300,menubar=no,toolbar=no,scrollbars=yes,status=no,resizable=no,top=200,left=150,reload=no');
+}
+
+// Pour upload
+function openTheWindow5(url_val) {
+	window.open(url_val, 'new','width=450,height=350,menubar=no,toolbar=no,scrollbars=no,status=no,resizable=yes,top=200,left=150,reload=no');
+}
+
+// Pour Contacts
+function openTheWindow6(url_val) {
+	window.open(url_val, 'new','width=586,height=520,menubar=no,toolbar=no,scrollbars=no,status=no,resizable=yes,top=200,left=150,reload=no');
+}
+
+// Pour Monde
+function openTheWindow7(url_val) {
+	window.open(url_val, 'new','width=513,height=400,menubar=no,toolbar=no,scrollbars=yes,status=no,resizable=yes,top=200,left=150,reload=no');
+}
+
+
+//Verif taille des champs de saisie
+var lang = "EN";
+function checkSize(itself, max) {
+var len = itself.value.length;
+	if (len > max) {
+		if(lang == 'FR')
+		alert ('Longueur de champ limit\351e \340 ' + max + ' caract\350res');
+		else
+		alert ('Max field length is ' + max + ' characters');
+		if (itself.name == 'address')
+			document.formFull2.hidden_address.value="no";
+		if (itself.name == 'otherdiploma')
+			document.formFull2.hidden_otherdiploma.value="no";
+		if (itself.name == 'competencies')
+			document.formFull2.hidden_competencies.value="no";
+		if (itself.name == 'realisations')
+			document.formFull2.hidden_realisations.value="no";
+		if (itself.name == 'functionideal')
+			document.formFull2.hidden_functionideal.value="no";
+		if (itself.name == 'geozonepref')
+			document.formFull2.hidden_geozone.value="no";
+	} else {
+		if (itself.name == 'address')
+			document.formFull2.hidden_address.value="yes";
+		if (itself.name == 'otherdiploma')
+			document.formFull2.hidden_otherdiploma.value="yes";
+		if (itself.name == 'competencies')
+			document.formFull2.hidden_competencies.value="yes";
+		if (itself.name == 'realisations')
+			document.formFull2.hidden_realisations.value="yes";
+		if (itself.name == 'functionideal')
+			document.formFull2.hidden_functionideal.value="yes";
+		if (itself.name == 'geozonepref')
+			document.formFull2.hidden_geozone.value="yes";
+	}
+}
+
+function YY_MozillaSidebar(url, tabName, urlCust){ //v1.01
+    if ((typeof window.sidebar == "object") && (typeof window.sidebar.addPanel == "function")){
+        window.sidebar.addPanel (tabName, url, urlCust);
+    }else{
+        window.alert("This page is enhanced for use with Mozilla or Netscape 6.1.  ");
+    }
+}
+
+function YYcalclose(YYwhat){//v4.0
+  if (YYwhat>=0){
+    var yyTag = YYwhat - yyW + 2;
+    if ((yyTag > 0)&&(yyTag <= dom[yyDiv.m])){
+      var d=yyTag;
+      if (YYLang=='de'){YYstrdatum = d+'.'+eval(yyDiv.m+1)+'.'+yyDiv.year;} //13.4.1968
+      if (YYLang=='com'){YYstrdatum = YYstrm[yyDiv.m].substring(0,3) +' '+d+', '+yyDiv.year;}
+      if (YYLang=='av'){YYstrdatum = d+'/'+YYstrm[yyDiv.m].substring(0,3)+'/'+yyDiv.year;}
+      yyDatevar.value=YYstrdatum;
+    }
+  }
+  if (document.layers){yyDiv.visibility = "hide";}
+  if (document.all||document.getElementById){yyDiv.style.visibility = "hidden";}
+}
+
+function YYgoYear(YY){//v4.0
+  var newYear = eval(yyDiv.year) + YY;
+  yyDiv.year = newYear.toString(10);
+  if (YY==0){} else {YYsetMonth(yyDiv.m,yyDiv.year)}
+  setTimeout('YYcaldraw(yyDiv.d,yyDiv.m,yyDiv.year)',(document.layers)?'300':'1');
+}
+
+function YYsetMonth(YYm, YYy){//v4.0
+  var startDate = new Date();
+  startDate.setMonth(YYm);   startDate.setYear(YYy);   startDate.setDate(1);
+  yyW = startDate.getDay();
+  if (yyW==0){yyW=7}
+  var daSchalt = yyDiv.year % 4;
+  if (daSchalt==0){dom[1]=29}else {dom[1]=28}
+}
+
+function YYgoMonth(YY){//v4.0
+   yyDiv.m=yyDiv.m+YY;
+   if (yyDiv.m<0){yyDiv.m+=12;YYgoYear(-1)}
+     else {if (yyDiv.m>11){yyDiv.m=yyDiv.m-12;YYgoYear(1)}
+       else{setTimeout('YYcaldraw(yyDiv.d,yyDiv.m,yyDiv.year)',(document.layers)?'300':'1')}
+     }
+   YYsetMonth(yyDiv.m,yyDiv.year);
+}
+
+function YYsetDate(){//v4.0
+   var myDate = new Date();
+   yyDiv.year=myDate.getYear();
+   if ((myDate.getYear() > 86)&&(myDate.getYear() <= 99)) { yyDiv.year= '19' + myDate.getYear() }
+   if ((myDate.getYear() > 99)&&(myDate.getYear() < 1900)) { yyDiv.year= (1900 + myDate.getYear())+''; }
+   if (myDate.getYear() <= 86){ yyDiv.year= '20' + myDate.getYear() }//2000!!
+   yyDiv.m =  myDate.getMonth();
+   yyDiv.d = myDate.getDate();
+   var w = myDate.getDay();
+   YYsetMonth(yyDiv.m,yyDiv.year);
+   YYgoYear(0);
+}
+
+function YYcaldraw(ycd,ycm,ycy){//v4.0
+  // writing the calendar table
+  var yyfnt="<font size=1 color='"+yyDiv.yyTextcolor+"' face=\'Arial, sans-serif\'>";
+  var myTR = "<tr bgcolor=\'"+yyDiv.yyBgcolor+"\'>";
+  var yyatag="<a href='#' style=\"color: "+yyDiv.yyTextcolor+"; text-decoration: none\" onClick=";
+  if (document.layers||document.all||document.getElementById){
+   var myMonth = YYstrm[ycm];
+   var mytxt="<table border=\'0\' cellspacing=\'1\' cellpadding=\'3\' width=\'210\'>";
+   mytxt+=myTR+"<td colspan='7'>"+yyfnt+yyatag+"'YYgoMonth(-1)'>&lt;&lt;&nbsp;</a>";
+   mytxt+=myMonth;
+   mytxt+=yyatag+"'YYgoMonth(1)'>&nbsp;&gt;&gt;</a>&nbsp;&nbsp;";
+   mytxt+=yyatag+"'YYgoYear(-1)'>&lt;&lt;&nbsp;</a>&nbsp;"+ycy+"&nbsp;";
+   mytxt+=yyatag+"'YYgoYear(1)'>&nbsp;&gt;&gt;</a>&nbsp;&nbsp;";
+   mytxt+=yyatag+"'YYcalclose()' title='close'>(x)</a></font></td></tr>"+myTR;
+   mytxt+="<td>"+yyfnt+"MO</font></td><td>"+yyfnt+"TU</font></td><td>"+yyfnt+"WE</font></td><td>"+yyfnt+"TH</font></td>";
+   mytxt+="<td>"+yyfnt+"FR</font></td><td>"+yyfnt+"SA</font></td><td>"+yyfnt+"<font color=red>SU</font></font></td></tr>"+myTR;
+   for (var i=0;i<=41;i++){
+     myStr=((i > (dom[ycm]+yyW-2))||(i < yyW-1))?"&nbsp;":i-yyW+2;
+     mytxt+="<td>"+yyfnt+yyatag+"\'YYcalclose("+i+")\' title='"+myMonth+" "+myStr+", "+ycy+"'>"+ myStr + "</a></font></td>";
+     if ((i==6) || (i==13) || (i==20) || (i==27) || (i==34) || (i==41)) { mytxt+=myTR }
+   }
+   mytxt+="</table>";
+ }
+ if (document.layers){
+   with (yyDiv.document){
+     open('text/html');
+     write(mytxt);
+     close();
+   }
+ }  // end of ns4
+ else if (document.all||document.getElementById){
+   yyDiv.innerHTML=mytxt;
+ } // end of ie4x / dom
+}
+
+function YY_Calendar(YYwhat,YYleft, YYtop,YYformat, YYtextcolor, YYbgcolor){//v4.0
+  yyDiv= MM_findObj('Calendar1');
+  yyDiv.yyTextcolor = YYtextcolor;
+  yyDiv.yyBgcolor = YYbgcolor;
+  YYsetDate();
+  if (document.layers){
+    yyDiv.left = YYleft;
+    yyDiv.top = YYtop;
+    yyDiv.visibility ="show";
+  }
+  if (document.all){
+    yyDiv.style.pixelLeft = YYleft;
+    yyDiv.style.pixelTop = YYtop;
+    yyDiv.style.visibility = "visible";
+  }else
+  if (document.getElementById){
+    yyDiv.style.left = YYleft;
+    yyDiv.style.top = YYtop;
+    yyDiv.style.visibility = "visible";
+  }
+  yyDatevar = MM_findObj(YYwhat);
+  YYLang=YYformat;
+
+
+}
+//-->
+</script>
+
+
+</head>
+
+
+
+<body bgcolor="#FFFFFF" text="#000000" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<!-- #BeginBehavior YY_Calendar1 -->
+<SCRIPT LANGUAGE='JavaScript'>
+<!--
+   var yyDatevar ='YYnull';
+   var yyDiv=null;var YYLang='de';
+   var dom= new Array(12);
+   dom[0]=31;dom[1]=28;dom[2]=31;dom[3]=30;dom[4]=31;dom[5]=30;dom[6]=31;dom[7]=31;dom[8]=30;dom[9]=31;dom[10]=30;dom[11]=31;
+   var YYstrm= new Array(12);
+   YYstrm[0]='January';YYstrm[1]='February';YYstrm[2]='March';YYstrm[3]='April';YYstrm[4]='May';YYstrm[5]='June';YYstrm[6]='July';
+   YYstrm[7]='August'; YYstrm[8]='September';YYstrm[9]='October';YYstrm[10]='November';YYstrm[11]='December';
+   
+//-->
+</SCRIPT>
+<div id='Calendar1' style='position:absolute; left:1px; top:1px; width:200px; height:115px; z-index:20; visibility: hidden'></div>
+<!-- #EndBehavior YY_Calendar1 -->
+
+
+<table width="776" border="0" cellspacing="0" cellpadding="0">
+  <tbody><tr> 
+      <td width="172"><a href="http://www.lafargecareers.com/cgi-bin/erecrut/scripts/imgr_scripts/home/home_rechercher.jsp?BV_SessionID=@@@@1389412685.1305136918@@@@&BV_EngineID=cccdadfdidlghflcfngcfkmdhgfdggi.0&lang=EN"><img src="./Lafargecareers - Job details_files/logo_lafarge.gif" width="163" height="58" border="0"></a></td>
+      <td width="369" align="right" valign="bottom" height="60"> 
+      
+        <table width="369" height="60" border="0" cellspacing="0" cellpadding="0" background="./Lafargecareers - Job details_files/bandeau_offres.jpg">
+        
+          <tbody><tr>
+            <td align="right" valign="bottom"> 
+             <table width="363" border="0" cellspacing="0" cellpadding="0">
+	             <tbody><tr>
+	            	<td class="bold10" valign="bottom"> &gt; &nbsp;
+		            
+		            <a href="http://www.lafargecareers.com/cgi-bin/erecrut/scripts/imgr_scripts/rechercher_jobs/job_detail.jsp?BV_SessionID=@@@@1389412685.1305136918@@@@&BV_EngineID=cccdadfdidlghflcfngcfkmdhgfdggi.0&lang=FR&oldLang=old" class="BlackLnk">Français</a>
+		            &nbsp;&nbsp;|&nbsp;&nbsp;<a href="http://www.lafargecareers.com/cgi-bin/erecrut/scripts/imgr_scripts/offres_emploi/check_profile.jsp?BV_SessionID=@@@@1389412685.1305136918@@@@&BV_EngineID=cccdadfdidlghflcfngcfkmdhgfdggi.0&request=unsollicited&rdm=.6465304283826006" class="BlackLnk">Open application</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="http://www.lafargecareers.com/cgi-bin/erecrut/scripts/imgr_scripts/rechercher_jobs/researchAgent.jsp?BV_SessionID=@@@@1389412685.1305136918@@@@&BV_EngineID=cccdadfdidlghflcfngcfkmdhgfdggi.0" class="BlackLnk">Jobs alert</a>
+		            
+	            	</td>
+	            	<td></td>
+	            </tr>
+	             <tr>
+			  <td colspan="2"><img src="./Lafargecareers - Job details_files/z_shim.gif" width="1" height="2"></td>
+		    </tr>
+             </tbody></table>
+             </td>
+          </tr>
+        </tbody></table>
+        
+      </td>
+      
+      
+      <!--debut appel fonction-->
+     <form name="identification" action="http://www.lafargecareers.com/cgi-bin/erecrut/scripts/imgr_scripts/identification/identification.jsp?BV_SessionID=@@@@1389412685.1305136918@@@@&BV_EngineID=cccdadfdidlghflcfngcfkmdhgfdggi.0" method="post"></form>
+<td width="235" bgcolor="#FF9900">
+<input type="hidden" name="BV_SessionID" value="@@@@1389412685.1305136918@@@@">
+<input type="hidden" name="BV_EngineID" value="cccdadfdidlghflcfngcfkmdhgfdggi.0">
+
+<table width="235" border="0" cellspacing="0" cellpadding="0">
+<tbody><tr>
+<td width="6"></td>
+<td width="84"></td>
+<td width="90" class="txt10" id="blanc"><b>Already here?</b></td></tr>
+<tr><td width="53"></td>
+</tr>
+<tr>
+<td width="6"></td>
+<td width="84" class="txt10" id="blanc">ID</td><td width="90"><input type="text" name="username" class="input"></td>
+<td width="53"></td>
+</tr>
+<tr>
+<td width="6"></td>
+<td width="84" class="txt10" id="blanc">Password</td><td width="90"><input type="password" name="password" class="input"></td>
+<td width="53"><input type="image" value="submit" src="./Lafargecareers - Job details_files/bt_ok.gif" border="0" name="ok">
+<input type="hidden" name="previousPage" value="/cgi-bin/erecrut/scripts/imgr_scripts/rechercher_jobs/job_detail.jsp">
+</td>
+</tr>
+<tr>
+<td width="6"></td>
+<td width="227" colspan="3" class="txt10" id="noir"><img src="./Lafargecareers - Job details_files/home_visu_fleche_login.gif"><a href="http://www.lafargecareers.com/cgi-bin/erecrut/scripts/imgr_scripts/rechercher_jobs/job_detail.jsp?BV_SessionID=@@@@1389412685.1305136918@@@@&BV_EngineID=cccdadfdidlghflcfngcfkmdhgfdggi.0&lang=EN&jobOID=126304&null=null&null=null&lang=EN#" class="txt10" id="noirlien" onClick="javascript:openTheWindow4(&#39;/cgi-bin/erecrut/scripts/imgr_scripts/identification/forgot_password.jsp?BV_SessionID=@@@@1389412685.1305136918@@@@&amp;BV_EngineID=cccdadfdidlghflcfngcfkmdhgfdggi.0&amp;variableTest=rempli&#39;);">&nbsp;Forgot your password</a></td>
+</tr>
+</tbody></table>
+</td>
+
+
+      
+    <!--appeler fonction-->
+  </tr>
+</tbody></table>
+<!--fin entete-->
+ 
+  <!--debut rubriques-->
+  
+
+
+
+<script "javascript"="">
+
+function MM_swapImgRestore() { //v3.0
+  var i,x,a=document.MM_sr; for(i=0;a&&i<a.length&&(x=a[i])&&x.oSrc;i++) x.src=x.oSrc;
+}
+
+function MM_findObj(n, d) { //v4.0
+  var p,i,x;  if(!d) d=document; if((p=n.indexOf("?"))>0&&parent.frames.length) {
+    d=parent.frames[n.substring(p+1)].document; n=n.substring(0,p);}
+  if(!(x=d[n])&&d.all) x=d.all[n]; for (i=0;!x&&i<d.forms.length;i++) x=d.forms[i][n];
+  for(i=0;!x&&d.layers&&i<d.layers.length;i++) x=MM_findObj(n,d.layers[i].document);
+  if(!x && document.getElementById) x=document.getElementById(n); return x;
+}
+
+function MM_swapImage() { //v3.0
+  var i,j=0,x,a=MM_swapImage.arguments; document.MM_sr=new Array; for(i=0;i<(a.length-2);i+=3)
+   if ((x=MM_findObj(a[i]))!=null){document.MM_sr[j++]=x; if(!x.oSrc) x.oSrc=x.src; x.src=a[i+2];}
+}
+
+function MM_jumpMenu(targ,selObj,restore){ //v3.0
+  eval(targ+".location='"+selObj.options[selObj.selectedIndex].value+"'");
+  if (restore) selObj.selectedIndex=0;
+}
+
+</script>
+
+
+  
+
+<table width="100" border="0" cellspacing="0" cellpadding="0">
+  <tbody><tr>
+  <td><img src="./Lafargecareers - Job details_files/z_shim.gif" width="175" height="1"></td>
+		
+	  <td><a href="http://www.lafargecareers.com/cgi-bin/erecrut/scripts/imgr_scripts/rechercher_jobs/rechercher.jsp?BV_SessionID=@@@@1389412685.1305136918@@@@&BV_EngineID=cccdadfdidlghflcfngcfkmdhgfdggi.0&searchState=new&first=yes"><img src="./Lafargecareers - Job details_files/recherche_on_en.gif" name="b1" border="0"></a></td>
+	
+     		
+	  <td><a href="http://www.lafargecareers.com/cgi-bin/erecrut/scripts/imgr_scripts/rechercher_jobs/researchAgent.jsp?BV_SessionID=@@@@1389412685.1305136918@@@@&BV_EngineID=cccdadfdidlghflcfngcfkmdhgfdggi.0" target="_top" onMouseOut="MM_swapImgRestore()" onMouseOver="MM_swapImage(&#39;b2&#39;,&#39;&#39;,&#39;/erecrut/images/fo/transversal/rubric/researchAgent_on_en.gif&#39;,1)"><img src="./Lafargecareers - Job details_files/researchAgent_of_en.gif" name="b2" border="0"></a></td>
+	
+	
+     		
+	  <td><a href="http://www.lafargecareers.com/cgi-bin/erecrut/scripts/imgr_scripts/offres_emploi/emplois_noninsc.jsp?BV_SessionID=@@@@1389412685.1305136918@@@@&BV_EngineID=cccdadfdidlghflcfngcfkmdhgfdggi.0" target="_top" onMouseOut="MM_swapImgRestore()" onMouseOver="MM_swapImage(&#39;b3&#39;,&#39;&#39;,&#39;/erecrut/images/fo/transversal/rubric/espace_on_en.gif&#39;,1)"><img src="./Lafargecareers - Job details_files/espace_of_en.gif" name="b3" border="0"></a></td>
+	
+	
+		
+               
+
+
+
+
+
+
+ 
+  
+  </tr>
+</tbody></table>
+
+<br>
+  
+  <!--fin rubriques-->
+  
+  <table border="0" cellspacing="0" cellpadding="0" width="600">
+    <tbody><tr> 
+          
+      
+
+<td valign="top">
+<table border="0" cellpadding="0" cellspacing="0" width="173">
+<script "javascript"="">
+
+function MM_swapImgRestore() { //v3.0
+  var i,x,a=document.MM_sr; for(i=0;a&&i<a.length&&(x=a[i])&&x.oSrc;i++) x.src=x.oSrc;
+}
+
+function MM_findObj(n, d) { //v4.0
+  var p,i,x;  if(!d) d=document; if((p=n.indexOf("?"))>0&&parent.frames.length) {
+    d=parent.frames[n.substring(p+1)].document; n=n.substring(0,p);}
+  if(!(x=d[n])&&d.all) x=d.all[n]; for (i=0;!x&&i<d.forms.length;i++) x=d.forms[i][n];
+  for(i=0;!x&&d.layers&&i<d.layers.length;i++) x=MM_findObj(n,d.layers[i].document);
+  if(!x && document.getElementById) x=document.getElementById(n); return x;
+}
+
+function MM_swapImage() { //v3.0
+  var i,j=0,x,a=MM_swapImage.arguments; document.MM_sr=new Array; for(i=0;i<(a.length-2);i+=3)
+   if ((x=MM_findObj(a[i]))!=null){document.MM_sr[j++]=x; if(!x.oSrc) x.oSrc=x.src; x.src=a[i+2];}
+}
+
+function MM_jumpMenu(targ,selObj,restore){ //v3.0
+  eval(targ+".location='"+selObj.options[selObj.selectedIndex].value+"'");
+  if (restore) selObj.selectedIndex=0;
+}
+
+</script>
+                <tbody><tr> 
+                  <td><img src="./Lafargecareers - Job details_files/bg0.gif" width="168" height="16"></td>
+                </tr>
+                <tr> 
+                  <td><img src="./Lafargecareers - Job details_files/bg1.gif" width="168" height="32"></td>
+                </tr>
+                <tr> 
+                
+                  
+
+	<td><a href="http://www.lafargecareers.com/cgi-bin/erecrut/scripts/imgr_scripts/lafarge_fiches/mission.jsp?BV_SessionID=@@@@1389412685.1305136918@@@@&BV_EngineID=cccdadfdidlghflcfngcfkmdhgfdggi.0" onClick="YY_MozillaSidebar('../untitled.php','test','')" onMouseOver="MM_swapImage(&#39;a1&#39;,&#39;&#39;,&#39;/erecrut/images/fo/transversal/menus_gauche/on_groupe_en.gif&#39;, 1)" onMouseOut="MM_swapImgRestore()">
+	<img name="a1" src="./Lafargecareers - Job details_files/of_groupe_en.gif" border="0" width="168" height="24"></a></td>
+
+
+                </tr>
+                <tr> 
+                  
+
+	<td><a href="http://www.lafargecareers.com/cgi-bin/erecrut/scripts/imgr_scripts/lafarge_fiches/formation.jsp?BV_SessionID=@@@@1389412685.1305136918@@@@&BV_EngineID=cccdadfdidlghflcfngcfkmdhgfdggi.0" onMouseOut="MM_swapImgRestore()" onMouseOver="MM_swapImage(&#39;a2&#39;,&#39;&#39;,&#39;/erecrut/images/fo/transversal/menus_gauche/on_carrieres_en.gif&#39;, 1)">
+	<img name="a2" src="./Lafargecareers - Job details_files/of_carrieres_en.gif" border="0" width="168" height="24"></a></td>
+
+
+                </tr>
+                <tr> 
+                  
+
+	<td><a href="http://www.lafargecareers.com/cgi-bin/erecrut/scripts/imgr_scripts/lafarge_fiches/stages_csne.jsp?BV_SessionID=@@@@1389412685.1305136918@@@@&BV_EngineID=cccdadfdidlghflcfngcfkmdhgfdggi.0" onMouseOut="MM_swapImgRestore()" onMouseOver="MM_swapImage(&#39;a3&#39;,&#39;&#39;,&#39;/erecrut/images/fo/transversal/menus_gauche/on_campus_en.gif&#39;, 1)">
+	<img name="a3" src="./Lafargecareers - Job details_files/of_campus_en.gif" border="0" width="168" height="24"></a></td>
+
+
+                </tr>
+                <tr> 
+                  
+	  <td><a href="http://www.lafargecareers.com/cgi-bin/erecrut/scripts/imgr_scripts/rechercher_jobs/rechercher.jsp?BV_SessionID=@@@@1389412685.1305136918@@@@&BV_EngineID=cccdadfdidlghflcfngcfkmdhgfdggi.0&searchState=new&first=yes"><img src="./Lafargecareers - Job details_files/on_offres_en.gif" border="0" width="168" height="24"></a></td>
+	  
+                </tr>
+                <tr> 
+                  
+
+	<td><a href="http://www.lafargecareers.com/cgi-bin/erecrut/scripts/imgr_scripts/entr_citoy/entr_citoy_actions.jsp?BV_SessionID=@@@@1389412685.1305136918@@@@&BV_EngineID=cccdadfdidlghflcfngcfkmdhgfdggi.0" onMouseOut="MM_swapImgRestore()" onMouseOver="MM_swapImage(&#39;a4&#39;,&#39;&#39;,&#39;/erecrut/images/fo/transversal/menus_gauche/on_dev_en.gif&#39;, 1)">
+	<img name="a4" src="./Lafargecareers - Job details_files/of_dev_en.gif" border="0" width="168" height="24"></a></td>
+
+
+                </tr>
+                <tr> 
+                  
+
+	<td><a href="http://www.lafargecareers.com/cgi-bin/erecrut/scripts/imgr_scripts/lafarge_fiches/news_abstract.jsp?BV_SessionID=@@@@1389412685.1305136918@@@@&BV_EngineID=cccdadfdidlghflcfngcfkmdhgfdggi.0" onMouseOut="MM_swapImgRestore()" onMouseOver="MM_swapImage(&#39;a5&#39;,&#39;&#39;,&#39;/erecrut/images/fo/transversal/menus_gauche/on_alaune_en.gif&#39;, 1)">
+	<img name="a5" src="./Lafargecareers - Job details_files/of_alaune_en.gif" border="0" width="168" height="24"></a></td>
+
+
+                </tr>
+                <tr> 
+                  <td><img src="./Lafargecareers - Job details_files/bg2.gif" width="168" height="32"></td>
+                </tr>
+                
+              </tbody></table>
+      </td>
+      
+      <!-- Pixel d'espacement entre menu de gauche et le reste-->
+<td><img src="./Lafargecareers - Job details_files/z_shim.gif" width="3" height="1"></td>
+      <td valign="top"> 
+        <table width="600" border="0" cellspacing="0" cellpadding="0">
+          <tbody><tr> 
+            <td><a name="top"></a><span class="BlueTitre2">Maintenance Supervisor</span></td><td>
+            
+            <span class="BlueTitre2">Ref n°LCW-RM-MS</span></td>
+          	
+          </tr>
+        </tbody></table>
+        
+
+              
+        <table width="600" border="0" cellspacing="0" cellpadding="0" bgcolor="#FFFFFF">
+          <tbody><tr> 
+                  
+            <td class="norm10" onfocus="YY_Calendar('unnamed &lt;input&gt;',50,60,'com','#FFFFFF','#000000','YY_calendar1')"> <br>
+              <br>
+              <table width="589" border="0" cellspacing="0" cellpadding="0">
+              
+                <tbody><tr> 
+                
+                  <td class="norm10" width="70" valign="top">Date :</td>
+                  <td class="norm10" width="363" valign="top">21/01/2011</td>
+                  
+                  <!--<td class="norm10" width="85" align="center" valign="top">R&eacute;f&eacute;rence 
+                    :</td>
+                  <td class="norm10" width="71" valign="top">2711011927</td>-->
+                </tr>
+                
+                <tr> 
+                  <td class="norm10" width="70" valign="top">&nbsp;</td>
+                  <td class="norm10" width="363" valign="top">&nbsp;</td>
+                  <td class="norm10" width="85">&nbsp;</td>
+                  <td class="norm10" width="71">&nbsp;</td>
+                </tr>
+                <tr> 
+                  <td class="norm10" width="70" valign="top">Division :</td>
+                  <td class="norm10" width="363" valign="top">&nbsp;Aggregates &amp; Concrete</td>
+                  <td class="norm10" width="85">&nbsp;</td>
+                  <td class="norm10" width="71">&nbsp;</td>
+                </tr>
+                
+                <tr> 
+                  <td class="norm10" width="70" valign="top">&nbsp;</td>
+                  <td class="norm10" width="363" valign="top">&nbsp;</td>
+                  <td class="norm10" width="85">&nbsp;</td>
+                  <td class="norm10" width="71">&nbsp;</td>
+                </tr>
+                <tr> 
+                  <td class="norm10" width="70" valign="top">Company 
+                    :</td>
+                  <td class="norm10" width="363" valign="top">Lafarge Cement WAPCO Plc</td>
+                  <td class="norm10" width="85">&nbsp;</td>
+                  <td class="norm10" width="71">&nbsp;</td>
+                </tr>
+                
+                <tr> 
+                  <td class="norm10" width="70" valign="top">&nbsp;</td>
+                  <td class="norm10" width="363" valign="top">&nbsp;</td>
+                  <td class="norm10" width="85">&nbsp;</td>
+                  <td class="norm10" width="71">&nbsp;</td>
+                </tr>
+                <tr> 
+                  <td class="norm10" width="70" valign="top">Location :</td>
+                  <td class="norm10" width="363" valign="top">Lagos , Nigeria</td>
+                  <td class="norm10" width="85">&nbsp;</td>
+                  <td class="norm10" width="71">&nbsp;</td>
+                </tr>
+                
+                <tr> 
+                  <td class="norm10" width="70">&nbsp;</td>
+                  <td class="norm10" width="363">&nbsp;</td>
+                  <td class="norm10" width="85">&nbsp;</td>
+                  <td class="norm10" width="71">&nbsp;</td>
+                </tr>
+              </tbody></table>
+            </td>
+          </tr>
+        </tbody></table>
+        
+        
+        <table width="585" border="0" cellspacing="0" cellpadding="0">
+          <tbody><tr> 
+            <td class="norm10">West African Portland Cement PLC (WAPCO) was established in 1959 with its first factory in Ewekoro, Ogun State, Nigeria, commencing manufacturing operations in 1960. The second factory in Sagamu, also in Ogun State was established in 1978.</td>
+          </tr>
+        </tbody></table>
+        <br>
+        
+        <table width="600" border="0" cellspacing="0" cellpadding="0">
+          <tbody><tr> 
+            <td><img src="./Lafargecareers - Job details_files/z_shim.gif" width="1" height="10"></td>
+          </tr>
+          <tr> 
+            <td>
+			  <table width="600" border="0" cellspacing="0" cellpadding="0">
+                <tbody><tr>
+    <td>
+	<table width="212" border="0" cellspacing="0" cellpadding="0">
+	                <tbody><tr> 
+                  <td><img src="./Lafargecareers - Job details_files/z_shim.gif" width="6" height="1"></td>
+                  <td><img src="./Lafargecareers - Job details_files/z_shim.gif" width="210" height="1"></td>
+                  <td><img src="./Lafargecareers - Job details_files/z_shim.gif" width="7" height="1"></td>
+                </tr>
+                <tr> 
+                        <td><img src="./Lafargecareers - Job details_files/coin_titre_orang_gauch.gif" width="6" height="15"></td>
+                        <td class="boldWhite10" bgcolor="#FF9900">&nbsp;JOB DESCRIPTION</td>
+                        <td><img src="./Lafargecareers - Job details_files/coin_titre_orang_droite.gif" width="7" height="15"></td>
+                </tr>
+              </tbody></table>
+	</td>
+  </tr>
+  <tr>
+    <td bgcolor="#FF9900"><img src="./Lafargecareers - Job details_files/z_shim.gif" width="1" height="1"></td>
+  </tr>
+</tbody></table>
+              
+</td>
+          </tr>
+		            <tr> 
+            <td><img src="./Lafargecareers - Job details_files/z_shim.gif" width="1" height="5"></td>
+          </tr>
+          <tr> 
+            <td class="norm10">
+              <table width="570" border="0" cellspacing="0" cellpadding="0">
+                <tbody><tr> 
+                  <td class="norm10" bgcolor="#FFFFFF">&nbsp;</td>
+                  <td class="norm10" bgcolor="#FFFFFF"> <br>
+                    <p>1.Ensure plants all trucks are maintained as per R&amp;M schedule
+<br>2.Ensure mechanics are trained  in repair and are competent to perform each of the tasks asked of them
+<br>3.Ensure Plants and vehicles are maintained in the most time efficient manner and routine maintenance planned and scheduled to minimise downtime
+<br>4.Ensure that adequate supplies of spares are held in the stores and that purchasing of single high cost or multiple slow moving items is minimised.
+<br> <br>
+                    
+                      </p>
+                    </td>
+                </tr>
+              </tbody></table>
+            </td>
+          </tr>
+          <tr> 
+            <td>&nbsp;</td>
+          </tr>
+        </tbody></table>
+        <table width="600" border="0" cellspacing="0" cellpadding="0">
+          <tbody><tr> 
+            <td>
+              <table width="600" border="0" cellspacing="0" cellpadding="0">
+                <tbody><tr> 
+                  <td> 
+                    <table width="212" border="0" cellspacing="0" cellpadding="0">
+                      <tbody><tr> 
+                        <td><img src="./Lafargecareers - Job details_files/z_shim.gif" width="6" height="1"></td>
+                        <td><img src="./Lafargecareers - Job details_files/z_shim.gif" width="210" height="1"></td>
+                        <td><img src="./Lafargecareers - Job details_files/z_shim.gif" width="7" height="1"></td>
+                      </tr>
+                      <tr> 
+                        <td><img src="./Lafargecareers - Job details_files/coin_titre_orang_gauch.gif" width="6" height="15"></td>
+                        <td class="boldWhite10" bgcolor="#FF9900">&nbsp;JOB PROFILE</td>
+                        <td><img src="./Lafargecareers - Job details_files/coin_titre_orang_droite.gif" width="7" height="15"></td>
+                      </tr>
+                    </tbody></table>
+                  </td>
+                </tr>
+                <tr> 
+                  <td bgcolor="#FF9900"><img src="./Lafargecareers - Job details_files/z_shim.gif" width="1" height="1"></td>
+                </tr>
+              </tbody></table>
+            </td>
+          </tr>
+          <tr> 
+            <td><img src="./Lafargecareers - Job details_files/z_shim.gif" width="1" height="5"></td>
+          </tr>
+          <tr> 
+            <td class="norm10"> 
+                  
+              <table width="570" border="0" cellspacing="0" cellpadding="0">
+              
+                <tbody><tr> 
+                  <td class="norm10" bgcolor="#FFFFFF">&nbsp;</td>
+                  <td class="norm10" bgcolor="#FFFFFF" valign="bottom"><span class="norm12orange">/</span><span class="norm10orange">&nbsp;Professional experience : </span></td>
+                </tr>
+                <tr> 
+                  <td class="norm10" bgcolor="#FFFFFF"><img src="./Lafargecareers - Job details_files/z_shim.gif" width="1" height="1"></td>
+                  <td>
+				  <table width="300" border="0" cellspacing="0" cellpadding="0">
+  <tbody><tr>
+    <td bgcolor="#FF9900"><img src="./Lafargecareers - Job details_files/z_shim.gif" width="170" height="1"></td>
+    <td bgcolor="#FFFFFF"><img src="./Lafargecareers - Job details_files/z_shim.gif" width="400" height="1"></td>
+  </tr>
+</tbody></table>
+				  </td>
+                </tr>
+                <tr> 
+                  <td class="norm10" bgcolor="#FFFFFF">&nbsp;</td>
+                  <td class="norm10" bgcolor="#FFFFFF">&nbsp;</td>
+                </tr>
+                <tr> 
+                  <td class="norm10" bgcolor="#FFFFFF">&nbsp;</td>
+                  <td class="norm10" bgcolor="#FFFFFF"> 
+                    <p>1.Qualification:  Mechanical or Electrical/Electronic Engineering
+<br>2.Good working knowledge of MS Word and MS Excel
+<br>3.Experience:  2-3 years in Manufacturing Company
+<br></p>
+                    </td>
+                </tr>
+                <tr> 
+                  <td class="norm10" bgcolor="#FFFFFF">&nbsp;</td>
+                  <td class="norm10" bgcolor="#FFFFFF">&nbsp;</td>
+                </tr>
+                
+                <tr> 
+                  <td class="norm10" bgcolor="#FFFFFF">&nbsp;</td>
+                  <td class="norm10" bgcolor="#FFFFFF" valign="bottom"><span class="norm12orange">/</span><span class="norm10orange">&nbsp;Other
+                    :</span></td>
+                </tr>
+                <tr> 
+                  <td class="norm10" bgcolor="#FFFFFF"><img src="./Lafargecareers - Job details_files/z_shim.gif" width="1" height="1"></td>
+                  <td>
+	<table width="300" border="0" cellspacing="0" cellpadding="0">
+  <tbody><tr>
+<td bgcolor="#FF9900"><img src="./Lafargecareers - Job details_files/z_shim.gif" width="55" height="1"></td>
+ <td bgcolor="#FFFFFF"><img src="./Lafargecareers - Job details_files/z_shim.gif" width="515" height="1"></td>
+  </tr>
+</tbody></table>
+				  </td>
+                </tr>
+                
+                
+                <tr> 
+                  <td class="norm10" bgcolor="#FFFFFF">&nbsp;</td>
+                  <td class="norm10" bgcolor="#FFFFFF">&nbsp;</td>
+                </tr>
+                <tr> 
+                  <td class="norm10" bgcolor="#FFFFFF">&nbsp;</td>
+                  <td class="norm10" bgcolor="#FFFFFF">Full-time job</td>
+                </tr>
+                <tr> 
+                  <td class="norm10" bgcolor="#FFFFFF">&nbsp;</td>
+                  <td class="norm10" bgcolor="#FFFFFF">&nbsp;</td>
+                </tr>
+                
+              </tbody></table>
+            </td>
+          </tr>
+          <tr> 
+            <td>&nbsp;</td>
+          </tr>
+          
+          <tr> 
+            <td class="norm10">For more details about this <a href="http://www.lafargewapco.com/" class="BlackLnkBLD" target="_blank">company</a>.</td>
+          </tr>
+          
+          <tr>
+            <td class="norm10">&nbsp;</td>
+          </tr>
+          <tr>
+            <td class="norm10"> 
+              <table width="416" border="0" cellspacing="0" cellpadding="0">
+                <tbody><tr>
+                  <td>
+                    <table width="85" border="0" cellspacing="0" cellpadding="0" height="30">
+                      <tbody><tr> 
+                        <td class="boldWhite10" bgcolor="#336699" align="center"><a href="javascript:history.back();" class="WhiteLnk2">BACK</a></td>
+                      </tr>
+                    </tbody></table>
+                  </td>
+                  <td align="right">
+                    <table width="85" border="0" cellspacing="0" cellpadding="0" height="30">
+                      <tbody><tr> 
+                        <td align="center" class="boldWhite10" bgcolor="#336699">&nbsp;<a href="http://www.lafargecareers.com/cgi-bin/erecrut/scripts/imgr_scripts/offres_emploi/check_profile.jsp?BV_SessionID=@@@@1389412685.1305136918@@@@&BV_EngineID=cccdadfdidlghflcfngcfkmdhgfdggi.0&request=sollicited&rdm=.509145261963433" class="WhiteLnk2">APPLY FOR THIS JOB</a>&nbsp;</td>
+                      </tr>
+                    </tbody></table>
+                  </td>
+                  <!--
+                  <td>
+                    <table width="120" border="0" cellspacing="0" cellpadding="0" height="15">
+                      <tr> 
+                        <td class="boldWhite10" bgcolor="#336699" align="center">&nbsp;<a href="#" class=WhiteLnk2>ENVOYER 
+                          A UN AMI</a>&nbsp;</td>
+                      </tr>
+                    </table>
+                  </td>-->
+                </tr>
+              </tbody></table>
+              
+            </td>
+          </tr>
+          <tr>
+            <td class="norm10">&nbsp;</td>
+          </tr>
+          <tr>
+            <td class="norm10" height="14">&nbsp;</td>
+          </tr>
+          <tr>
+            <td class="norm10" align="right"><a href="http://www.lafargecareers.com/cgi-bin/erecrut/scripts/imgr_scripts/rechercher_jobs/job_detail.jsp?BV_SessionID=@@@@1389412685.1305136918@@@@&BV_EngineID=cccdadfdidlghflcfngcfkmdhgfdggi.0&lang=EN&jobOID=126304&null=null&null=null&lang=EN#top" class="BlackLnk">Top</a></td>
+          </tr>
+          <tr> 
+            <td>&nbsp;</td>
+          </tr>
+        </tbody></table>
+      </td>
+        </tr>
+    </tbody></table>
+    <br>
+
+  <table width="773" border="0" cellspacing="0" cellpadding="0">
+    <tbody><tr align="center"> 
+<td><img src="./Lafargecareers - Job details_files/blank.gif" height="3" width="1"></td>
+</tr>
+
+
+<tr align="center"> 
+    
+    <td colspan="6" class="norm10" bgcolor="#FF9900" height="15">|&nbsp;&nbsp;
+    
+       	<a href="http://www.lafargecareers.com/cgi-bin/erecrut/scripts/imgr_scripts/plan_site/plan_site.jsp?BV_SessionID=@@@@1389412685.1305136918@@@@&BV_EngineID=cccdadfdidlghflcfngcfkmdhgfdggi.0" class="WhiteLnk">Sitemap</a>&nbsp;&nbsp;|&nbsp;&nbsp;
+   	<!--<a href="<%=contactPageURL%>" target="_new" class="WhiteLnk"><%=f_getLabel("pied-contact")%></a>&nbsp;&nbsp;|&nbsp;&nbsp;-->
+   	<a href="http://www.lafargecareers.com/cgi-bin/erecrut/scripts/imgr_scripts/rechercher_jobs/job_detail.jsp?BV_SessionID=@@@@1389412685.1305136918@@@@&BV_EngineID=cccdadfdidlghflcfngcfkmdhgfdggi.0&lang=EN&jobOID=126304&null=null&null=null&lang=EN#" class="WhiteLnk" onClick="javascript:openTheWindow6(&#39;/cgi-bin/erecrut/scripts/imgr_scripts/contact/contact.jsp?BV_SessionID=@@@@1389412685.1305136918@@@@&amp;BV_EngineID=cccdadfdidlghflcfngcfkmdhgfdggi.0&amp;rdm=.25678312127226466&#39;);">Contact / Help</a>&nbsp;&nbsp;|&nbsp;&nbsp;
+   	<a href="http://www.lafargecareers.com/cgi-bin/erecrut/scripts/imgr_scripts/lafarge_fiches/infos_legales.jsp?BV_SessionID=@@@@1389412685.1305136918@@@@&BV_EngineID=cccdadfdidlghflcfngcfkmdhgfdggi.0" class="WhiteLnk">Legal info</a>&nbsp;&nbsp;|&nbsp;&nbsp;
+   	<a href="http://www.lafargecareers.com/cgi-bin/erecrut/scripts/imgr_scripts/questions/questions.jsp?BV_SessionID=@@@@1389412685.1305136918@@@@&BV_EngineID=cccdadfdidlghflcfngcfkmdhgfdggi.0" class="WhiteLnk">FAQ</a>&nbsp;&nbsp;|
+   	
+   		<a href="http://www.lafargecareers.com/cgi-bin/erecrut/scripts/imgr_scripts/rechercher_jobs/job_detail.jsp?BV_SessionID=@@@@1389412685.1305136918@@@@&BV_EngineID=cccdadfdidlghflcfngcfkmdhgfdggi.0&lang=EN&jobOID=126304&null=null&null=null&lang=EN#" onClick="javascript:addBookmark(&#39;http://www.lafargecareers.com/us&#39;,&#39;LafargeCareers - Home Page&#39;);" class="WhiteLnk">Add to Bookmarks</a>&nbsp;&nbsp;|
+   	
+   	   	
+  
+    </td>
+  </tr>
+  
+<script>
+	
+	function addBookmark(url,title){
+	
+		//alert(url);
+		window.external.AddFavorite(url,title)
+	}
+	
+	// Pour Contacts
+	function openTheWindow6(url_val) {
+		window.open(url_val, 'new','width=586,height=520,menubar=no,toolbar=no,scrollbars=no,status=no,resizable=yes,top=200,left=150,reload=no');
+	}
+
+</script>
+</tbody></table>
+<script language="JavaScript1.1">
+<!--
+hsh = new Date();
+hsd = document;
+hsr = hsd.referrer.replace(/[<>]/g, '');
+hsi = '<img width="1" height="1" src="http://logp.xiti.com/hit.xiti?s=139319&s2=1';
+hsi += '&p=' + 'rechercher_jobs/job_detail'
+hsi += '&hl=' + hsh.getHours() + 'x' + hsh.getMinutes() + 'x' + hsh.getSeconds();
+if(parseFloat(navigator.appVersion)>=4)
+{Xiti_s=screen;hsi += '&r=' + Xiti_s.width + 'x' + Xiti_s.height + 'x' + Xiti_s.pixelDepth + 'x' + Xiti_s.colorDepth;}
+hsd.writeln(hsi + '&ref=' + hsr.replace(/&/g, '$') + '"><\!--');
+//-->
+</script><img width="1" height="1" src="./Lafargecareers - Job details_files/hit.xiti"><!--
+
+<noscript>
+<img width="1" height="1" src="http://logp.xiti.com/hit.xiti?s=139319&s2=1&p=rechercher_jobs/job_detail&" >
+</noscript>
+<!--//-->
+
+
+
+</body></html>

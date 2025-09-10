@@ -1,0 +1,5 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<info>
+	<infoitem key="UD_coopid" value="name:TransactionPeriod;datatype:int,name:Sum(tbl_mastertransact.savingsAmount);datatype:real,name:Sum(tbl_mastertransact.sharesAmount);datatype:real,name:Sum(tbl_mastertransact.InterestPaid);datatype:real,name:Sum(tbl_mastertransact.DevLevy);datatype:real,name:Sum(tbl_mastertransact.Stationery);datatype:real,name:Sum(tbl_mastertransact.EntryFee);datatype:real,name:Sum(tbl_mastertransact.CommodityRepayment);datatype:real,name:Sum(tbl_mastertransact.loanRepayment);datatype:real" />
+	<infoitem key="UD_masterTransaction" value="name:CoopID;datatype:string,name:FirstName;datatype:string,name:MiddleName;datatype:string,name:LastName;datatype:string,name:PayrollPeriod;datatype:string,name:savingsAmount;datatype:real,name:sharesAmount;datatype:real,name:InterestPaid;datatype:real,name:DevLevy;datatype:real,name:Stationery;datatype:real,name:EntryFee;datatype:real,name:Commodity;datatype:real,name:CommodityRepayment;datatype:real,name:loan;datatype:real,name:loanRepayment;datatype:real,name:TransactionPeriod;datatype:int" />
+</info>

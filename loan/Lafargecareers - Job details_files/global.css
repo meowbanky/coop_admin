@@ -1,0 +1,76 @@
+.norm10 {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px; color: #000000}
+.legend {  font-family: Arial, Helvetica, sans-serif; font-size: 09px; color: #000000}
+
+.norm10red {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px; color: #CC3333}
+.norm10orange {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px; color: #FF9B0D}
+.norm10blanc {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px; color: #FFFFFF}
+
+.norm12orange {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 12px; color: #FF9B0D}
+
+.bold10vert {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px; color: #006633;font-weight: bold}
+.norm12vert {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 12px; color: #006633}
+
+
+.bold10orange {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px; color: #FF9B0D;font-weight: bold}
+
+.norm12 {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 12px; color: #000000}
+.norm12BLD {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 12px; color: #000000;font-weight: bold}
+.bold10 {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px; color: #000000; font-weight: bold}
+.normWhite10 {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px; color: #FFFFFF}
+.boldWhite10 {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px; color: #FFFFFF; font-weight: bold}
+.boldWhite12 {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 12px; color: #FFFFFF; font-weight: bold}
+.boldblue10 {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px; color: #4071BF; text-decoration:none; font-weight: bold}
+
+
+A.WhiteLnk {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px;  color: #FFFFFF; text-decoration:none}
+A.WhiteLnk:HOVER {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px; color: #FFFFFF; text-decoration:underline}
+
+A.WhiteLnk2 {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px; font-weight: bold;  color: #FFFFFF; text-decoration:none}
+A.WhiteLnk2:HOVER {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px; font-weight: bold; color: #FFFFFF; text-decoration:underline}
+
+A.BlackLnk {  font-family:  Verdana, Arial, Helvetica, sans-serif; font-size: 10px; color: #000000; text-decoration:none}
+A.BlackLnk:HOVER {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px; color: #000000; text-decoration:underline}
+
+A.BlackLnk12 {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 12px; color: #000000; text-decoration:none; font-weight: bold}
+A.BlackLnk12:HOVER {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 12px; color: #000000; text-decoration:underline; font-weight:bold }
+
+A.BlackLnkBLD {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px; color: #000000; text-decoration:none; font-weight: bold}
+A.BlackLnkBLD:HOVER {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px; color: #000000; text-decoration:underline; font-weight: bold}
+
+A.BlueLnk {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px; Font-weight: bold ;color: #4071BF; text-decoration:none}
+A.BlueLnk:HOVER {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px; Font-weight: bold ; color: #4071BF; text-decoration:underline}
+
+A.BlueLnk2 {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px; color: #4071BF; text-decoration:none}
+A.BlueLnk2:HOVER {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px; color: #4071BF; text-decoration:underline}
+
+A.GreenLnk10 {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px; color: #006633; text-decoration:underline}
+
+.BlueLnkLite {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px; color: #4071BF; text-decoration: underline}
+
+.italic10 {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px; font-style: italic}
+
+.Bluetitre {  font-family: Arial, Helvetica; font-size: 12px; color: #0076ac; font-weight: bold}
+.Bluetitre2 {  font-family: Arial, Helvetica; font-size: 14px; color: #265997; font-weight: bold}
+
+.blacktitre {  font-family: Arial, Helvetica; font-size: 12px; color: #000000; font-weight: bold}
+.blacktitre2 {  font-family: Arial, Helvetica; font-size: 14px; color: #000000; font-weight: bold}
+
+.purpletitre {  font-family: Arial, Helvetica; font-size: 12px; color: #6666CC; font-weight: bold}
+.purpletitre2 {  font-family: Arial, Helvetica; font-size: 14px; color: #6666CC; font-weight: bold}.greentitre { font-family: Arial, Helvetica; font-size: 12px; color: #006633; font-weight: bold }
+.Bluetitre3 { font-family: Arial, Helvetica; font-size: 24px; color: #265997; font-weight: bold }
+
+.txt10 					{ font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px; }
+.txt9 					{ font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 9px; }
+.input					{ height: 15px; width: 80px; font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 10px; }}
+#vert					{ color: #1D4528 }
+#vertLayer				{ color: #1A362B; text-decoration: none;}
+#vertLayer:hover		{ color: #1A362B; background-color: 84D7D4;}
+#noir					{ color: #000000 }
+#orange					{ color: #FF9A0D }
+#blanc					{ color: #ffffff }
+#noirlien				{ color: #000000; text-decoration: none; }
+#noirlien:hover			{ color: #000000 }
+
+
+.vertLayerCell				{ color: #1A362B; background-color: 84D7D4;}
+.vertLayerCellun			{ color: #1A362B; }

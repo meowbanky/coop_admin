@@ -1,0 +1,8 @@
+# In your Apache configuration
+<Directory "/var/www/html/coop_admin/auth_api">
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "POST, GET, OPTIONS, DELETE, PUT"
+    Header set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
+    Header set Access-Control-Max-Age "1000"
+    Header set Access-Control-Allow-Credentials "true"
+</Directory>

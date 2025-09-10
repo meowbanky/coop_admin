@@ -1,0 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<info>
+	<infoitem key="UD_sms_bene" value="name:MobileNumber;datatype:string,name:Narration;datatype:string" />
+</info>

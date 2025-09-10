@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<info>
+	<infoitem key="UD_coopID" value="name:coopname;datatype:string,name:coopid;datatype:string,name:Bank;datatype:string,name:AccountNo;datatype:string" />
+	<infoitem key="UD_Bank" value="name:bank;datatype:string,name:bankcode;datatype:string" />
+	<infoitem key="UD_edit_query" value="name:PaymentRefID;datatype:int,name:BeneficiaryCode;datatype:string,name:BeneficiaryName;datatype:string,name:AccountNumber;datatype:string,name:AccountType;datatype:string,name:CBNCode;datatype:string,name:Bank;datatype:string,name:Narration;datatype:string,name:Amount;datatype:real,name:Batch;datatype:string" />
+</info>

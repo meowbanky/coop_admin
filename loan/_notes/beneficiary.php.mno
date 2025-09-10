@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<info>
+	<infoitem key="UD_coopid" value="name:coopname;datatype:string,name:coopid;datatype:string" />
+	<infoitem key="UD_excel" value="name:PaymentReference;datatype:string,name:BeneficiaryCode;datatype:string,name:BeneficiaryName;datatype:string,name:AccountNumber;datatype:string,name:AccountType;datatype:string,name:CBNCode;datatype:string,name:IsCashCard;datatype:string,name:Narration;datatype:string,name:Amount;datatype:real,name:EMailAddress;datatype:string,name:NGN;datatype:string,name:BeneficiaryCode;datatype:string,name:batch;datatype:string,name:Bank;datatype:string" />
+	<infoitem key="UD_BatchSum" value="name:Sum;datatype:real" />
+	<infoitem key="UD_edit_query" value="name:PaymentRefID;datatype:int,name:BeneficiaryCode;datatype:string,name:BeneficiaryName;datatype:string,name:AccountNumber;datatype:string,name:AccountType;datatype:string,name:CBNCode;datatype:string,name:Bank;datatype:string,name:Narration;datatype:string,name:Amount;datatype:real,name:Batch;datatype:string" />
+</info>

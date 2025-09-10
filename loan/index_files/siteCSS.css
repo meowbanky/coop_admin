@@ -1,0 +1,43 @@
+#toptxt {
+	FONT-FAMILY: verdana; COLOR: #ffffff; FONT-SIZE: 9px
+}
+#datetxt {
+	FONT-FAMILY: verdana; COLOR: #4d4d4d; FONT-SIZE: 9px
+}
+.hmtxt {
+	LINE-HEIGHT: 12px; FONT-FAMILY: verdana; COLOR: #535150; FONT-SIZE: 10px
+}
+#bottom-bg {
+	BACKGROUND-IMAGE: url(images/bottom-bg.jpg); BACKGROUND-REPEAT: repeat-x; BACKGROUND-POSITION: center 50%
+}
+#copyright-txt {
+	FONT-FAMILY: verdana; COLOR: #ffffff; FONT-SIZE: 10px
+}
+#bottomlink {
+	TEXT-ALIGN: center; FONT-FAMILY: verdana; COLOR: white; FONT-SIZE: 10px
+}
+.SB {
+BACKGROUND-IMAGE: url(../images/mtnPgBgd.jpg); PADDING-BOTTOM: 0px; BACKGROUND-COLOR: #3399FF; FONT-STYLE: normal; MARGIN: 0px; PADDING-LEFT: 0px; PADDING-RIGHT: 0px; BACKGROUND-REPEAT: repeat; FONT-FAMILY: Arial, Helvetica, sans-serif; COLOR: #333333; FONT-SIZE: 10px; PADDING-TOP: 0px
+SCROLLBAR-HIGHLIGHT-COLOR: #999999; SCROLLBAR-TRACK-COLOR: white
+}
+#bodyTb-border {
+	BORDER-LEFT: #3399FF 3px solid; BORDER-RIGHT: #3399FF 3px solid
+}
+#innertb {
+	BORDER-LEFT: #fecb00 3px solid; BORDER-RIGHT: #fecb00 3px solid
+}
+#bullet {
+	LIST-STYLE-IMAGE: url(images/nav-arrow.jpg)
+}
+.Button1 {
+	BORDER-BOTTOM: #333333 2px ridge; BORDER-LEFT: #333333 2px ridge; BACKGROUND-COLOR: #f05e82; FONT-FAMILY: arial; COLOR: #333333; FONT-SIZE: 9pt; BORDER-TOP: #333333 2px ridge; CURSOR: hand; FONT-WEIGHT: bold; BORDER-RIGHT: #333333 2px ridge
+}
+.Button2 {
+	BORDER-BOTTOM: #333333 1px ridge; BORDER-LEFT: #333333 1px ridge; BACKGROUND-COLOR: #cccccc; FONT-FAMILY: verdana; COLOR: #333333; FONT-SIZE: 8pt; BORDER-TOP: #333333 1px ridge; CURSOR: hand; BORDER-RIGHT: #333333 1px ridge
+}
+.TextBox {
+	BACKGROUND-COLOR: #3399FF; FONT-FAMILY: arial; COLOR: black; FONT-SIZE: 8pt; CURSOR: text
+}
+.TextBox2 {
+	BORDER-BOTTOM: black 1px groove; BORDER-LEFT: black 1px groove; FONT-FAMILY: Verdana, arial; COLOR: #ff6600; FONT-SIZE: 10pt; BORDER-TOP: black 1px groove; BORDER-RIGHT: black 1px groove
+}

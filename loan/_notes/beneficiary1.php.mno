@@ -1,0 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<info>
+	<infoitem key="UD_coopid" value="name:coopname;datatype:string,name:coopid;datatype:string" />
+</info>

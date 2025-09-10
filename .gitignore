@@ -1,0 +1,139 @@
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Database credentials
+config/database.php
+config/config.php
+
+# Logs
+*.log
+logs/
+error_log
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Archive folder (contains old/unused files)
+archive/
+
+# Uploads folder (may contain sensitive data)
+uploads/
+files/
+
+# Cache
+cache/
+tmp/
+
+# Composer
+vendor/
+composer.lock
+
+# Node modules (if any)
+node_modules/
+package-lock.json
+
+# Backup files
+*.bak
+*.backup
+*_old.php
+*_copy.php
+*- Copy.php
+
+# Test files
+test*.php
+debug*.php
+fix_*.php
+convert_*.php
+scan_*.php
+update_*.php
+verify_*.php
+
+# One-time utility scripts
+50kobo.js
+contact_form.js
+download.html
+first-site.EMMAGGI.emmaggi.pui
+index.html
+Paymaster.EMMAGGI.emmaggi.pui
+Paymaster.prj
+check_session.php
+format.php
+hash.php
+number.php
+obstart.php
+wisper.php
+config_manager.php
+passwordHash.php
+runCheck.php
+setup_config.php
+allowance.php
+bankName.php
+corrections.php
+increament.php
+selectState.php
+selectStep.php
+datetest.php
+multiAdjustment.php
+requisit.php
+requsitAdd.php
+salesAdd.php
+departments copy.php
+departments.php
+earningsdeductions.php
+empearnings_add.php
+empearnings.php
+employee_add.php
+new_employee-.php
+new_employee.php
+cashPayment.php
+import_allow.php
+import_office.php
+searchStaff.php
+tax_cal.php
+tax_export.php
+deductionList.php
+getCommodityList.php
+getCommodityProcessing.php
+getCont.php
+getEnquiry.php
+getLoanList.php
+getLoanProcessing.php
+getMasterReport copy.php
+getMasterReport.php
+getNamee.php
+enquiry_add.php
+enquiry.php
+masterReport_add.php
+printmember_add.php
+processLoan copy.php
+processLoan.php
+send_all.php
+send_bulk.php
+send_mail.php
+sendmail_later.php
+sendmail.php
+action.php
+Edit1.php
+marquee.php
+menu_mail.php

@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<info>
+	<infoitem key="UD_name" value="name:name;datatype:string" />
+	<infoitem key="UD_LiveData_params" value="3" />
+	<infoitem key="UD_LiveData_param0" value="id=coop-00001" />
+	<infoitem key="UD_LiveData_param1" value="" />
+	<infoitem key="UD_LiveData_param2" value="coop-00001" />
+	<infoitem key="UD_coopid" value="name:CoopID;datatype:string" />
+	<infoitem key="UD_accountNo" value="name:CoopID;datatype:string,name:name;datatype:string,name:Bank;datatype:string,name:AccountNo;datatype:string,name:BankCode;datatype:string" />
+	<infoitem key="UD_BankCode" value="name:bank;datatype:string,name:bankcode;datatype:string" />
+</info>
