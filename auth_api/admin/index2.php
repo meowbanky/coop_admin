@@ -198,15 +198,15 @@
     let recaptchaWidgetId;
     let resendTimer = null;
 
-    // Firebase configuration
+    // Firebase configuration - Load from environment variables
     const firebaseConfig = {
-        apiKey: "AIzaSyD2k2NzXlgfxwstKdaWKvOcrBe3_00ExGg",
-        authDomain: "oouth2.firebaseapp.com",
-        projectId: "oouth2",
-        storageBucket: "oouth2.firebasestorage.app",
-        messagingSenderId: "190406680104",
-        appId: "1:190406680104:web:e0103eeef8b211eabe5f1d",
-        measurementId: "G-C2KPEBR2X7"
+        apiKey: process.env.FIREBASE_API_KEY || "YOUR_FIREBASE_API_KEY",
+        authDomain: process.env.FIREBASE_AUTH_DOMAIN || "your-project.firebaseapp.com",
+        projectId: process.env.FIREBASE_PROJECT_ID || "your-project-id",
+        storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "your-project.firebasestorage.app",
+        messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "your-sender-id",
+        appId: process.env.FIREBASE_APP_ID || "your-app-id",
+        measurementId: process.env.FIREBASE_MEASUREMENT_ID || "your-measurement-id"
     };
 
     // Initialize Firebase

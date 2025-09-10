@@ -7,6 +7,12 @@
 config/database.php
 config/config.php
 
+# Firebase and API keys
+auth_api/admin/index2.php
+**/firebase-config.js
+**/api-keys.js
+**/secrets.js
+
 # Logs
 *.log
 logs/
