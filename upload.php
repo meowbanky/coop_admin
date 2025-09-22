@@ -1,204 +1,161 @@
 <?php
-require_once('Connections/coop.php');
-include_once('classes/model.php');
-session_start();
+// Start session if not already started
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 
-// Check whether the session variable SESS_MEMBER_ID is present or not
-if (!isset($_SESSION['SESS_MEMBER_ID']) || trim($_SESSION['SESS_MEMBER_ID']) == '') {
+// Check authentication
+if (!isset($_SESSION['SESS_MEMBER_ID']) || (trim($_SESSION['SESS_MEMBER_ID']) == '')) {
     header("location: index.php");
     exit();
 }
 
-// Set page title
-$pageTitle = 'OOUTH COOP - File Upload';
+// Database connection
+include 'config/database.php';
 
-// Include header
+$pageTitle = 'File Upload - OOUTH COOP';
 include 'includes/header.php';
-
-// Get user info
-$userName = $_SESSION['SESS_FIRST_NAME'] ?? 'User';
-$userRole = $_SESSION['role'] ?? 'User';
 ?>
-<div class="container mx-auto px-4 py-8">
-    <!-- Upload Instructions -->
-    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8 fade-in">
-        <div class="flex items-start">
-            <i class="fas fa-info-circle text-blue-600 text-xl mt-1 mr-3"></i>
+
+<div class="max-w-4xl mx-auto">
+    <!-- Page Header -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+        <div class="flex items-center justify-between">
             <div>
-                <h3 class="text-lg font-semibold text-blue-900 mb-2">Upload Instructions</h3>
-                <ul class="text-blue-800 space-y-1 text-sm">
-                    <li>• Select the appropriate payroll period for your data</li>
-                    <li>• Choose an Excel (.xlsx) or CSV file to upload</li>
-                    <li>• Ensure your file has proper headers in the first row</li>
-                    <li>• The system will process your data and provide feedback</li>
-                </ul>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                    <i class="fas fa-file-upload text-blue-600 mr-3"></i>File Upload
+                </h1>
+                <p class="text-gray-600">Upload Excel files for data processing and management</p>
+            </div>
+            <div class="bg-blue-100 p-4 rounded-lg">
+                <i class="fas fa-info-circle text-blue-600 text-2xl"></i>
             </div>
         </div>
     </div>
 
     <!-- Upload Form -->
-    <div class="max-w-2xl mx-auto">
-        <div class="bg-white rounded-lg shadow-lg overflow-hidden fade-in">
-            <div class="px-6 py-4 border-b border-gray-200">
-                <h2 class="text-xl font-semibold text-gray-900">Upload Data File</h2>
-                <p class="text-gray-600 text-sm">Select a period and upload your data file</p>
+    <div class="bg-white rounded-xl shadow-lg p-8">
+        <form id="uploadForm" enctype="multipart/form-data" class="space-y-6">
+            <!-- Period Selection -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-calendar-alt mr-2"></i>Select Period
+                </label>
+                <select id="period" name="period" required
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="0">Choose a payroll period...</option>
+                    <?php
+                        mysqli_select_db($coop, $database);
+                        $query = "SELECT * FROM tbpayrollperiods ORDER BY id DESC";
+                        $result = mysqli_query($coop, $query) or die(mysqli_error($coop));
+                        while ($row = mysqli_fetch_assoc($result)) {
+                            echo '<option value="' . htmlspecialchars($row['id']) . '">' . htmlspecialchars($row['PayrollPeriod']) . '</option>';
+                        }
+                        mysqli_free_result($result);
+                        ?>
+                </select>
             </div>
 
-            <form id="uploadForm" enctype="multipart/form-data" class="p-6 space-y-6">
-                <!-- Period Selection -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        <i class="fas fa-calendar-alt mr-2"></i>Select Period
-                    </label>
-                    <select id="period" name="period" required
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <option value="0">Choose a payroll period...</option>
-                        <?php
-                            mysqli_select_db($coop, $database);
-                            $query = "SELECT * FROM tbpayrollperiods ORDER BY id DESC";
-                            $result = mysqli_query($coop, $query) or die(mysqli_error($coop));
-                            while ($row = mysqli_fetch_assoc($result)) {
-                                echo '<option value="' . htmlspecialchars($row['id']) . '">' . htmlspecialchars($row['PayrollPeriod']) . '</option>';
-                            }
-                            mysqli_free_result($result);
-                            ?>
-                    </select>
-                </div>
-
-                <!-- File Upload Area -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        <i class="fas fa-file-upload mr-2"></i>Select File
-                    </label>
-                    <div id="uploadArea"
-                        class="upload-area rounded-lg p-8 text-center cursor-pointer border-2 border-dashed border-gray-300 hover:border-blue-400 transition-colors">
-                        <div id="uploadContent">
-                            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
-                            <p class="text-lg font-medium text-gray-600 mb-2">Click to select file or drag and drop</p>
-                            <p class="text-sm text-gray-500">Excel (.xlsx) or CSV files only</p>
-                            <input type="file" id="fileInput" name="file" accept=".xlsx,.csv" class="hidden" required>
-                        </div>
-                        <div id="fileInfo" class="hidden">
-                            <i class="fas fa-file text-4xl text-green-500 mb-4"></i>
-                            <p id="fileName" class="text-lg font-medium text-gray-900 mb-2"></p>
-                            <p id="fileSize" class="text-sm text-gray-500 mb-4"></p>
-                            <button type="button" id="removeFile" class="text-red-600 hover:text-red-800 text-sm">
-                                <i class="fas fa-times mr-1"></i>Remove File
-                            </button>
-                        </div>
+            <!-- File Upload Area -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-file-upload mr-2"></i>Select File
+                </label>
+                <div id="uploadArea"
+                    class="upload-area rounded-lg p-8 text-center cursor-pointer border-2 border-dashed border-gray-300 hover:border-blue-400 transition-colors">
+                    <div id="uploadContent">
+                        <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                        <p class="text-lg font-medium text-gray-600 mb-2">Click to select file or drag and drop</p>
+                        <p class="text-sm text-gray-500">Excel (.xlsx) or CSV files only</p>
+                        <input type="file" id="fileInput" name="file" accept=".xlsx,.csv" class="hidden" required>
                     </div>
-                </div>
-
-                <!-- Options -->
-                <div class="bg-gray-50 rounded-lg p-4">
-                    <div class="flex items-center">
-                        <input type="checkbox" id="hasHeaders" name="hasHeaders" checked
-                            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                        <label for="hasHeaders" class="ml-3 text-sm text-gray-700">
-                            <i class="fas fa-check-square mr-1"></i>
-                            File contains headers in the first row
-                        </label>
+                    <div id="fileInfo" class="hidden">
+                        <i class="fas fa-file text-4xl text-green-500 mb-4"></i>
+                        <p id="fileName" class="text-lg font-medium text-gray-900 mb-2"></p>
+                        <p id="fileSize" class="text-sm text-gray-500 mb-4"></p>
+                        <button type="button" id="removeFile" class="text-red-600 hover:text-red-800 text-sm">
+                            <i class="fas fa-times mr-1"></i>Remove File
+                        </button>
                     </div>
-                </div>
-
-                <!-- Upload Button -->
-                <div class="flex justify-end space-x-4">
-                    <button type="button" id="resetForm"
-                        class="px-6 py-3 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                        <i class="fas fa-undo mr-2"></i>Reset
-                    </button>
-                    <button type="submit" id="uploadBtn"
-                        class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                        <i class="fas fa-upload mr-2"></i>Upload File
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Progress Section -->
-        <div id="progressSection" class="hidden mt-8 bg-white rounded-lg shadow-lg p-6 fade-in">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                <i class="fas fa-spinner mr-2"></i>Upload Progress
-            </h3>
-
-            <!-- Progress Bar -->
-            <div class="mb-4">
-                <div class="flex justify-between text-sm text-gray-600 mb-2">
-                    <span id="progressText">Preparing upload...</span>
-                    <span id="progressPercent">0%</span>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-3">
-                    <div id="progressBar" class="progress-bar bg-blue-600 h-3 rounded-full" style="width: 0%"></div>
                 </div>
             </div>
 
-            <!-- Status Messages -->
-            <div id="statusMessages" class="space-y-2">
-                <!-- Status messages will be added here -->
+            <!-- Options -->
+            <div class="bg-gray-50 rounded-lg p-4">
+                <div class="flex items-center">
+                    <input type="checkbox" id="hasHeaders" name="hasHeaders" checked
+                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                    <label for="hasHeaders" class="ml-3 text-sm text-gray-700">
+                        <i class="fas fa-check-square mr-1"></i>
+                        File contains headers in the first row
+                    </label>
+                </div>
+            </div>
+
+            <!-- Progress Section -->
+            <div id="progressSection" class="hidden">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm font-medium text-blue-800">Upload Progress</span>
+                        <span id="progressPercent" class="text-sm font-medium text-blue-800">0%</span>
+                    </div>
+                    <div class="w-full bg-blue-200 rounded-full h-2">
+                        <div id="progressBar" class="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                            style="width: 0%"></div>
+                    </div>
+                    <p id="progressText" class="text-sm text-blue-700 mt-2">Preparing upload...</p>
+                    <div id="statusMessages" class="mt-3 space-y-1"></div>
+                </div>
             </div>
 
             <!-- Results -->
-            <div id="uploadResults" class="hidden mt-6">
+            <div id="uploadResults" class="hidden">
                 <div class="bg-green-50 border border-green-200 rounded-lg p-4">
                     <div class="flex items-center">
-                        <i class="fas fa-check-circle text-green-600 text-xl mr-3"></i>
-                        <div>
-                            <h4 class="text-lg font-semibold text-green-900">Upload Complete!</h4>
-                            <p id="successMessage" class="text-green-800 text-sm"></p>
-                        </div>
+                        <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                        <p id="successMessage" class="text-green-800 font-medium">Upload successful!</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Error Results -->
-            <div id="errorResults" class="hidden mt-6">
+            <div id="errorResults" class="hidden">
                 <div class="bg-red-50 border border-red-200 rounded-lg p-4">
                     <div class="flex items-center">
-                        <i class="fas fa-exclamation-circle text-red-600 text-xl mr-3"></i>
-                        <div>
-                            <h4 class="text-lg font-semibold text-red-900">Upload Failed</h4>
-                            <p id="errorMessage" class="text-red-800 text-sm"></p>
-                        </div>
+                        <i class="fas fa-exclamation-circle text-red-500 mr-3"></i>
+                        <p id="errorMessage" class="text-red-800 font-medium">Upload failed!</p>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
 
-<!-- Loading Modal -->
-<div id="loadingModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
-    <div class="flex items-center justify-center min-h-screen">
-        <div class="bg-white rounded-lg shadow-xl p-8 text-center">
-            <div class="loading-spinner mx-auto mb-4"></div>
-            <p class="text-gray-600">Processing your file...</p>
-        </div>
+            <!-- Action Buttons -->
+            <div class="flex justify-end space-x-4">
+                <button type="button" id="resetForm"
+                    class="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors">
+                    <i class="fas fa-undo mr-2"></i>Reset
+                </button>
+                <button type="submit" id="uploadBtn"
+                    class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium">
+                    <i class="fas fa-upload mr-2"></i>Upload File
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
 <style>
+.upload-area {
+    transition: all 0.3s ease;
+}
+
+.upload-area:hover {
+    border-color: #3b82f6;
+    background-color: #f8fafc;
+}
+
 .upload-area.dragover {
-    border-color: #3b82f6 !important;
+    border-color: #3b82f6;
     background-color: #eff6ff;
-}
-
-.loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #f3f4f6;
-    border-top: 4px solid #3b82f6;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(360deg);
-    }
+    transform: scale(1.02);
 }
 
 .fade-in {
@@ -218,16 +175,18 @@ $userRole = $_SESSION['role'] ?? 'User';
 }
 </style>
 
+<?php include 'includes/footer.php'; ?>
+
 <script>
-// Ultra-simple approach - pure vanilla JavaScript, no jQuery, no functions
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, setting up event listeners');
-    
+// Upload functionality - runs after footer to avoid conflicts
+setTimeout(function() {
+    console.log('Initializing upload functionality...');
+
     // Check if elements exist
     const fileInput = document.getElementById('fileInput');
     const uploadArea = document.getElementById('uploadArea');
     const uploadForm = document.getElementById('uploadForm');
-    
+
     if (!fileInput) {
         console.error('fileInput element not found');
         return;
@@ -240,9 +199,9 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('uploadForm element not found');
         return;
     }
-    
+
     console.log('All elements found, setting up listeners');
-    
+
     // File input change
     fileInput.addEventListener('change', function(e) {
         console.log('File input changed');
@@ -306,18 +265,18 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         this.classList.add('dragover');
     });
-    
+
     uploadArea.addEventListener('dragleave', function(e) {
         console.log('Drag leave');
         e.preventDefault();
         this.classList.remove('dragover');
     });
-    
+
     uploadArea.addEventListener('drop', function(e) {
         console.log('File dropped');
         e.preventDefault();
         this.classList.remove('dragover');
-        
+
         const files = e.dataTransfer.files;
         if (files.length > 0) {
             const file = files[0];
@@ -342,7 +301,7 @@ document.addEventListener('DOMContentLoaded', function() {
     uploadForm.addEventListener('submit', function(e) {
         console.log('Form submitted');
         e.preventDefault();
-        
+
         if (document.getElementById('period').value == '0') {
             Swal.fire({
                 icon: 'error',
@@ -445,7 +404,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('uploadBtn').disabled = false;
         });
     }
-});
-</script>
 
-<?php include 'includes/footer.php'; ?>
+    console.log('Upload functionality initialized successfully!');
+}, 100); // Small delay to ensure everything is loaded
+</script>
