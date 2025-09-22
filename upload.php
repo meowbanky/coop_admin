@@ -218,75 +218,74 @@ $userRole = $_SESSION['role'] ?? 'User';
 }
 </style>
 
-<script>
-// File Upload Manager - Simple approach to avoid recursion
-let uploadManager = null;
-
-function initFileUpload() {
-    if (uploadManager) return; // Already initialized
-
-    // File input change
-    $('#fileInput').on('change', handleFileSelect);
-
-    // Upload area click
-    $('#uploadArea').on('click', function(e) {
-        e.preventDefault();
-        $('#fileInput').click();
+    <script>
+    // Simple file upload functionality - no recursion possible
+    $(document).ready(function() {
+        // File input change
+        $('#fileInput').on('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                displayFileInfo(file);
+            }
+        });
+        
+        // Upload area click
+        $('#uploadArea').on('click', function(e) {
+            e.preventDefault();
+            $('#fileInput').click();
+        });
+        
+        // Drag and drop
+        $('#uploadArea').on('dragover', function(e) {
+            e.preventDefault();
+            $(this).addClass('dragover');
+        });
+        
+        $('#uploadArea').on('dragleave', function(e) {
+            e.preventDefault();
+            $(this).removeClass('dragover');
+        });
+        
+        $('#uploadArea').on('drop', function(e) {
+            e.preventDefault();
+            $(this).removeClass('dragover');
+            
+            const files = e.originalEvent.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (validateFile(file)) {
+                    $('#fileInput')[0].files = files;
+                    displayFileInfo(file);
+                }
+            }
+        });
+        
+        // Remove file
+        $('#removeFile').on('click', function(e) {
+            e.preventDefault();
+            $('#fileInput').val('');
+            $('#fileInfo').addClass('hidden');
+            $('#uploadContent').removeClass('hidden');
+        });
+        
+        // Form submission
+        $('#uploadForm').on('submit', function(e) {
+            e.preventDefault();
+            handleSubmit(e);
+        });
+        
+        // Reset form
+        $('#resetForm').on('click', function(e) {
+            e.preventDefault();
+            $('#uploadForm')[0].reset();
+            $('#fileInput').val('');
+            $('#fileInfo').addClass('hidden');
+            $('#uploadContent').removeClass('hidden');
+            $('#progressSection').addClass('hidden');
+            $('#uploadBtn').prop('disabled', false);
+        });
     });
 
-    // Drag and drop
-    $('#uploadArea').on('dragover', handleDragOver);
-    $('#uploadArea').on('dragleave', handleDragLeave);
-    $('#uploadArea').on('drop', handleDrop);
-
-    // Remove file
-    $('#removeFile').on('click', function(e) {
-        e.preventDefault();
-        removeFile();
-    });
-
-    // Form submission
-    $('#uploadForm').on('submit', handleSubmit);
-
-    // Reset form
-    $('#resetForm').on('click', function(e) {
-        e.preventDefault();
-        resetForm();
-    });
-
-    uploadManager = true; // Mark as initialized
-}
-
-function handleFileSelect(e) {
-    const file = e.target.files[0];
-    if (file) {
-        displayFileInfo(file);
-    }
-}
-
-function handleDragOver(e) {
-    e.preventDefault();
-    $('#uploadArea').addClass('dragover');
-}
-
-function handleDragLeave(e) {
-    e.preventDefault();
-    $('#uploadArea').removeClass('dragover');
-}
-
-function handleDrop(e) {
-    e.preventDefault();
-    $('#uploadArea').removeClass('dragover');
-
-    const files = e.originalEvent.dataTransfer.files;
-    if (files.length > 0) {
-        const file = files[0];
-        if (validateFile(file)) {
-            $('#fileInput')[0].files = files;
-            displayFileInfo(file);
-        }
-    }
-}
 
 function validateFile(file) {
     const allowedTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/csv'];
@@ -437,10 +436,6 @@ function showError(message) {
     });
 }
 
-// Initialize the file upload manager when DOM is ready
-$(document).ready(function() {
-    initFileUpload();
-});
 </script>
 
 <?php include 'includes/footer.php'; ?>
