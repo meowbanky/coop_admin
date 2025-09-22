@@ -11,7 +11,7 @@ if (!isset($_SESSION['SESS_MEMBER_ID']) || (trim($_SESSION['SESS_MEMBER_ID']) ==
 }
 
 // Database connection
-include 'config/database.php';
+include 'Connections/coop.php';
 
 $pageTitle = 'File Upload - OOUTH COOP';
 include 'includes/header.php';
@@ -181,12 +181,21 @@ include 'includes/header.php';
 // Upload functionality - runs after footer to avoid conflicts
 setTimeout(function() {
     console.log('Initializing upload functionality...');
-
+    console.log('Document ready state:', document.readyState);
+    
     // Check if elements exist
     const fileInput = document.getElementById('fileInput');
     const uploadArea = document.getElementById('uploadArea');
     const uploadForm = document.getElementById('uploadForm');
-
+    const periodSelect = document.getElementById('period');
+    
+    console.log('Elements found:', {
+        fileInput: !!fileInput,
+        uploadArea: !!uploadArea,
+        uploadForm: !!uploadForm,
+        periodSelect: !!periodSelect
+    });
+    
     if (!fileInput) {
         console.error('fileInput element not found');
         return;
@@ -199,7 +208,11 @@ setTimeout(function() {
         console.error('uploadForm element not found');
         return;
     }
-
+    if (!periodSelect) {
+        console.error('periodSelect element not found');
+        return;
+    }
+    
     console.log('All elements found, setting up listeners');
 
     // File input change
