@@ -219,243 +219,227 @@ $userRole = $_SESSION['role'] ?? 'User';
 </style>
 
 <script>
-class FileUploadManager {
-    constructor() {
-        this.initialized = false;
-        this.init();
+// File Upload Manager - Simple approach to avoid recursion
+let uploadManager = null;
+
+function initFileUpload() {
+    if (uploadManager) return; // Already initialized
+
+    // File input change
+    $('#fileInput').on('change', handleFileSelect);
+
+    // Upload area click
+    $('#uploadArea').on('click', function(e) {
+        e.preventDefault();
+        $('#fileInput').click();
+    });
+
+    // Drag and drop
+    $('#uploadArea').on('dragover', handleDragOver);
+    $('#uploadArea').on('dragleave', handleDragLeave);
+    $('#uploadArea').on('drop', handleDrop);
+
+    // Remove file
+    $('#removeFile').on('click', function(e) {
+        e.preventDefault();
+        removeFile();
+    });
+
+    // Form submission
+    $('#uploadForm').on('submit', handleSubmit);
+
+    // Reset form
+    $('#resetForm').on('click', function(e) {
+        e.preventDefault();
+        resetForm();
+    });
+
+    uploadManager = true; // Mark as initialized
+}
+
+function handleFileSelect(e) {
+    const file = e.target.files[0];
+    if (file) {
+        displayFileInfo(file);
+    }
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    $('#uploadArea').addClass('dragover');
+}
+
+function handleDragLeave(e) {
+    e.preventDefault();
+    $('#uploadArea').removeClass('dragover');
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    $('#uploadArea').removeClass('dragover');
+
+    const files = e.originalEvent.dataTransfer.files;
+    if (files.length > 0) {
+        const file = files[0];
+        if (validateFile(file)) {
+            $('#fileInput')[0].files = files;
+            displayFileInfo(file);
+        }
+    }
+}
+
+function validateFile(file) {
+    const allowedTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/csv'];
+    const allowedExtensions = ['.xlsx', '.csv'];
+    const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+
+    if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
+        showError('Please select a valid Excel (.xlsx) or CSV file.');
+        return false;
     }
 
-    init() {
-        if (this.initialized) return;
-        this.initialized = true;
-        this.bindEvents();
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        showError('File size must be less than 10MB.');
+        return false;
     }
 
-    bindEvents() {
-        // Remove any existing event handlers to prevent duplicates
-        $('#fileInput').off('change');
-        $('#uploadArea').off('click dragover dragleave drop');
-        $('#removeFile').off('click');
-        $('#uploadForm').off('submit');
-        $('#resetForm').off('click');
+    return true;
+}
 
-        // File input change
-        $('#fileInput').on('change', (e) => this.handleFileSelect(e));
+function displayFileInfo(file) {
+    $('#uploadContent').addClass('hidden');
+    $('#fileInfo').removeClass('hidden');
+    $('#fileName').text(file.name);
+    $('#fileSize').text(formatFileSize(file.size));
+}
 
-        // Upload area click
-        $('#uploadArea').on('click', (e) => {
-            e.preventDefault();
-            $('#fileInput').click();
+function removeFile() {
+    $('#fileInput').val('');
+    $('#fileInfo').addClass('hidden');
+    $('#uploadContent').removeClass('hidden');
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+async function handleSubmit(e) {
+    e.preventDefault();
+
+    if ($('#period').val() == '0') {
+        showError('Please select a payroll period.');
+        return;
+    }
+
+    if (!$('#fileInput')[0].files[0]) {
+        showError('Please select a file to upload.');
+        return;
+    }
+
+    showProgress();
+    resetProgress();
+
+    const formData = new FormData(e.target);
+
+    try {
+        const response = await fetch('excel_import/import_office.php', {
+            method: 'POST',
+            body: formData
         });
 
-        // Drag and drop
-        $('#uploadArea').on('dragover', (e) => this.handleDragOver(e));
-        $('#uploadArea').on('dragleave', (e) => this.handleDragLeave(e));
-        $('#uploadArea').on('drop', (e) => this.handleDrop(e));
-
-        // Remove file
-        $('#removeFile').on('click', (e) => {
-            e.preventDefault();
-            this.removeFile();
-        });
-
-        // Form submission
-        $('#uploadForm').on('submit', (e) => this.handleSubmit(e));
-
-        // Reset form
-        $('#resetForm').on('click', (e) => {
-            e.preventDefault();
-            this.resetForm();
-        });
-    }
-
-    handleFileSelect(e) {
-        const file = e.target.files[0];
-        if (file) {
-            this.displayFileInfo(file);
+        if (response.ok) {
+            const result = await response.text();
+            handleUploadSuccess(result);
+        } else {
+            handleUploadError('Upload failed. Please try again.');
         }
+    } catch (error) {
+        console.error('Upload error:', error);
+        handleUploadError('An error occurred during upload.');
     }
+}
 
-    handleDragOver(e) {
-        e.preventDefault();
-        $('#uploadArea').addClass('dragover');
-    }
+function showProgress() {
+    $('#progressSection').removeClass('hidden');
+    $('#uploadBtn').prop('disabled', true);
+    updateProgress(0, 'Preparing upload...');
+}
 
-    handleDragLeave(e) {
-        e.preventDefault();
-        $('#uploadArea').removeClass('dragover');
-    }
+function resetProgress() {
+    $('#progressBar').css('width', '0%');
+    $('#progressPercent').text('0%');
+    $('#statusMessages').empty();
+    $('#uploadResults').addClass('hidden');
+    $('#errorResults').addClass('hidden');
+}
 
-    handleDrop(e) {
-        e.preventDefault();
-        $('#uploadArea').removeClass('dragover');
+function updateProgress(percent, text) {
+    $('#progressBar').css('width', percent + '%');
+    $('#progressPercent').text(percent + '%');
+    $('#progressText').text(text);
+}
 
-        const files = e.originalEvent.dataTransfer.files;
-        if (files.length > 0) {
-            const file = files[0];
-            if (this.validateFile(file)) {
-                $('#fileInput')[0].files = files;
-                this.displayFileInfo(file);
-            }
-        }
-    }
+function addStatusMessage(message, type = 'info') {
+    const iconClass = type === 'error' ? 'fa-exclamation-circle text-red-500' :
+        type === 'success' ? 'fa-check-circle text-green-500' :
+        'fa-info-circle text-blue-500';
 
-    validateFile(file) {
-        const allowedTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/csv'];
-        const allowedExtensions = ['.xlsx', '.csv'];
-        const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+    const messageDiv = $(`
+            <div class="flex items-center text-sm">
+                <i class="fas ${iconClass} mr-2"></i>
+                <span>${message}</span>
+            </div>
+        `);
 
-        if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
-            this.showError('Please select a valid Excel (.xlsx) or CSV file.');
-            return false;
-        }
+    $('#statusMessages').append(messageDiv);
+}
 
-        if (file.size > 10 * 1024 * 1024) { // 10MB limit
-            this.showError('File size must be less than 10MB.');
-            return false;
-        }
+function handleUploadSuccess(result) {
+    updateProgress(100, 'Upload completed successfully!');
+    addStatusMessage('File processed successfully', 'success');
 
-        return true;
-    }
+    $('#uploadResults').removeClass('hidden');
+    $('#successMessage').text('Your file has been uploaded and processed successfully.');
 
-    displayFileInfo(file) {
-        $('#uploadContent').addClass('hidden');
-        $('#fileInfo').removeClass('hidden');
-        $('#fileName').text(file.name);
-        $('#fileSize').text(this.formatFileSize(file.size));
-    }
-
-    removeFile() {
-        $('#fileInput').val('');
-        $('#fileInfo').addClass('hidden');
-        $('#uploadContent').removeClass('hidden');
-    }
-
-    formatFileSize(bytes) {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    }
-
-    async handleSubmit(e) {
-        e.preventDefault();
-
-        if ($('#period').val() == '0') {
-            this.showError('Please select a payroll period.');
-            return;
-        }
-
-        if (!$('#fileInput')[0].files[0]) {
-            this.showError('Please select a file to upload.');
-            return;
-        }
-
-        this.showProgress();
-        this.resetProgress();
-
-        const formData = new FormData(e.target);
-
-        try {
-            const response = await fetch('excel_import/import_office.php', {
-                method: 'POST',
-                body: formData
-            });
-
-            if (response.ok) {
-                const result = await response.text();
-                this.handleUploadSuccess(result);
-            } else {
-                this.handleUploadError('Upload failed. Please try again.');
-            }
-        } catch (error) {
-            console.error('Upload error:', error);
-            this.handleUploadError('An error occurred during upload.');
-        }
-    }
-
-    showProgress() {
-        $('#progressSection').removeClass('hidden');
-        $('#uploadBtn').prop('disabled', true);
-        this.updateProgress(0, 'Preparing upload...');
-    }
-
-    resetProgress() {
-        $('#progressBar').css('width', '0%');
-        $('#progressPercent').text('0%');
-        $('#statusMessages').empty();
-        $('#uploadResults').addClass('hidden');
-        $('#errorResults').addClass('hidden');
-    }
-
-    updateProgress(percent, text) {
-        $('#progressBar').css('width', percent + '%');
-        $('#progressPercent').text(percent + '%');
-        $('#progressText').text(text);
-    }
-
-    addStatusMessage(message, type = 'info') {
-        const iconClass = type === 'error' ? 'fa-exclamation-circle text-red-500' :
-            type === 'success' ? 'fa-check-circle text-green-500' :
-            'fa-info-circle text-blue-500';
-
-        const messageDiv = $(`
-                <div class="flex items-center text-sm">
-                    <i class="fas ${iconClass} mr-2"></i>
-                    <span>${message}</span>
-                </div>
-            `);
-
-        $('#statusMessages').append(messageDiv);
-    }
-
-    handleUploadSuccess(result) {
-        this.updateProgress(100, 'Upload completed successfully!');
-        this.addStatusMessage('File processed successfully', 'success');
-
-        $('#uploadResults').removeClass('hidden');
-        $('#successMessage').text('Your file has been uploaded and processed successfully.');
-
-        // Reset form after success
-        setTimeout(() => {
-            this.resetForm();
-            $('#progressSection').addClass('hidden');
-        }, 3000);
-    }
-
-    handleUploadError(message) {
-        this.updateProgress(0, 'Upload failed');
-        this.addStatusMessage(message, 'error');
-
-        $('#errorResults').removeClass('hidden');
-        $('#errorMessage').text(message);
-
-        $('#uploadBtn').prop('disabled', false);
-    }
-
-    resetForm() {
-        $('#uploadForm')[0].reset();
-        this.removeFile();
+    // Reset form after success
+    setTimeout(() => {
+        resetForm();
         $('#progressSection').addClass('hidden');
-        $('#uploadBtn').prop('disabled', false);
-    }
+    }, 3000);
+}
 
-    showError(message) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: message
-        });
-    }
+function handleUploadError(message) {
+    updateProgress(0, 'Upload failed');
+    addStatusMessage(message, 'error');
+
+    $('#errorResults').removeClass('hidden');
+    $('#errorMessage').text(message);
+
+    $('#uploadBtn').prop('disabled', false);
+}
+
+function resetForm() {
+    $('#uploadForm')[0].reset();
+    removeFile();
+    $('#progressSection').addClass('hidden');
+    $('#uploadBtn').prop('disabled', false);
+}
+
+function showError(message) {
+    Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: message
+    });
 }
 
 // Initialize the file upload manager when DOM is ready
 $(document).ready(function() {
-    // Only initialize if not already initialized
-    if (typeof window.uploadManager === 'undefined') {
-        window.uploadManager = new FileUploadManager();
-    }
+    initFileUpload();
 });
 </script>
 
