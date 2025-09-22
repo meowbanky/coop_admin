@@ -182,20 +182,20 @@ include 'includes/header.php';
 setTimeout(function() {
     console.log('Initializing upload functionality...');
     console.log('Document ready state:', document.readyState);
-    
+
     // Check if elements exist
     const fileInput = document.getElementById('fileInput');
     const uploadArea = document.getElementById('uploadArea');
     const uploadForm = document.getElementById('uploadForm');
     const periodSelect = document.getElementById('period');
-    
+
     console.log('Elements found:', {
         fileInput: !!fileInput,
         uploadArea: !!uploadArea,
         uploadForm: !!uploadForm,
         periodSelect: !!periodSelect
     });
-    
+
     if (!fileInput) {
         console.error('fileInput element not found');
         return;
@@ -212,8 +212,14 @@ setTimeout(function() {
         console.error('periodSelect element not found');
         return;
     }
-    
+
     console.log('All elements found, setting up listeners');
+
+    // Test file input click
+    console.log('Testing file input click...');
+    fileInput.addEventListener('click', function(e) {
+        console.log('File input clicked directly');
+    });
 
     // File input change
     fileInput.addEventListener('change', function(e) {
@@ -269,8 +275,21 @@ setTimeout(function() {
     uploadArea.addEventListener('click', function(e) {
         console.log('Upload area clicked');
         e.preventDefault();
+        e.stopPropagation();
+        console.log('Triggering file input click');
         fileInput.click();
     });
+
+    // Also make sure the upload content is clickable
+    const uploadContent = document.getElementById('uploadContent');
+    if (uploadContent) {
+        uploadContent.addEventListener('click', function(e) {
+            console.log('Upload content clicked');
+            e.preventDefault();
+            e.stopPropagation();
+            fileInput.click();
+        });
+    }
 
     // Drag and drop
     uploadArea.addEventListener('dragover', function(e) {
@@ -357,17 +376,40 @@ setTimeout(function() {
                 }
             })
             .then(result => {
+                console.log('Upload response:', result);
+
                 // Success inline
                 document.getElementById('progressBar').style.width = '100%';
                 document.getElementById('progressPercent').textContent = '100%';
                 document.getElementById('progressText').textContent =
                     'Upload completed successfully!';
 
+                // Extract information from the response
+                const infoMatch = result.match(
+                    /parent\.document\.getElementById\("information"\)\.innerHTML="([^"]+)"/);
+                const messageMatch = result.match(
+                    /parent\.document\.getElementById\("message"\)\.innerHTML="([^"]+)"/);
+
+                const infoText = infoMatch ? infoMatch[1] : 'File processed successfully';
+                const messageText = messageMatch ? messageMatch[1] :
+                    'Import completed successfully';
+
                 const messageDiv = document.createElement('div');
                 messageDiv.className = 'flex items-center text-sm';
                 messageDiv.innerHTML =
-                    '<i class="fas fa-check-circle text-green-500 mr-2"></i><span>File processed successfully</span>';
+                    '<i class="fas fa-check-circle text-green-500 mr-2"></i><span>' + messageText +
+                    '</span>';
                 document.getElementById('statusMessages').appendChild(messageDiv);
+
+                // Add detailed information if available
+                if (infoText && infoText !== 'File processed successfully') {
+                    const infoDiv = document.createElement('div');
+                    infoDiv.className = 'flex items-start text-sm mt-2';
+                    infoDiv.innerHTML =
+                        '<i class="fas fa-info-circle text-blue-500 mr-2 mt-1"></i><span class="text-gray-700">' +
+                        infoText + '</span>';
+                    document.getElementById('statusMessages').appendChild(infoDiv);
+                }
 
                 document.getElementById('uploadResults').classList.remove('hidden');
                 document.getElementById('successMessage').textContent =
@@ -381,7 +423,7 @@ setTimeout(function() {
                     document.getElementById('uploadContent').classList.remove('hidden');
                     document.getElementById('progressSection').classList.add('hidden');
                     document.getElementById('uploadBtn').disabled = false;
-                }, 3000);
+                }, 5000); // Increased timeout to show results longer
             })
             .catch(error => {
                 console.error('Upload error:', error);
