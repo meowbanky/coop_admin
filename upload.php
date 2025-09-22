@@ -221,15 +221,41 @@ $userRole = $_SESSION['role'] ?? 'User';
 <script>
 // Ultra-simple approach - pure vanilla JavaScript, no jQuery, no functions
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, setting up event listeners');
+    
+    // Check if elements exist
+    const fileInput = document.getElementById('fileInput');
+    const uploadArea = document.getElementById('uploadArea');
+    const uploadForm = document.getElementById('uploadForm');
+    
+    if (!fileInput) {
+        console.error('fileInput element not found');
+        return;
+    }
+    if (!uploadArea) {
+        console.error('uploadArea element not found');
+        return;
+    }
+    if (!uploadForm) {
+        console.error('uploadForm element not found');
+        return;
+    }
+    
+    console.log('All elements found, setting up listeners');
+    
     // File input change
-    document.getElementById('fileInput').addEventListener('change', function(e) {
+    fileInput.addEventListener('change', function(e) {
+        console.log('File input changed');
         const file = e.target.files[0];
         if (file) {
+            console.log('File selected:', file.name);
             // Validate file inline
-            const allowedTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'text/csv'];
+            const allowedTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'text/csv'
+            ];
             const allowedExtensions = ['.xlsx', '.csv'];
             const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
-            
+
             if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
                 Swal.fire({
                     icon: 'error',
@@ -238,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 return;
             }
-            
+
             if (file.size > 10 * 1024 * 1024) {
                 Swal.fire({
                     icon: 'error',
@@ -247,12 +273,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 return;
             }
-            
+
             // Display file info inline
             document.getElementById('uploadContent').classList.add('hidden');
             document.getElementById('fileInfo').classList.remove('hidden');
             document.getElementById('fileName').textContent = file.name;
-            
+
             // Format file size inline
             const bytes = file.size;
             if (bytes === 0) {
@@ -266,46 +292,55 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
-    
+
     // Upload area click
-    document.getElementById('uploadArea').addEventListener('click', function(e) {
+    uploadArea.addEventListener('click', function(e) {
+        console.log('Upload area clicked');
         e.preventDefault();
-        document.getElementById('fileInput').click();
+        fileInput.click();
     });
-    
+
     // Drag and drop
-    document.getElementById('uploadArea').addEventListener('dragover', function(e) {
+    uploadArea.addEventListener('dragover', function(e) {
+        console.log('Drag over');
         e.preventDefault();
         this.classList.add('dragover');
     });
     
-    document.getElementById('uploadArea').addEventListener('dragleave', function(e) {
+    uploadArea.addEventListener('dragleave', function(e) {
+        console.log('Drag leave');
         e.preventDefault();
         this.classList.remove('dragover');
     });
     
-    document.getElementById('uploadArea').addEventListener('drop', function(e) {
+    uploadArea.addEventListener('drop', function(e) {
+        console.log('File dropped');
         e.preventDefault();
         this.classList.remove('dragover');
         
         const files = e.dataTransfer.files;
         if (files.length > 0) {
             const file = files[0];
-            document.getElementById('fileInput').files = files;
-            document.getElementById('fileInput').dispatchEvent(new Event('change'));
+            console.log('File dropped:', file.name);
+            fileInput.files = files;
+            fileInput.dispatchEvent(new Event('change'));
         }
     });
-    
+
     // Remove file
-    document.getElementById('removeFile').addEventListener('click', function(e) {
-        e.preventDefault();
-        document.getElementById('fileInput').value = '';
-        document.getElementById('fileInfo').classList.add('hidden');
-        document.getElementById('uploadContent').classList.remove('hidden');
-    });
+    const removeFileBtn = document.getElementById('removeFile');
+    if (removeFileBtn) {
+        removeFileBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            fileInput.value = '';
+            document.getElementById('fileInfo').classList.add('hidden');
+            document.getElementById('uploadContent').classList.remove('hidden');
+        });
+    }
 
     // Form submission
-    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+    uploadForm.addEventListener('submit', function(e) {
+        console.log('Form submitted');
         e.preventDefault();
         
         if (document.getElementById('period').value == '0') {
@@ -316,7 +351,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             return;
         }
-        
+
         if (!document.getElementById('fileInput').files[0]) {
             Swal.fire({
                 icon: 'error',
@@ -337,71 +372,79 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('errorResults').classList.add('hidden');
 
         const formData = new FormData(e.target);
-        
+
         fetch('excel_import/import_office.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => {
-            if (response.ok) {
-                return response.text();
-            } else {
-                throw new Error('Upload failed');
-            }
-        })
-        .then(result => {
-            // Success inline
-            document.getElementById('progressBar').style.width = '100%';
-            document.getElementById('progressPercent').textContent = '100%';
-            document.getElementById('progressText').textContent = 'Upload completed successfully!';
-            
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'flex items-center text-sm';
-            messageDiv.innerHTML = '<i class="fas fa-check-circle text-green-500 mr-2"></i><span>File processed successfully</span>';
-            document.getElementById('statusMessages').appendChild(messageDiv);
-            
-            document.getElementById('uploadResults').classList.remove('hidden');
-            document.getElementById('successMessage').textContent = 'Your file has been uploaded and processed successfully.';
-            
-            // Reset form after success
-            setTimeout(() => {
-                document.getElementById('uploadForm').reset();
-                document.getElementById('fileInput').value = '';
-                document.getElementById('fileInfo').classList.add('hidden');
-                document.getElementById('uploadContent').classList.remove('hidden');
-                document.getElementById('progressSection').classList.add('hidden');
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.text();
+                } else {
+                    throw new Error('Upload failed');
+                }
+            })
+            .then(result => {
+                // Success inline
+                document.getElementById('progressBar').style.width = '100%';
+                document.getElementById('progressPercent').textContent = '100%';
+                document.getElementById('progressText').textContent =
+                    'Upload completed successfully!';
+
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'flex items-center text-sm';
+                messageDiv.innerHTML =
+                    '<i class="fas fa-check-circle text-green-500 mr-2"></i><span>File processed successfully</span>';
+                document.getElementById('statusMessages').appendChild(messageDiv);
+
+                document.getElementById('uploadResults').classList.remove('hidden');
+                document.getElementById('successMessage').textContent =
+                    'Your file has been uploaded and processed successfully.';
+
+                // Reset form after success
+                setTimeout(() => {
+                    document.getElementById('uploadForm').reset();
+                    document.getElementById('fileInput').value = '';
+                    document.getElementById('fileInfo').classList.add('hidden');
+                    document.getElementById('uploadContent').classList.remove('hidden');
+                    document.getElementById('progressSection').classList.add('hidden');
+                    document.getElementById('uploadBtn').disabled = false;
+                }, 3000);
+            })
+            .catch(error => {
+                console.error('Upload error:', error);
+
+                // Error inline
+                document.getElementById('progressBar').style.width = '0%';
+                document.getElementById('progressPercent').textContent = '0%';
+                document.getElementById('progressText').textContent = 'Upload failed';
+
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'flex items-center text-sm';
+                messageDiv.innerHTML =
+                    '<i class="fas fa-exclamation-circle text-red-500 mr-2"></i><span>An error occurred during upload.</span>';
+                document.getElementById('statusMessages').appendChild(messageDiv);
+
+                document.getElementById('errorResults').classList.remove('hidden');
+                document.getElementById('errorMessage').textContent =
+                    'An error occurred during upload.';
                 document.getElementById('uploadBtn').disabled = false;
-            }, 3000);
-        })
-        .catch(error => {
-            console.error('Upload error:', error);
-            
-            // Error inline
-            document.getElementById('progressBar').style.width = '0%';
-            document.getElementById('progressPercent').textContent = '0%';
-            document.getElementById('progressText').textContent = 'Upload failed';
-            
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'flex items-center text-sm';
-            messageDiv.innerHTML = '<i class="fas fa-exclamation-circle text-red-500 mr-2"></i><span>An error occurred during upload.</span>';
-            document.getElementById('statusMessages').appendChild(messageDiv);
-            
-            document.getElementById('errorResults').classList.remove('hidden');
-            document.getElementById('errorMessage').textContent = 'An error occurred during upload.';
-            document.getElementById('uploadBtn').disabled = false;
-        });
+            });
     });
 
     // Reset form
-    document.getElementById('resetForm').addEventListener('click', function(e) {
-        e.preventDefault();
-        document.getElementById('uploadForm').reset();
-        document.getElementById('fileInput').value = '';
-        document.getElementById('fileInfo').classList.add('hidden');
-        document.getElementById('uploadContent').classList.remove('hidden');
-        document.getElementById('progressSection').classList.add('hidden');
-        document.getElementById('uploadBtn').disabled = false;
-    });
+    const resetFormBtn = document.getElementById('resetForm');
+    if (resetFormBtn) {
+        resetFormBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            uploadForm.reset();
+            fileInput.value = '';
+            document.getElementById('fileInfo').classList.add('hidden');
+            document.getElementById('uploadContent').classList.remove('hidden');
+            document.getElementById('progressSection').classList.add('hidden');
+            document.getElementById('uploadBtn').disabled = false;
+        });
+    }
 });
 </script>
 
