@@ -45,14 +45,14 @@ include 'includes/header.php';
                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     <option value="0">Choose a payroll period...</option>
                     <?php
-                        mysqli_select_db($coop, $database);
-                        $query = "SELECT * FROM tbpayrollperiods ORDER BY id DESC";
-                        $result = mysqli_query($coop, $query) or die(mysqli_error($coop));
-                        while ($row = mysqli_fetch_assoc($result)) {
-                            echo '<option value="' . htmlspecialchars($row['id']) . '">' . htmlspecialchars($row['PayrollPeriod']) . '</option>';
-                        }
-                        mysqli_free_result($result);
-                        ?>
+                mysqli_select_db($coop, $database);
+                $query = "SELECT * FROM tbpayrollperiods ORDER BY id DESC";
+                $result = mysqli_query($coop, $query) or die(mysqli_error($coop));
+                while ($row = mysqli_fetch_assoc($result)) {
+                    echo '<option value="' . htmlspecialchars($row['id']) . '">' . htmlspecialchars($row['PayrollPeriod']) . '</option>';
+                }
+                mysqli_free_result($result);
+            ?>
                 </select>
             </div>
 
@@ -67,6 +67,11 @@ include 'includes/header.php';
                         <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
                         <p class="text-lg font-medium text-gray-600 mb-2">Click to select file or drag and drop</p>
                         <p class="text-sm text-gray-500">Excel (.xlsx) or CSV files only</p>
+                        <!-- Top Browse Button -->
+                        <label for="fileInput"
+                            class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors cursor-pointer inline-block mt-4">
+                            <i class="fas fa-folder-open mr-2"></i>Browse Files
+                        </label>
                         <input type="file" id="fileInput" name="file" accept=".xlsx,.csv" class="hidden" required>
                     </div>
                     <div id="fileInfo" class="hidden">
@@ -128,23 +133,19 @@ include 'includes/header.php';
             </div>
 
             <!-- Action Buttons -->
-            <div class="flex justify-between items-center">
-                <div class="flex space-x-3">
-                    <button type="button" id="browseFile"
-                        class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
-                        <i class="fas fa-folder-open mr-2"></i>Browse Files
-                    </button>
-                    <button type="button" id="resetForm"
-                        class="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors">
-                        <i class="fas fa-undo mr-2"></i>Reset
-                    </button>
-                </div>
+            <div class="flex justify-end space-x-4">
+                <button type="button" id="resetForm"
+                    class="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors">
+                    <i class="fas fa-undo mr-2"></i>Reset
+                </button>
                 <button type="submit" id="uploadBtn"
                     class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium">
                     <i class="fas fa-upload mr-2"></i>Upload File
                 </button>
             </div>
         </form>
+
+
     </div>
 </div>
 
@@ -184,295 +185,180 @@ include 'includes/header.php';
 <?php   include 'includes/footer.php'; ?>
 
 <script>
-// Upload functionality - runs after footer to avoid conflicts
-setTimeout(function() {
-    console.log('Initializing upload functionality...');
-    console.log('Document ready state:', document.readyState);
-
-    // Check if elements exist
+// Wait until the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', function() {
     const fileInput = document.getElementById('fileInput');
     const uploadArea = document.getElementById('uploadArea');
+    const uploadContent = document.getElementById('uploadContent');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileNameElem = document.getElementById('fileName');
+    const fileSizeElem = document.getElementById('fileSize');
+    const removeFileBtn = document.getElementById('removeFile');
     const uploadForm = document.getElementById('uploadForm');
-    const periodSelect = document.getElementById('period');
+    const progressSection = document.getElementById('progressSection');
+    const progressBar = document.getElementById('progressBar');
+    const progressPercent = document.getElementById('progressPercent');
+    const progressText = document.getElementById('progressText');
+    const statusMessages = document.getElementById('statusMessages');
+    const uploadResults = document.getElementById('uploadResults');
+    const errorResults = document.getElementById('errorResults');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const resetFormBtn = document.getElementById('resetForm');
 
-    console.log('Elements found:', {
-        fileInput: !!fileInput,
-        uploadArea: !!uploadArea,
-        uploadForm: !!uploadForm,
-        periodSelect: !!periodSelect
-    });
+    // Helper: Display selected file info
+    function displayFileInfo(file) {
+        uploadContent.classList.add('hidden');
+        fileInfo.classList.remove('hidden');
+        fileNameElem.textContent = file.name;
 
-    if (!fileInput) {
-        console.error('fileInput element not found');
-        return;
-    }
-    if (!uploadArea) {
-        console.error('uploadArea element not found');
-        return;
-    }
-    if (!uploadForm) {
-        console.error('uploadForm element not found');
-        return;
-    }
-    if (!periodSelect) {
-        console.error('periodSelect element not found');
-        return;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(file.size) / Math.log(1024));
+        fileSizeElem.textContent = (file.size / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i];
     }
 
-    console.log('All elements found, setting up listeners');
+    // Helper: Validate file
+    function validateFile(file) {
+        const allowedTypes = [
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'text/csv'
+        ];
+        const allowedExtensions = ['.xlsx', '.csv'];
+        const fileExt = '.' + file.name.split('.').pop().toLowerCase();
 
-    // Test file input click
-    console.log('Testing file input click...');
-    fileInput.addEventListener('click', function(e) {
-        console.log('File input clicked directly');
-    });
+        if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExt)) {
+            Swal.fire('Error', 'Please select a valid Excel (.xlsx) or CSV file.', 'error');
+            return false;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            Swal.fire('Error', 'File size must be less than 10MB.', 'error');
+            return false;
+        }
+        return true;
+    }
 
     // File input change
     fileInput.addEventListener('change', function(e) {
-        console.log('File input changed');
-        const file = e.target.files[0];
-        if (file) {
-            console.log('File selected:', file.name);
-            // Validate file inline
-            const allowedTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'text/csv'
-            ];
-            const allowedExtensions = ['.xlsx', '.csv'];
-            const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
-
-            if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Please select a valid Excel (.xlsx) or CSV file.'
-                });
-                return;
-            }
-
-            if (file.size > 10 * 1024 * 1024) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'File size must be less than 10MB.'
-                });
-                return;
-            }
-
-            // Display file info inline
-            document.getElementById('uploadContent').classList.add('hidden');
-            document.getElementById('fileInfo').classList.remove('hidden');
-            document.getElementById('fileName').textContent = file.name;
-
-            // Format file size inline
-            const bytes = file.size;
-            if (bytes === 0) {
-                document.getElementById('fileSize').textContent = '0 Bytes';
-            } else {
-                const k = 1024;
-                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-                const i = Math.floor(Math.log(bytes) / Math.log(k));
-                const size = parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-                document.getElementById('fileSize').textContent = size;
-            }
+        if (fileInput.files.length === 0) return;
+        const file = fileInput.files[0];
+        if (!validateFile(file)) {
+            fileInput.value = '';
+            return;
         }
+        displayFileInfo(file);
     });
 
-    // Upload area click
-    uploadArea.addEventListener('click', function(e) {
-        console.log('Upload area clicked');
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('Triggering file input click');
-        fileInput.click();
-    });
-
-    // Also make sure the upload content is clickable
-    const uploadContent = document.getElementById('uploadContent');
-    if (uploadContent) {
-        uploadContent.addEventListener('click', function(e) {
-            console.log('Upload content clicked');
-            e.preventDefault();
-            e.stopPropagation();
-            fileInput.click();
-        });
-    }
-
-    // Browse file button
-    const browseFileBtn = document.getElementById('browseFile');
-    if (browseFileBtn) {
-        browseFileBtn.addEventListener('click', function(e) {
-            console.log('Browse file button clicked');
-            e.preventDefault();
-            fileInput.click();
-        });
-    }
-
-    // Drag and drop
+    // Drag-and-drop
     uploadArea.addEventListener('dragover', function(e) {
-        console.log('Drag over');
         e.preventDefault();
         this.classList.add('dragover');
     });
-
     uploadArea.addEventListener('dragleave', function(e) {
-        console.log('Drag leave');
         e.preventDefault();
         this.classList.remove('dragover');
     });
-
     uploadArea.addEventListener('drop', function(e) {
-        console.log('File dropped');
         e.preventDefault();
         this.classList.remove('dragover');
-
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            const file = files[0];
-            console.log('File dropped:', file.name);
-            fileInput.files = files;
-            fileInput.dispatchEvent(new Event('change'));
-        }
+        if (e.dataTransfer.files.length === 0) return;
+        const file = e.dataTransfer.files[0];
+        if (!validateFile(file)) return;
+        fileInput.files = e.dataTransfer.files; // Set input files
+        displayFileInfo(file);
     });
 
-    // Remove file
-    const removeFileBtn = document.getElementById('removeFile');
-    if (removeFileBtn) {
-        removeFileBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            fileInput.value = '';
-            document.getElementById('fileInfo').classList.add('hidden');
-            document.getElementById('uploadContent').classList.remove('hidden');
-        });
-    }
+    // Remove selected file
+    removeFileBtn.addEventListener('click', function() {
+        fileInput.value = '';
+        fileInfo.classList.add('hidden');
+        uploadContent.classList.remove('hidden');
+    });
 
     // Form submission
     uploadForm.addEventListener('submit', function(e) {
-        console.log('Form submitted');
         e.preventDefault();
 
-        if (document.getElementById('period').value == '0') {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Please select a payroll period.'
-            });
+        if (document.getElementById('period').value === '0') {
+            Swal.fire('Error', 'Please select a payroll period.', 'error');
+            return;
+        }
+        if (!fileInput.files[0]) {
+            Swal.fire('Error', 'Please select a file to upload.', 'error');
             return;
         }
 
-        if (!document.getElementById('fileInput').files[0]) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Please select a file to upload.'
-            });
-            return;
-        }
+        const formData = new FormData(uploadForm);
 
-        // Show progress inline
-        document.getElementById('progressSection').classList.remove('hidden');
-        document.getElementById('uploadBtn').disabled = true;
-        document.getElementById('progressBar').style.width = '0%';
-        document.getElementById('progressPercent').textContent = '0%';
-        document.getElementById('progressText').textContent = 'Preparing upload...';
-        document.getElementById('statusMessages').innerHTML = '';
-        document.getElementById('uploadResults').classList.add('hidden');
-        document.getElementById('errorResults').classList.add('hidden');
-
-        const formData = new FormData(e.target);
+        // Reset progress/status
+        progressSection.classList.remove('hidden');
+        progressBar.style.width = '0%';
+        progressPercent.textContent = '0%';
+        progressText.textContent = 'Preparing upload...';
+        statusMessages.innerHTML = '';
+        uploadResults.classList.add('hidden');
+        errorResults.classList.add('hidden');
+        uploadBtn.disabled = true;
 
         fetch('excel_import/import_office.php', {
                 method: 'POST',
                 body: formData
             })
-            .then(response => {
-                if (response.ok) {
-                    return response.text();
-                } else {
-                    throw new Error('Upload failed');
-                }
-            })
+            .then(response => response.ok ? response.text() : Promise.reject('Upload failed'))
             .then(result => {
-                console.log('Upload response:', result);
-
-                // Success inline
-                document.getElementById('progressBar').style.width = '100%';
-                document.getElementById('progressPercent').textContent = '100%';
-                document.getElementById('progressText').textContent =
-                    'Upload completed successfully!';
+                progressBar.style.width = '100%';
+                progressPercent.textContent = '100%';
+                progressText.textContent = 'Upload completed successfully!';
 
                 // Extract information from the response
-                const infoMatch = result.match(
-                    /parent\.document\.getElementById\("information"\)\.innerHTML="([^"]+)"/);
-                const messageMatch = result.match(
-                    /parent\.document\.getElementById\("message"\)\.innerHTML="([^"]+)"/);
-
+                const infoMatch = result.match(/parent\.document\.getElementById\("information"\)\.innerHTML="([^"]+)"/);
+                const messageMatch = result.match(/parent\.document\.getElementById\("message"\)\.innerHTML="([^"]+)"/);
+                
                 const infoText = infoMatch ? infoMatch[1] : 'File processed successfully';
-                const messageText = messageMatch ? messageMatch[1] :
-                    'Import completed successfully';
+                const messageText = messageMatch ? messageMatch[1] : 'Import completed successfully';
 
                 const messageDiv = document.createElement('div');
                 messageDiv.className = 'flex items-center text-sm';
-                messageDiv.innerHTML =
-                    '<i class="fas fa-check-circle text-green-500 mr-2"></i><span>' + messageText +
-                    '</span>';
-                document.getElementById('statusMessages').appendChild(messageDiv);
+                messageDiv.innerHTML = '<i class="fas fa-check-circle text-green-500 mr-2"></i><span>' + messageText + '</span>';
+                statusMessages.appendChild(messageDiv);
 
                 // Add detailed information if available
                 if (infoText && infoText !== 'File processed successfully') {
                     const infoDiv = document.createElement('div');
                     infoDiv.className = 'flex items-start text-sm mt-2';
-                    infoDiv.innerHTML =
-                        '<i class="fas fa-info-circle text-blue-500 mr-2 mt-1"></i><span class="text-gray-700">' +
-                        infoText + '</span>';
-                    document.getElementById('statusMessages').appendChild(infoDiv);
+                    infoDiv.innerHTML = '<i class="fas fa-info-circle text-blue-500 mr-2 mt-1"></i><span class="text-gray-700">' + infoText + '</span>';
+                    statusMessages.appendChild(infoDiv);
                 }
 
-                document.getElementById('uploadResults').classList.remove('hidden');
-                document.getElementById('successMessage').textContent =
-                    'Your file has been uploaded and processed successfully.';
-
-                // Don't auto-reset form - let user manually reset to see results
-                // Just re-enable the upload button
-                document.getElementById('uploadBtn').disabled = false;
+                uploadResults.classList.remove('hidden');
+                uploadBtn.disabled = false;
             })
             .catch(error => {
-                console.error('Upload error:', error);
-
-                // Error inline
-                document.getElementById('progressBar').style.width = '0%';
-                document.getElementById('progressPercent').textContent = '0%';
-                document.getElementById('progressText').textContent = 'Upload failed';
+                console.error(error);
+                progressBar.style.width = '0%';
+                progressPercent.textContent = '0%';
+                progressText.textContent = 'Upload failed';
 
                 const messageDiv = document.createElement('div');
                 messageDiv.className = 'flex items-center text-sm';
                 messageDiv.innerHTML =
                     '<i class="fas fa-exclamation-circle text-red-500 mr-2"></i><span>An error occurred during upload.</span>';
-                document.getElementById('statusMessages').appendChild(messageDiv);
+                statusMessages.appendChild(messageDiv);
 
-                document.getElementById('errorResults').classList.remove('hidden');
-                document.getElementById('errorMessage').textContent =
-                    'An error occurred during upload.';
-                document.getElementById('uploadBtn').disabled = false;
+                errorResults.classList.remove('hidden');
+                uploadBtn.disabled = false;
             });
     });
 
     // Reset form
-    const resetFormBtn = document.getElementById('resetForm');
-    if (resetFormBtn) {
-        resetFormBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            uploadForm.reset();
-            fileInput.value = '';
-            document.getElementById('fileInfo').classList.add('hidden');
-            document.getElementById('uploadContent').classList.remove('hidden');
-            document.getElementById('progressSection').classList.add('hidden');
-            document.getElementById('uploadResults').classList.add('hidden');
-            document.getElementById('errorResults').classList.add('hidden');
-            document.getElementById('statusMessages').innerHTML = '';
-            document.getElementById('uploadBtn').disabled = false;
-        });
-    }
-
-    console.log('Upload functionality initialized successfully!');
-}, 100); // Small delay to ensure everything is loaded
+    resetFormBtn.addEventListener('click', function() {
+        uploadForm.reset();
+        fileInput.value = '';
+        fileInfo.classList.add('hidden');
+        uploadContent.classList.remove('hidden');
+        progressSection.classList.add('hidden');
+        uploadResults.classList.add('hidden');
+        errorResults.classList.add('hidden');
+        statusMessages.innerHTML = '';
+        uploadBtn.disabled = false;
+    });
+});
 </script>
