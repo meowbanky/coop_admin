@@ -128,11 +128,17 @@ include 'includes/header.php';
             </div>
 
             <!-- Action Buttons -->
-            <div class="flex justify-end space-x-4">
-                <button type="button" id="resetForm"
-                    class="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors">
-                    <i class="fas fa-undo mr-2"></i>Reset
-                </button>
+            <div class="flex justify-between items-center">
+                <div class="flex space-x-3">
+                    <button type="button" id="browseFile"
+                        class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
+                        <i class="fas fa-folder-open mr-2"></i>Browse Files
+                    </button>
+                    <button type="button" id="resetForm"
+                        class="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors">
+                        <i class="fas fa-undo mr-2"></i>Reset
+                    </button>
+                </div>
                 <button type="submit" id="uploadBtn"
                     class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium">
                     <i class="fas fa-upload mr-2"></i>Upload File
@@ -175,7 +181,7 @@ include 'includes/header.php';
 }
 </style>
 
-<?php include 'includes/footer.php'; ?>
+<?php   include 'includes/footer.php'; ?>
 
 <script>
 // Upload functionality - runs after footer to avoid conflicts
@@ -287,6 +293,16 @@ setTimeout(function() {
             console.log('Upload content clicked');
             e.preventDefault();
             e.stopPropagation();
+            fileInput.click();
+        });
+    }
+
+    // Browse file button
+    const browseFileBtn = document.getElementById('browseFile');
+    if (browseFileBtn) {
+        browseFileBtn.addEventListener('click', function(e) {
+            console.log('Browse file button clicked');
+            e.preventDefault();
             fileInput.click();
         });
     }
@@ -415,15 +431,9 @@ setTimeout(function() {
                 document.getElementById('successMessage').textContent =
                     'Your file has been uploaded and processed successfully.';
 
-                // Reset form after success
-                setTimeout(() => {
-                    document.getElementById('uploadForm').reset();
-                    document.getElementById('fileInput').value = '';
-                    document.getElementById('fileInfo').classList.add('hidden');
-                    document.getElementById('uploadContent').classList.remove('hidden');
-                    document.getElementById('progressSection').classList.add('hidden');
-                    document.getElementById('uploadBtn').disabled = false;
-                }, 5000); // Increased timeout to show results longer
+                // Don't auto-reset form - let user manually reset to see results
+                // Just re-enable the upload button
+                document.getElementById('uploadBtn').disabled = false;
             })
             .catch(error => {
                 console.error('Upload error:', error);
@@ -456,6 +466,9 @@ setTimeout(function() {
             document.getElementById('fileInfo').classList.add('hidden');
             document.getElementById('uploadContent').classList.remove('hidden');
             document.getElementById('progressSection').classList.add('hidden');
+            document.getElementById('uploadResults').classList.add('hidden');
+            document.getElementById('errorResults').classList.add('hidden');
+            document.getElementById('statusMessages').innerHTML = '';
             document.getElementById('uploadBtn').disabled = false;
         });
     }
