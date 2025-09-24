@@ -222,8 +222,8 @@ $grandTotal = $grandTotal1 + $grandTotal2;
 <script>
 $(document).ready(function() {
     // Store original values for reset functionality
-    const originalDeduction = $('#deduction').val();
-    const originalSavings = $('#savings').val();
+    let originalDeduction = $('#deduction').val();
+    let originalSavings = $('#savings').val();
 
     // Reset form functionality
     $('#reset-form').on('click', function() {
