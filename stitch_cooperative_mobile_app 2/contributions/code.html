@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>My Contributions</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#22c55e",
+              "background-light": "#f8fafc",
+              "background-dark": "#020617",
+              "card-light": "#ffffff",
+              "card-dark": "#0f172a",
+              "text-light-primary": "#020617",
+              "text-dark-primary": "#f8fafc",
+              "text-light-secondary": "#475569",
+              "text-dark-secondary": "#94a3b8",
+              "border-light": "#e2e8f0",
+              "border-dark": "#1e293b",
+            },
+            fontFamily: {
+              "display": ["Manrope", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.5rem", "lg": "0.75rem", "xl": "1rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-display">
+<div class="relative flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark pb-28">
+<!-- Top App Bar -->
+<header class="sticky top-0 z-10 flex items-center justify-between border-b border-border-light bg-background-light/80 p-4 pb-3 backdrop-blur-sm dark:border-border-dark dark:bg-background-dark/80">
+<div class="flex size-10 shrink-0 items-center justify-center text-text-light-primary dark:text-text-dark-primary">
+<span class="material-symbols-outlined text-2xl">arrow_back</span>
+</div>
+<h1 class="flex-1 text-center text-lg font-bold leading-tight tracking-tight text-text-light-primary dark:text-text-dark-primary">My Contributions</h1>
+<div class="size-10 shrink-0"></div>
+</header>
+<main class="flex flex-col gap-6 p-4">
+<!-- Summary Card -->
+<section class="p-0 @container">
+<div class="flex flex-col items-stretch justify-start rounded-xl bg-card-light shadow-sm dark:bg-card-dark">
+<div class="flex w-full grow flex-col items-stretch justify-center gap-2 p-6">
+<p class="text-sm font-normal leading-normal text-text-light-secondary dark:text-text-dark-secondary">Total Contributions</p>
+<p class="text-4xl font-extrabold leading-tight tracking-tighter text-text-light-primary dark:text-text-dark-primary">$12,450.00</p>
+<div class="mt-4 flex flex-col gap-1">
+<p class="text-sm font-normal leading-normal text-text-light-secondary dark:text-text-dark-secondary">Member Since 2021</p>
+<p class="text-sm font-normal leading-normal text-text-light-secondary dark:text-text-dark-secondary">Last contribution on Oct 26, 2023</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Filter Chips -->
+<section class="flex gap-3 overflow-x-auto pb-2">
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full bg-primary px-5 text-sm font-medium leading-normal text-white">All</button>
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full border border-border-light bg-card-light px-5 text-sm font-medium leading-normal text-text-light-secondary hover:bg-primary/10 dark:border-border-dark dark:bg-card-dark dark:text-text-dark-secondary dark:hover:bg-primary/20">This Year</button>
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full border border-border-light bg-card-light px-5 text-sm font-medium leading-normal text-text-light-secondary hover:bg-primary/10 dark:border-border-dark dark:bg-card-dark dark:text-text-dark-secondary dark:hover:bg-primary/20">This Month</button>
+</section>
+<!-- Transaction List -->
+<section class="flex flex-col gap-3">
+<h2 class="text-base font-bold text-text-light-primary dark:text-text-dark-primary">Recent History</h2>
+<!-- List Item: Completed -->
+<div class="flex items-center gap-4 rounded-lg bg-card-light p-3 dark:bg-card-dark">
+<div class="flex shrink-0 size-12 items-center justify-center rounded-full bg-primary/20 text-primary">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+<div class="flex flex-1 flex-col justify-center">
+<p class="text-base font-bold leading-normal text-text-light-primary dark:text-text-dark-primary">$100.00</p>
+<p class="text-sm font-normal leading-normal text-text-light-secondary dark:text-text-dark-secondary">October 26, 2023</p>
+</div>
+<div class="shrink-0"><p class="text-sm font-medium leading-normal text-primary">Completed</p></div>
+</div>
+<!-- List Item: Pending -->
+<div class="flex items-center gap-4 rounded-lg bg-card-light p-3 dark:bg-card-dark">
+<div class="flex shrink-0 size-12 items-center justify-center rounded-full bg-amber-500/20 text-amber-500">
+<span class="material-symbols-outlined">hourglass_empty</span>
+</div>
+<div class="flex flex-1 flex-col justify-center">
+<p class="text-base font-bold leading-normal text-text-light-primary dark:text-text-dark-primary">$50.00</p>
+<p class="text-sm font-normal leading-normal text-text-light-secondary dark:text-text-dark-secondary">September 15, 2023</p>
+</div>
+<div class="shrink-0"><p class="text-sm font-medium leading-normal text-amber-500">Pending</p></div>
+</div>
+<!-- List Item: Completed -->
+<div class="flex items-center gap-4 rounded-lg bg-card-light p-3 dark:bg-card-dark">
+<div class="flex shrink-0 size-12 items-center justify-center rounded-full bg-primary/20 text-primary">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+<div class="flex flex-1 flex-col justify-center">
+<p class="text-base font-bold leading-normal text-text-light-primary dark:text-text-dark-primary">$250.00</p>
+<p class="text-sm font-normal leading-normal text-text-light-secondary dark:text-text-dark-secondary">August 02, 2023</p>
+</div>
+<div class="shrink-0"><p class="text-sm font-medium leading-normal text-primary">Completed</p></div>
+</div>
+<!-- List Item: Completed -->
+<div class="flex items-center gap-4 rounded-lg bg-card-light p-3 dark:bg-card-dark">
+<div class="flex shrink-0 size-12 items-center justify-center rounded-full bg-primary/20 text-primary">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+<div class="flex flex-1 flex-col justify-center">
+<p class="text-base font-bold leading-normal text-text-light-primary dark:text-text-dark-primary">$75.00</p>
+<p class="text-sm font-normal leading-normal text-text-light-secondary dark:text-text-dark-secondary">July 21, 2023</p>
+</div>
+<div class="shrink-0"><p class="text-sm font-medium leading-normal text-primary">Completed</p></div>
+</div>
+<!-- Empty State (Example) -->
+<!--
+            <div class="flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-border-light bg-card-light p-8 text-center dark:border-border-dark dark:bg-card-dark">
+                <div class="flex size-16 items-center justify-center rounded-full bg-primary/20 text-primary">
+                    <span class="material-symbols-outlined text-4xl">savings</span>
+                </div>
+                <h3 class="text-lg font-bold text-text-light-primary dark:text-text-dark-primary">Start Your Journey</h3>
+                <p class="max-w-xs text-sm text-text-light-secondary dark:text-text-dark-secondary">Your contribution journey starts here. Make your first contribution today!</p>
+            </div>
+            -->
+</section>
+</main>
+<!-- Floating Action Button -->
+<div class="fixed bottom-0 left-0 right-0 z-10 p-4">
+<button class="flex w-full h-14 items-center justify-center gap-3 rounded-xl bg-primary text-base font-bold text-white shadow-lg shadow-primary/30 transition-transform duration-200 active:scale-95">
+<span class="material-symbols-outlined">add</span>
+            Make Contribution
+        </button>
+</div>
+</div>
+</body></html>

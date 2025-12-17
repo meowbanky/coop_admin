@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Apply for a Loan</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#4CAF50",
+                        "background-light": "#F5F5F5",
+                        "background-dark": "#111814",
+                        "text-light": "#212121",
+                        "text-dark": "#FFFFFF",
+                        "card-light": "#FFFFFF",
+                        "card-dark": "#1c2621",
+                        "border-light": "#E0E0E0",
+                        "border-dark": "#374151",
+                        "muted-light": "#BDBDBD",
+                        "muted-dark": "#9E9E9E",
+                        "info-light": "#E3F2FD",
+                        "info-dark": "#1E293B",
+                        "info-text-light": "#0D47A1",
+                        "info-text-dark": "#93C5FD"
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "0.75rem",
+                        "xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            font-size: 24px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-display bg-background-light dark:bg-background-dark">
+<div class="relative flex h-auto min-h-screen w-full flex-col">
+<!-- Top App Bar -->
+<header class="sticky top-0 z-10 flex items-center bg-background-light/80 dark:bg-background-dark/80 p-4 backdrop-blur-sm">
+<button class="text-text-light dark:text-text-dark flex size-10 shrink-0 items-center justify-center rounded-full">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="text-text-light dark:text-text-dark text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-10">Apply for a Loan</h1>
+</header>
+<!-- Main Content -->
+<main class="flex-1 px-4 pb-28">
+<!-- Page Indicators / Stepper -->
+<div class="flex w-full flex-row items-center justify-center gap-3 py-5">
+<div class="flex flex-col items-center gap-2">
+<div class="h-2 w-12 rounded-full bg-primary"></div>
+<p class="text-primary text-xs font-bold">Eligibility</p>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="h-2 w-12 rounded-full bg-border-light dark:bg-border-dark"></div>
+<p class="text-muted-light dark:text-muted-dark text-xs font-normal">Details</p>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="h-2 w-12 rounded-full bg-border-light dark:bg-border-dark"></div>
+<p class="text-muted-light dark:text-muted-dark text-xs font-normal">Confirm</p>
+</div>
+</div>
+<!-- Headline Text -->
+<h2 class="text-text-light dark:text-text-dark tracking-tight text-[32px] font-bold leading-tight text-left pb-1 pt-6">Let's see if you're eligible</h2>
+<!-- Body Text -->
+<p class="text-muted-light dark:text-muted-dark text-base font-normal leading-normal pb-6 pt-1">Review your eligibility criteria below to proceed with your loan application.</p>
+<!-- Eligibility Checklist Card -->
+<div class="flex flex-col items-stretch justify-start rounded-xl shadow-sm bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark">
+<div class="flex flex-col gap-1 p-5">
+<p class="text-text-light dark:text-text-dark text-lg font-bold leading-tight tracking-[-0.015em] pb-3">Eligibility Checklist</p>
+<div class="flex items-center justify-between py-3 border-b border-border-light dark:border-border-dark">
+<div class="flex items-center gap-4">
+<div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 text-primary">
+<span class="material-symbols-outlined">calendar_month</span>
+</div>
+<p class="text-text-light dark:text-text-dark font-medium">Membership Duration</p>
+</div>
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-xl">check_circle</span>
+<span class="text-sm font-semibold">Pass</span>
+</div>
+</div>
+<div class="flex items-center justify-between py-3 border-b border-border-light dark:border-border-dark">
+<div class="flex items-center gap-4">
+<div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 text-primary">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<p class="text-text-light dark:text-text-dark font-medium">Contribution Status</p>
+</div>
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-xl">check_circle</span>
+<span class="text-sm font-semibold">Pass</span>
+</div>
+</div>
+<div class="flex items-center justify-between py-3">
+<div class="flex items-center gap-4">
+<div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 text-primary">
+<span class="material-symbols-outlined">credit_score</span>
+</div>
+<p class="text-text-light dark:text-text-dark font-medium">No Active Loans</p>
+</div>
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-xl">check_circle</span>
+<span class="text-sm font-semibold">Pass</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Info Panel -->
+<div class="mt-6 flex items-start gap-4 rounded-xl bg-info-light dark:bg-info-dark p-4">
+<span class="material-symbols-outlined text-info-text-light dark:text-info-text-dark mt-0.5">info</span>
+<p class="text-sm text-info-text-light dark:text-info-text-dark flex-1">Congratulations! You meet all the necessary criteria to apply for a loan. You can proceed to the next step.</p>
+</div>
+</main>
+<!-- Bottom Action Bar -->
+<footer class="fixed bottom-0 left-0 right-0 bg-card-light/80 dark:bg-card-dark/80 p-4 backdrop-blur-sm border-t border-border-light dark:border-border-dark">
+<button class="w-full rounded-full bg-primary py-4 px-5 text-center text-base font-bold text-white transition-colors hover:bg-primary/90">
+                Proceed to Loan Details
+            </button>
+</footer>
+</div>
+</body></html>

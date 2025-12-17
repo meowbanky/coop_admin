@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>My Loans</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#19e680",
+              "background-light": "#f6f8f7",
+              "background-dark": "#112119",
+            },
+            fontFamily: {
+              "display": ["Manrope", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-display">
+<div class="relative flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark overflow-x-hidden">
+<!-- Top App Bar -->
+<header class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 sticky top-0 z-10">
+<div class="flex size-12 shrink-0 items-center text-zinc-900 dark:text-white">
+<span class="material-symbols-outlined text-2xl">arrow_back</span>
+</div>
+<h1 class="flex-1 text-center text-lg font-bold leading-tight tracking-[-0.015em] text-zinc-900 dark:text-white -ml-6">My Loans</h1>
+</header>
+<main class="flex-grow px-4 pb-28">
+<!-- Total Balance Card -->
+<section class="py-4 @container">
+<div class="flex flex-col items-stretch justify-start rounded-xl bg-zinc-100 dark:bg-zinc-900 p-6 shadow-[0_0_4px_rgba(0,0,0,0.1)]">
+<p class="text-base font-normal leading-normal text-zinc-600 dark:text-zinc-400">Total Outstanding Balance</p>
+<p class="text-4xl font-bold leading-tight tracking-[-0.015em] text-zinc-900 dark:text-white mt-1">$15,250.00</p>
+</div>
+</section>
+<!-- Section Header -->
+<h2 class="px-0 pt-4 pb-2 text-lg font-bold leading-tight tracking-[-0.015em] text-zinc-900 dark:text-white">Active Loans</h2>
+<!-- Loan Card 1 (Active) -->
+<div class="pt-2 pb-4 @container">
+<div class="flex flex-col items-stretch justify-start rounded-xl bg-zinc-100 dark:bg-zinc-900 p-4">
+<div class="flex w-full min-w-72 grow flex-col items-stretch justify-center gap-4">
+<div class="flex items-start justify-between gap-3">
+<p class="text-lg font-bold leading-tight tracking-[-0.015em] text-zinc-900 dark:text-white">Personal Loan - #A123</p>
+<div class="inline-flex items-center justify-center rounded-full bg-primary/20 px-3 py-1">
+<p class="text-xs font-medium text-primary">Active</p>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<div class="flex justify-between gap-6">
+<p class="text-sm font-medium leading-normal text-zinc-900 dark:text-white">Amount Remaining: $4,000.00</p>
+<p class="text-sm font-normal leading-normal text-zinc-600 dark:text-zinc-400">60% Paid</p>
+</div>
+<div class="h-2 rounded bg-zinc-200 dark:bg-zinc-800">
+<div class="h-2 rounded bg-primary" style="width: 60%;"></div>
+</div>
+</div>
+<div class="h-px w-full bg-zinc-200 dark:bg-zinc-800"></div>
+<div class="flex items-end justify-between gap-3">
+<div class="flex flex-col gap-1">
+<p class="text-sm font-normal leading-normal text-zinc-600 dark:text-zinc-400">Next Payment: Oct 15, 2024</p>
+<p class="text-sm font-normal leading-normal text-zinc-600 dark:text-zinc-400">Amount Due: <span class="font-medium text-zinc-900 dark:text-white">$350.50</span></p>
+</div>
+<button class="flex h-10 min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-zinc-200 px-4 text-sm font-medium leading-normal text-zinc-900 dark:bg-zinc-800 dark:text-white">
+<span class="truncate">View Details</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Loan Card 2 (Overdue) -->
+<div class="py-2 @container">
+<div class="flex flex-col items-stretch justify-start rounded-xl border border-red-500/50 bg-zinc-100 p-4 dark:bg-zinc-900">
+<div class="flex w-full min-w-72 grow flex-col items-stretch justify-center gap-4">
+<div class="flex items-start justify-between gap-3">
+<p class="text-lg font-bold leading-tight tracking-[-0.015em] text-zinc-900 dark:text-white">Vehicle Loan - #V456</p>
+<div class="inline-flex items-center justify-center rounded-full bg-red-500/20 px-3 py-1">
+<p class="text-xs font-medium text-red-500">Overdue</p>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<div class="flex justify-between gap-6">
+<p class="text-sm font-medium leading-normal text-zinc-900 dark:text-white">Amount Remaining: $11,250.00</p>
+<p class="text-sm font-normal leading-normal text-zinc-600 dark:text-zinc-400">25% Paid</p>
+</div>
+<div class="h-2 rounded bg-zinc-200 dark:bg-zinc-800">
+<div class="h-2 rounded bg-primary" style="width: 25%;"></div>
+</div>
+</div>
+<div class="h-px w-full bg-zinc-200 dark:bg-zinc-800"></div>
+<div class="flex items-end justify-between gap-3">
+<div class="flex flex-col gap-1">
+<p class="text-sm font-normal leading-normal text-red-500">Payment Due: Sep 1, 2024</p>
+<p class="text-sm font-normal leading-normal text-zinc-600 dark:text-zinc-400">Amount Due: <span class="font-medium text-zinc-900 dark:text-white">$450.00</span></p>
+</div>
+<button class="flex h-10 min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-zinc-200 px-4 text-sm font-medium leading-normal text-zinc-900 dark:bg-zinc-800 dark:text-white">
+<span class="truncate">View Details</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Sticky Footer Button -->
+<footer class="fixed bottom-0 left-0 right-0 z-10 bg-background-light/80 p-4 backdrop-blur-sm dark:bg-background-dark/80">
+<button class="flex h-12 w-full min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl bg-primary text-base font-bold text-background-dark shadow-lg">
+<span class="truncate">Make a Payment</span>
+</button>
+</footer>
+</div>
+</body></html>

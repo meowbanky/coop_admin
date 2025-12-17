@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Cooperative App Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#19e680",
+              "background-light": "#f6f8f7",
+              "background-dark": "#111814",
+            },
+            fontFamily: {
+              "display": ["Manrope", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.5rem", "lg": "0.75rem", "xl": "1rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark group/design-root overflow-x-hidden">
+<div class="flex-grow pb-28"> <!-- Padding bottom to avoid overlap with nav bar -->
+<!-- Top App Bar -->
+<div class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10">
+<div class="flex gap-4 items-center">
+<div class="flex size-12 shrink-0 items-center justify-center">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="User profile picture of Maria" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBShI3pNkppPIxHMOdoD6WSwvU982r9cs_GiJzCtD_7E8OKIJMO664Xhch-0mUYtLI26IzoLwFQrL6UfkvVCyMVzZ6_LQjfGRbfX2-h6nrPpLsOXN0NuXEfdajGQjYqEx6VJCj8Zy1dgwqYsFvymymzS_icjHz7ZPVjnUlKL9FgMJzW5cU5NNLf5lJ6AV_24tCPryLnb2pFmqEO0qsxUYvc4cDE85I1x9p9YMKg06C6swOfbHH6sv9aCoCaxLn-RQIpIcxrey7zP-o");'></div>
+</div>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Hello, Maria</h2>
+</div>
+<div class="flex w-12 items-center justify-end">
+<button class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 w-12 bg-transparent text-slate-900 dark:text-white gap-2 text-base font-bold leading-normal tracking-[0.015em] min-w-0 p-0 hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-slate-900 dark:text-white">notifications</span>
+</button>
+</div>
+</div>
+<!-- Main Summary Card -->
+<div class="p-4 @container">
+<div class="flex flex-col items-stretch justify-start rounded-xl bg-slate-100 dark:bg-[#1c2621]">
+<div class="flex w-full min-w-72 grow flex-col items-stretch justify-center gap-1 p-6">
+<p class="text-slate-600 dark:text-[#9db8ab] text-sm font-normal leading-normal">Available Funds</p>
+<p class="text-slate-900 dark:text-white text-4xl font-bold leading-tight tracking-[-0.015em]">$12,850.75</p>
+<p class="text-slate-600 dark:text-[#9db8ab] text-base font-normal leading-normal mt-2">This is the total amount you can withdraw or use for a new loan.</p>
+</div>
+</div>
+</div>
+<!-- Quick Action Buttons -->
+<div class="flex justify-stretch">
+<div class="flex flex-1 gap-3 flex-wrap px-4 py-3 justify-between">
+<button class="flex flex-1 min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 bg-primary text-[#111814] text-base font-bold leading-normal tracking-[0.015em]">
+<span class="truncate">Contribute Money</span>
+</button>
+<button class="flex flex-1 min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 bg-slate-200 dark:bg-[#293830] text-slate-900 dark:text-white text-base font-bold leading-normal tracking-[0.015em]">
+<span class="truncate">Request Loan</span>
+</button>
+</div>
+</div>
+<!-- Section Header -->
+<h3 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">Overview</h3>
+<!-- Contribution Card & Chart -->
+<div class="p-4">
+<div class="flex flex-col gap-4 rounded-xl bg-slate-100 dark:bg-[#1c2621] p-6">
+<div class="flex items-center justify-between gap-4">
+<div class="flex flex-[2_2_0px] flex-col gap-1">
+<p class="text-slate-600 dark:text-[#9db8ab] text-sm font-normal leading-normal">Total Contributions</p>
+<p class="text-slate-900 dark:text-white text-2xl font-bold leading-tight">$9,000.00</p>
+<p class="text-slate-600 dark:text-[#9db8ab] text-sm font-normal leading-normal mt-1">Last contribution on May 15, 2024</p>
+</div>
+<div class="relative flex-1 flex justify-center items-center aspect-square max-w-[100px]">
+<svg class="size-full" viewbox="0 0 36 36">
+<path class="stroke-slate-200 dark:stroke-slate-700" d="M18 2.0845
+                                  a 15.9155 15.9155 0 0 1 0 31.831
+                                  a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-width="3"></path>
+<path class="stroke-primary" d="M18 2.0845
+                                  a 15.9155 15.9155 0 0 1 0 31.831
+                                  a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-dasharray="80, 100" stroke-width="3"></path>
+</svg>
+<div class="absolute flex flex-col items-center justify-center">
+<span class="text-slate-900 dark:text-white text-lg font-bold">80%</span>
+<span class="text-slate-600 dark:text-[#9db8ab] text-xs">Goal</span>
+</div>
+</div>
+</div>
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-slate-200 dark:bg-[#293830] text-slate-900 dark:text-white gap-2 text-sm font-bold leading-normal w-full mt-2">
+<span class="truncate">View History</span>
+<span class="material-symbols-outlined text-base">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Loan Status Card -->
+<div class="p-4">
+<div class="flex flex-col gap-4 rounded-xl bg-slate-100 dark:bg-[#1c2621] p-6">
+<div class="flex flex-col gap-1">
+<p class="text-slate-600 dark:text-[#9db8ab] text-sm font-normal leading-normal">Current Loan</p>
+<p class="text-slate-900 dark:text-white text-2xl font-bold leading-tight">$2,500.00</p>
+<p class="text-slate-600 dark:text-[#9db8ab] text-sm font-normal leading-normal mt-1">Next payment of $250.00 due June 1, 2024</p>
+</div>
+<!-- Progress Bar -->
+<div class="w-full bg-slate-200 dark:bg-[#293830] rounded-full h-2 my-2">
+<div class="bg-primary h-2 rounded-full" style="width: 45%"></div>
+</div>
+<div class="flex justify-between text-xs text-slate-600 dark:text-[#9db8ab]">
+<span>$1,125 Paid</span>
+<span>$1,375 Remaining</span>
+</div>
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-slate-200 dark:bg-[#293830] text-slate-900 dark:text-white gap-2 text-sm font-bold leading-normal w-full mt-2">
+<span class="truncate">Make a Payment</span>
+<span class="material-symbols-outlined text-base">payment</span>
+</button>
+</div>
+</div>
+<!-- Loan Status Card - Empty State -->
+<div class="p-4">
+<div class="flex flex-col items-center text-center gap-4 rounded-xl bg-slate-100 dark:bg-[#1c2621] p-6">
+<div class="flex items-center justify-center size-16 rounded-full bg-primary/20 text-primary">
+<span class="material-symbols-outlined text-4xl">savings</span>
+</div>
+<div class="flex flex-col gap-1">
+<p class="text-slate-900 dark:text-white text-lg font-bold leading-tight">No Active Loans</p>
+<p class="text-slate-600 dark:text-[#9db8ab] text-sm font-normal leading-normal mt-1">You are eligible to apply for a new loan. Get the funds you need today.</p>
+</div>
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 bg-primary text-[#111814] text-base font-bold leading-normal tracking-[0.015em] w-full mt-2">
+<span class="truncate">Request a Loan Now</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Bottom Navigation Bar -->
+<div class="fixed bottom-0 left-0 right-0 h-24 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-lg border-t border-slate-200 dark:border-white/10">
+<div class="flex justify-around items-center h-full px-2 max-w-lg mx-auto">
+<a class="flex flex-col items-center justify-center gap-1 text-primary w-20" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-xs font-bold">Dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center gap-1 text-slate-500 dark:text-gray-400 w-20" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="text-xs font-medium">History</span>
+</a>
+<a class="flex flex-col items-center justify-center gap-1 text-slate-500 dark:text-gray-400 w-20" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="text-xs font-medium">Loans</span>
+</a>
+<a class="flex flex-col items-center justify-center gap-1 text-slate-500 dark:text-gray-400 w-20" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-xs font-medium">Profile</span>
+</a>
+</div>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,72 @@
+name: oouth_coop_app
+description: "OOUTH Cooperative Mobile App"
+version: 2.0.0+9
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  # State Management
+  provider: ^6.0.5
+  # Network
+  http: ^1.1.0
+  # Storage
+  shared_preferences: ^2.2.0
+  # UI
+  google_fonts: ^5.1.0
+  flutter_svg: ^2.0.7
+  image_picker: ^1.0.4
+  file_picker: ^8.0.0
+  # Authentication
+  local_auth: ^2.1.6
+  onesignal_flutter: ^5.2.9
+  connectivity_plus: ^5.0.2
+  package_info_plus: ^4.2.0
+  url_launcher: ^6.1.14
+  font_awesome_flutter: ^10.6.0
+  flutter_dotenv: ^5.1.0
+  permission_handler: ^12.0.0
+  firebase_core: ^2.25.4
+  firebase_messaging: ^14.7.16
+  firebase_messaging_web: ^3.6.5
+  percent_indicator: ^4.2.3
+  intl: ^0.18.1
+  path_provider: ^2.0.15
+  path: ^1.8.3
+  timeago: ^3.5.0
+  # Location & Maps
+  geolocator: ^10.1.0
+  google_maps_flutter: ^2.5.0
+  device_info_plus: ^9.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+  lottie: ^2.7.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/lottie/
+    - .env
+    - assets/config.json
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/logo.png"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+  adaptive_icon_background: "#FFFFFF" # only available for Android 8.0 devices and above
+  adaptive_icon_foreground: "assets/images/logo.png" # only available for Android 8.0 devices and above
+  web:
+    generate: true
+    image_path: "assets/images/logo.png"
+    background_color: "#hexcode"
+    theme_color: "#hexcode"

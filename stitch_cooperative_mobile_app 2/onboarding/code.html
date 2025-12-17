@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Onboarding Screen</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings:
+      'FILL' 0,
+      'wght' 400,
+      'GRAD' 0,
+      'opsz' 24
+    }
+  </style>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#26A69A",
+            "background-light": "#F5F7FA",
+            "background-dark": "#0F172A",
+            "primary-blue": "#1A3A6D"
+          },
+          fontFamily: {
+            "display": ["Manrope", "sans-serif"]
+          },
+          borderRadius: {"DEFAULT": "0.5rem", "lg": "0.75rem", "xl": "1rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-200">
+<div class="relative flex min-h-screen w-full flex-col">
+<!-- Screen 1: Contribute & Save Together -->
+<div class="flex h-screen w-full shrink-0 flex-col snap-start">
+<!-- Top App Bar -->
+<div class="flex shrink-0 items-center justify-between p-4 pb-2">
+<div></div> <!-- Spacer -->
+<button class="text-slate-500 dark:text-slate-400 text-base font-bold leading-normal tracking-wide">Skip</button>
+</div>
+<!-- Main Content -->
+<main class="flex flex-grow flex-col justify-center">
+<!-- Header Image -->
+<div class="px-4 py-3">
+<div class="mx-auto w-full max-w-sm overflow-hidden">
+<img class="h-80 w-full object-cover rounded-xl" data-alt="Stylized illustration of multiple hands placing coins into a growing plant, symbolizing collective savings." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCB_TD9CLtwED4Gr1s7oNzKTZI8XaMVYtpEucpVc4jTyVE3Bn-n-4tsMoanz2SJh7sZ2lxlkAUE3DdFBVppcF2eDXOD6K1i0CwJNpOH9xHPfs-gpSc6cz_bmuuKSarXlrxNU3TsoBP8LeecHG0yR6o_iO45U2YtR_vm3dSi0PwmwDj6R1CPd6JchztI7VMwvJPCVoIHfQ2d4k5vQcFNpImV4hD7ODf6tKQUulJoQb6TZP0sznSmY2ZJKc5ya0X4jh7G7G5PQXCzPPU"/>
+</div>
+</div>
+<!-- Headline Text -->
+<h2 class="text-slate-900 dark:text-white tracking-tight text-3xl font-bold leading-tight px-6 text-center pt-8 pb-3">Contribute &amp; Save Together</h2>
+<!-- Body Text -->
+<p class="text-slate-600 dark:text-slate-300 text-base font-normal leading-relaxed pb-3 px-6 text-center">
+          Join forces with your community. Your regular contributions help build a powerful collective fund for everyone's benefit.
+        </p>
+</main>
+<!-- Footer with Page Indicators -->
+<footer class="p-4 pt-8 pb-10">
+<div class="flex w-full flex-row items-center justify-center gap-3 py-5">
+<div class="h-2.5 w-6 rounded-full bg-primary"></div>
+<div class="h-2.5 w-2.5 rounded-full bg-slate-300 dark:bg-slate-600"></div>
+<div class="h-2.5 w-2.5 rounded-full bg-slate-300 dark:bg-slate-600"></div>
+</div>
+</footer>
+</div>
+<!-- Screen 2: Access Fair & Easy Loans (This would be part of a slider/swiper in a real app) -->
+<!-- For this static example, we'll just stack the screens. In a real Flutter app, this would be a PageView. -->
+<!-- Screen 3: Grow With Your Community -->
+<div class="flex h-screen w-full shrink-0 flex-col snap-start">
+<!-- Top App Bar -->
+<div class="flex shrink-0 items-center justify-between p-4 pb-2">
+<div></div> <!-- Spacer -->
+<button class="text-slate-500 dark:text-slate-400 text-base font-bold leading-normal tracking-wide">Skip</button>
+</div>
+<!-- Main Content -->
+<main class="flex flex-grow flex-col justify-center">
+<!-- Header Image -->
+<div class="px-4 py-3">
+<div class="mx-auto w-full max-w-sm overflow-hidden">
+<img class="h-80 w-full object-cover rounded-xl" data-alt="A diverse group of people connecting, represented by a network diagram overlay, symbolizing community strength." src="https://lh3.googleusercontent.com/aida-public/AB6AXuATDJZTyPR_zq652xxfh_mQ-Y7Jy2qybdNLpeSvq3F2OPBiSLAVonoqZLy5emiK7_v7Pmf_J11tQfpurBSY6lOclwym6M_hpia5mXsxdD-RKb-_oLecqUovJ4ofF1ldF0F750Xl_fvlCTHm5CpdMKfQadICIJYn5NdDsnzMzNqjGnBtMlwlJb1sBkp4R-r65G_mLI4VA6HA9diHZ0HWgNEsOtVTt0M6TQjxsBfaUGQ4UEzgG61nCkTZQZcLD1WQiUXiKAMXVMU06_I"/>
+</div>
+</div>
+<!-- Headline Text -->
+<h2 class="text-slate-900 dark:text-white tracking-tight text-3xl font-bold leading-tight px-6 text-center pt-8 pb-3">Grow With Your Community</h2>
+<!-- Body Text -->
+<p class="text-slate-600 dark:text-slate-300 text-base font-normal leading-relaxed pb-3 px-6 text-center">
+          This is more than an app — it's a cooperative where members empower each other to achieve financial goals.
+        </p>
+</main>
+<!-- Footer with Actions -->
+<footer class="p-6 pt-8 pb-10 space-y-4">
+<button class="flex w-full items-center justify-center gap-2 rounded-lg bg-primary-blue px-6 py-4 text-center text-base font-bold text-white shadow-sm hover:opacity-90">
+          Get Started
+        </button>
+<button class="flex w-full items-center justify-center gap-2 rounded-lg px-6 py-4 text-center text-base font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700">
+          Log In
+        </button>
+</footer>
+</div>
+</div>
+</body></html>

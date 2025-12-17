@@ -1,0 +1,55 @@
+<?php
+/**
+ * OOUTH Salary API Configuration Example
+ * Copy this file to api_config.php and fill in your actual credentials
+ * 
+ * SECURITY NOTE: Never commit api_config.php to version control
+ */
+
+// API Configuration
+define('OOUTH_API_BASE_URL', 'https://oouthsalary.com.ng/api/v1');
+define('OOUTH_API_KEY', 'oouth_XXX_XXXXX_XX_XXXXXXXXXXXXXXX'); // Replace with your actual API key
+define('OOUTH_API_SECRET', 'your_64_character_secret_key_here_replace_with_actual_secret'); // Replace with your actual API secret
+define('OOUTH_ORGANIZATION_ID', 'XXX'); // Your organization ID (e.g., 005)
+
+// Resource Configuration (what your API key has access to)
+// Change 'deduction' to 'allowance' if your key is for allowances
+define('OOUTH_RESOURCE_TYPE', 'deduction'); // 'deduction' or 'allowance'
+define('OOUTH_RESOURCE_ID', '48'); // The ID of the deduction/allowance (e.g., 48 for Pension)
+define('OOUTH_RESOURCE_NAME', 'PENSION'); // Name for display purposes
+
+// API Settings
+define('OOUTH_API_TIMEOUT', 30); // Request timeout in seconds
+define('OOUTH_API_RETRY_ATTEMPTS', 3); // Number of retry attempts on failure
+
+// Webhook Configuration (optional - leave empty if not using webhooks)
+define('OOUTH_WEBHOOK_SECRET', ''); // Your webhook secret if registered
+
+// Debug Mode (set to false in production)
+define('OOUTH_API_DEBUG', true); // Set to false in production
+
+/*
+ * SETUP INSTRUCTIONS:
+ * 
+ * 1. Copy this file to 'api_config.php' in the same directory
+ * 2. Contact OOUTH Salary System Administrator to get your API credentials:
+ *    - Email: api-support@oouth.edu.ng
+ *    - Provide: Organization name, contact email, phone, resource needed
+ * 
+ * 3. You will receive:
+ *    - API Key (e.g., oouth_005_deduc_48_a1b2c3d4e5f6g7h8)
+ *    - API Secret (64-character string)
+ *    - Organization ID (e.g., 005)
+ *    - Resource Access (deduction or allowance ID)
+ * 
+ * 4. Update the constants above with your actual values
+ * 
+ * 5. Test the connection by visiting: api_upload.php
+ * 
+ * SECURITY REMINDERS:
+ * - Never share your API secret
+ * - Never commit api_config.php to version control
+ * - Keep your API secret secure like a password
+ * - Set OOUTH_API_DEBUG to false in production
+ */
+

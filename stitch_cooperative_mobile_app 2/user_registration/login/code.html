@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Co-op Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0D47A1",
+                        "secondary": "#F5F5F5",
+                        "accent": "#00A99D",
+                        "text-dark": "#212121",
+                        "background-light": "#F5F5F5",
+                        "background-dark": "#0A0F1A",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "0.75rem",
+                        "xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            font-size: 24px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col dark:bg-background-dark bg-background-light group/design-root overflow-x-hidden">
+<div class="flex w-full flex-col grow p-4 sm:p-6 md:p-8">
+<div class="flex justify-center items-center pt-8 pb-6">
+<span class="material-symbols-outlined text-primary text-5xl">account_balance</span>
+</div>
+<h2 class="text-text-dark dark:text-white tracking-tight text-3xl font-bold leading-tight text-center pb-2 pt-5 font-display">Your Financial Community</h2>
+<p class="text-center text-gray-600 dark:text-gray-400 pb-8 font-display">Welcome back! Securely access your account.</p>
+<div class="flex px-4 py-3">
+<div class="flex h-12 flex-1 items-center justify-center rounded-xl bg-gray-200 dark:bg-gray-800 p-1">
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-gray-900/50 has-[:checked]:shadow-sm has-[:checked]:text-primary text-gray-500 dark:text-gray-400 text-sm font-semibold leading-normal">
+<span class="truncate">Login</span>
+<input checked="" class="invisible w-0" name="auth-toggle" type="radio" value="Login"/>
+</label>
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-gray-900/50 has-[:checked]:shadow-sm has-[:checked]:text-primary text-gray-500 dark:text-gray-400 text-sm font-semibold leading-normal">
+<span class="truncate">Create Account</span>
+<input class="invisible w-0" name="auth-toggle" type="radio" value="Create Account"/>
+</label>
+</div>
+</div>
+<div class="flex flex-col gap-4 px-4 py-3">
+<label class="flex flex-col w-full">
+<p class="text-text-dark dark:text-white text-base font-medium leading-normal pb-2 font-display">Member ID / Email</p>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-text-dark dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800/50 h-14 placeholder:text-gray-400 dark:placeholder:text-gray-500 p-[15px] text-base font-normal leading-normal font-display" placeholder="Enter your member ID or email" value=""/>
+</label>
+<label class="flex flex-col w-full">
+<p class="text-text-dark dark:text-white text-base font-medium leading-normal pb-2 font-display">Password</p>
+<div class="flex w-full flex-1 items-stretch">
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-l-lg text-text-dark dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800/50 h-14 placeholder:text-gray-400 dark:placeholder:text-gray-500 p-[15px] pr-2 text-base font-normal leading-normal font-display border-r-0" placeholder="Enter your password" type="password" value=""/>
+<div class="text-gray-400 dark:text-gray-500 flex border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800/50 items-center justify-center pr-[15px] rounded-r-lg border-l-0">
+<span class="material-symbols-outlined">fingerprint</span>
+</div>
+</div>
+</label>
+<div class="flex justify-end pt-1">
+<a class="text-sm font-semibold text-accent hover:underline" href="#">Forgot Password?</a>
+</div>
+</div>
+<div class="flex flex-col items-center gap-4 px-4 pt-6 pb-4">
+<button class="flex h-14 w-full items-center justify-center rounded-xl bg-primary px-6 text-base font-bold text-white shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-background-dark font-display">Log In</button>
+</div>
+<div class="flex items-center gap-4 px-4 py-4">
+<hr class="flex-grow border-gray-300 dark:border-gray-700"/>
+<span class="text-sm text-gray-500 dark:text-gray-400">or</span>
+<hr class="flex-grow border-gray-300 dark:border-gray-700"/>
+</div>
+<div class="flex flex-col gap-4 px-4 py-2">
+<button class="flex h-14 w-full items-center justify-center gap-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800/50 px-6 text-base font-semibold text-text-dark dark:text-white shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 dark:focus:ring-offset-background-dark font-display">
+<img alt="Google logo" class="h-6 w-6" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDcxXFlTnxHu2xg9W7KnJz56jWBmDX4Cj0sPrCHIGkRnHSzQ0OvFbjngdl21Y02he7GBdboF2Zpk4RjylYdoUAXzOArMlzguTsXbXK-DWqKVJaemTgBBEk4f31fx2J9fRtKuaLunWyU4Ke3ZCIQwiWGJrSbW3zBIjb6slN9BrOjR0bWG-xHqJFaQjphk5KL0qvHuMYFykJA-irKTB6lnf2ZnOUEt_ttpdTfVHdmkgHMwHlLhDIbmbIxmZDA8PW3WNlg_UnFy2wiF8M"/>
+<span>Continue with Google</span>
+</button>
+<button class="flex h-14 w-full items-center justify-center gap-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800/50 px-6 text-base font-semibold text-text-dark dark:text-white shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 dark:focus:ring-offset-background-dark font-display">
+<img alt="Apple logo" class="h-6 w-6 dark:invert" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9Xeh-nQF3kNiQB20dlVkg6SXwRbpLXC021MEhqjY4wu22HUo41ySChN7BbaCwKDZpjjRr28U7a8nRaUJtRe1x_GS7m2nT68VFK1xEzupG6SOn4tB8H6x0juWWTQX7gTWHdmL9uJOkejX5onD4ubYP07Z1TXsXiR0XoQ2x1bYVieItCLJEjbpWm03k2DLZ5nGqulwR0vYTw7VtVwN3sTOBeTQBzQhKuM-4JQY75w6Y_r3NK_YNyR5vklVdj9JiXKw_NeahXCPtETQ"/>
+<span>Continue with Apple</span>
+</button>
+</div>
+<div class="text-center text-xs text-gray-500 dark:text-gray-400 mt-8 px-4">
+                By continuing, you agree to our <a class="font-semibold text-accent hover:underline" href="#">Terms of Service</a> and <a class="font-semibold text-accent hover:underline" href="#">Privacy Policy</a>.
+            </div>
+</div>
+</div>
+</body></html>
