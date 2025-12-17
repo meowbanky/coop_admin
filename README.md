@@ -22,8 +22,6 @@ Features a modern Tailwind CSS dashboard, RESTful APIs for mobile apps, and auto
 | :----------------------------------------------------------------------------: | :---------------------------------------------------------------------------: | :---------------------------------------------------------------------------: | :-------------------------------------------------------------------: |
 | <img src="screenshots/dashboard_main.png" width="200" alt="Admin Dashboard" /> | <img src="screenshots/loan_approval.png" width="200" alt="Loan Management" /> | <img src="screenshots/member_profile.png" width="200" alt="Member Profile" /> | <img src="screenshots/mobile_api.png" width="200" alt="Mobile App" /> |
 
-> **Note:** Screenshots folder contains visual demonstrations of the system. Add your actual screenshots to showcase the modern UI.
-
 ---
 
 ## 🚀 System Architecture
