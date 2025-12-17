@@ -10,7 +10,7 @@
 **A unified financial platform for managing cooperative members, loans, dividends, and payroll.**
 Features a modern Tailwind CSS dashboard, RESTful APIs for mobile apps, and automated accounting engines.
 
-[**View Live Portal**](https://coop.oouthsalary.com.ng/)
+[**View Live Portal**](https://www.emmaggi.com/coop_admin/)
 
 </div>
 
@@ -18,8 +18,8 @@ Features a modern Tailwind CSS dashboard, RESTful APIs for mobile apps, and auto
 
 ## 📸 System Previews
 
-| **Admin Dashboard** | **Loan Management** | **Member Ledger** | **Mobile Integration** |
-|:---:|:---:|:---:|:---:|
+|                              **Admin Dashboard**                               |                              **Loan Management**                              |                               **Member Ledger**                               |                        **Mobile Integration**                         |
+| :----------------------------------------------------------------------------: | :---------------------------------------------------------------------------: | :---------------------------------------------------------------------------: | :-------------------------------------------------------------------: |
 | <img src="screenshots/dashboard_main.png" width="200" alt="Admin Dashboard" /> | <img src="screenshots/loan_approval.png" width="200" alt="Loan Management" /> | <img src="screenshots/member_profile.png" width="200" alt="Member Profile" /> | <img src="screenshots/mobile_api.png" width="200" alt="Mobile App" /> |
 
 > **Note:** Screenshots folder contains visual demonstrations of the system. Add your actual screenshots to showcase the modern UI.
@@ -31,43 +31,50 @@ Features a modern Tailwind CSS dashboard, RESTful APIs for mobile apps, and auto
 This is a **Hybrid Monorepo** containing the core web platform and mobile application sources.
 
 ### 1. Web Administration Portal (`/`)
+
 Built with **Native PHP 8+** and **Tailwind CSS**.
-*   **Member Management:** CRUD operations for staff/members (`users.php`, `employee.php`).
-*   **Accounting Engine:** Double-entry ledger system (`coop_general_ledger.php`, `coop_trial_balance.php`).
-*   **Loan Processor:** Automated eligibility checks and amortization schedules (`loan/`).
-*   **Financial Reporting:** Comprehensive PDF reports and analytics (`masterReportModern.php`, `dividend/`).
+
+- **Member Management:** CRUD operations for staff/members (`users.php`, `employee.php`).
+- **Accounting Engine:** Double-entry ledger system (`coop_general_ledger.php`, `coop_trial_balance.php`).
+- **Loan Processor:** Automated eligibility checks and amortization schedules (`loan/`).
+- **Financial Reporting:** Comprehensive PDF reports and analytics (`masterReportModern.php`, `dividend/`).
 
 ### 2. API Gateway (`/api` & `/auth_api`)
+
 RESTful endpoints serving the mobile application.
-*   **Authentication:** Secure login and token management (`auth_api/api/auth/`).
-*   **Transactional:** Endpoints for loan requests, balance checks, and savings history (`api/`).
-*   **Admin Operations:** Member search, loan approval, and attendance tracking (`auth_api/api/admin/`).
+
+- **Authentication:** Secure login and token management (`auth_api/api/auth/`).
+- **Transactional:** Endpoints for loan requests, balance checks, and savings history (`api/`).
+- **Admin Operations:** Member search, loan approval, and attendance tracking (`auth_api/api/admin/`).
 
 ### 3. Mobile Application Source (`/oouth_coop_app`)
+
 Contains the source code for the member-facing mobile app (Dart/Flutter).
-*   Allows members to track savings, request loans, and view dividends on the go.
-*   Full integration with the REST API backend.
-*   Cross-platform support (iOS, Android, Web).
+
+- Allows members to track savings, request loans, and view dividends on the go.
+- Full integration with the REST API backend.
+- Cross-platform support (iOS, Android, Web).
 
 ---
 
 ## 🛠️ Key Modules
 
-| Module | Description | Key Files |
-| :--- | :--- | :--- |
-| **💰 Finance** | General Ledger, Trial Balance, and Journal Entries. | `coop_finance.php`, `coop_journal_entries.php`, `coop_general_ledger.php` |
-| **💸 Loans** | Loan application workflow, guarantor approval, and repayment tracking. | `loan-processor.php`, `loan/`, `auth_api/api/loans/` |
-| **📊 Reporting** | PDF generation for monthly reports and dividend sharing. | `masterReportModern.php`, `dividend/`, `exportMemberContributions.php` |
-| **🔔 Alerts** | Automated SMS/Email notifications for transactions. | `AlertSystem/`, `onesignal/`, `auth_api/api/auth/notifications.php` |
-| **📂 Import** | Bulk data processing from Excel/CSV files. | `excel_import/`, `api_upload.php` |
-| **👥 Member Management** | Complete member lifecycle management. | `users.php`, `employee.php`, `auth_api/api/members/` |
-| **🔐 Authentication** | Secure authentication and authorization system. | `auth_api/api/auth/`, `login.php`, `auth_api/admin/` |
+| Module                   | Description                                                            | Key Files                                                                 |
+| :----------------------- | :--------------------------------------------------------------------- | :------------------------------------------------------------------------ |
+| **💰 Finance**           | General Ledger, Trial Balance, and Journal Entries.                    | `coop_finance.php`, `coop_journal_entries.php`, `coop_general_ledger.php` |
+| **💸 Loans**             | Loan application workflow, guarantor approval, and repayment tracking. | `loan-processor.php`, `loan/`, `auth_api/api/loans/`                      |
+| **📊 Reporting**         | PDF generation for monthly reports and dividend sharing.               | `masterReportModern.php`, `dividend/`, `exportMemberContributions.php`    |
+| **🔔 Alerts**            | Automated SMS/Email notifications for transactions.                    | `AlertSystem/`, `onesignal/`, `auth_api/api/auth/notifications.php`       |
+| **📂 Import**            | Bulk data processing from Excel/CSV files.                             | `excel_import/`, `api_upload.php`                                         |
+| **👥 Member Management** | Complete member lifecycle management.                                  | `users.php`, `employee.php`, `auth_api/api/members/`                      |
+| **🔐 Authentication**    | Secure authentication and authorization system.                        | `auth_api/api/auth/`, `login.php`, `auth_api/admin/`                      |
 
 ---
 
 ## 🔧 Installation & Setup
 
 ### Prerequisites
+
 - PHP 8.1 or higher
 - MySQL 5.7+ or MariaDB 10.3+
 - Composer (for PHP dependencies)
@@ -76,27 +83,33 @@ Contains the source code for the member-facing mobile app (Dart/Flutter).
 ### Step-by-Step Setup
 
 1.  **Clone the Repository**
+
     ```bash
     git clone https://github.com/meowbanky/coop_admin.git
     cd coop_admin
     ```
 
 2.  **Database Setup**
-    *   Create a MySQL database named `coop_db` (or your preferred name).
-    *   Import `database/setup_full_accounting_system.sql` to initialize tables.
-    *   Configure database credentials in `Connections/coop.php` or `config/`.
+
+    - Create a MySQL database named `coop_db` (or your preferred name).
+    - Import `database/setup_full_accounting_system.sql` to initialize tables.
+    - Configure database credentials in `Connections/coop.php` or `config/`.
 
 3.  **Install PHP Dependencies**
+
     ```bash
     composer install
     ```
+
     This installs reporting tools (MPDF, PHPOffice) and other required packages.
 
 4.  **Configure Environment**
-    *   Copy `config/env.example` to `config/.env` (if available).
-    *   Update database credentials, API keys, and SMTP settings.
+
+    - Copy `config/env.example` to `config/.env` (if available).
+    - Update database credentials, API keys, and SMTP settings.
 
 5.  **Set Permissions**
+
     ```bash
     chmod 755 uploads/
     chmod 644 *.php
@@ -125,22 +138,26 @@ See `oouth_coop_app/README.md` for detailed mobile app setup instructions.
 ## 📡 API Documentation
 
 ### Authentication Endpoints
+
 - `POST /auth_api/api/auth/login.php` - User login
 - `POST /auth_api/api/auth/register.php` - User registration
 - `POST /auth_api/api/auth/request_otp.php` - OTP request
 - `POST /auth_api/api/auth/reset_password.php` - Password reset
 
 ### Member Endpoints
+
 - `GET /auth_api/api/members/search.php` - Search members
 - `GET /auth_api/api/profile/get_profile.php` - Get user profile
 - `POST /auth_api/api/profile/submit_changes.php` - Update profile
 
 ### Loan Endpoints
+
 - `POST /auth_api/api/loans/request.php` - Submit loan request
 - `GET /auth_api/api/loans/tracking.php` - Track loan status
 - `POST /auth_api/api/loans/guarantor-request.php` - Request guarantor
 
 ### Transaction Endpoints
+
 - `GET /auth_api/api/transactions/get_periods.php` - Get transaction periods
 - `GET /auth_api/api/transactions/transaction-summary.php` - Get transaction summary
 
@@ -150,12 +167,12 @@ For complete API documentation, see `api/API_TESTING_GUIDE.md`.
 
 ## 🔒 Security Features
 
-*   **Role-Based Access Control (RBAC):** Distinct views for Admins, Accountants, and Regular Users.
-*   **Input Sanitization:** Protection against SQL injection in core classes (`classes/class.db.php`).
-*   **Audit Logging:** Tracks all financial modifications (`auth_api/admin/audit_trail.php`).
-*   **Session Management:** Secure session handling with timeout protection.
-*   **Password Hashing:** Bcrypt hashing for all user passwords.
-*   **CORS Configuration:** Proper CORS handling for API endpoints (`auth_api/config/cors.php`).
+- **Role-Based Access Control (RBAC):** Distinct views for Admins, Accountants, and Regular Users.
+- **Input Sanitization:** Protection against SQL injection in core classes (`classes/class.db.php`).
+- **Audit Logging:** Tracks all financial modifications (`auth_api/admin/audit_trail.php`).
+- **Session Management:** Secure session handling with timeout protection.
+- **Password Hashing:** Bcrypt hashing for all user passwords.
+- **CORS Configuration:** Proper CORS handling for API endpoints (`auth_api/config/cors.php`).
 
 ---
 
@@ -171,6 +188,7 @@ For complete API documentation, see `api/API_TESTING_GUIDE.md`.
 ## 📊 Database Schema
 
 The system uses a comprehensive MySQL database with tables for:
+
 - Members/Users (`users`, `employees`)
 - Financial transactions (`transactions`, `journal_entries`)
 - Loans (`loans`, `loan_applications`, `loan_repayments`)
@@ -184,12 +202,15 @@ See `database/` folder for SQL schema files.
 ## 🧪 Testing
 
 ### API Testing
+
 Use the provided API testing guide:
+
 ```bash
 # See api/API_TESTING_GUIDE.md for detailed testing instructions
 ```
 
 ### Manual Testing
+
 1. Test member registration and login
 2. Verify loan application workflow
 3. Check financial reporting accuracy
@@ -228,15 +249,16 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 👤 Author
 
 **Bankole Abiodun**
-*   *Developer & System Architect*
-*   Portfolio: [GitHub Profile](https://github.com/meowbanky)
+
+- _Developer & System Architect_
+- Portfolio: [GitHub Profile](https://github.com/meowbanky)
 
 ---
 
 ## 🌐 Live Demo
 
-- **Web Portal:** [https://coop.oouthsalary.com.ng/](https://coop.oouthsalary.com.ng/)
-- **API Base URL:** `https://coop.oouthsalary.com.ng/auth_api/api/`
+- **Web Portal:** [https://www.emmaggi.com/coop_admin/](https://www.emmaggi.com/coop_admin/)
+- **API Base URL:** `https://www.emmaggi.com/coop_admin/auth_api/api/`
 
 ---
 
@@ -255,6 +277,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 **Built with ❤️ using PHP, MySQL, Tailwind CSS, and Flutter**
 
-*Demonstrating Full-Stack Development Capabilities*
+_Demonstrating Full-Stack Development Capabilities_
 
 </div>
