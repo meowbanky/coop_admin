@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="SshConfigs">
-    <configs>
-      <sshConfig authType="PASSWORD" host="ftp.emmaggi.com" id="ceb4ad13-5e45-4a12-a089-79ff4b35ea08" port="22" nameFormat="DESCRIPTIVE" username="emmaggic" useOpenSSHConfig="true" />
-    </configs>
-  </component>
-</project>
