@@ -1,0 +1,89 @@
+=======================================================
+SERVER DEPLOYMENT STATUS CHECK
+=======================================================
+
+Error Message:
+--------------
+Error fetching batches: FUNCTION emmaggic_coop.any_value does not exist
+
+What This Means:
+----------------
+Your LIVE SERVER still has the OLD code that uses ANY_VALUE()
+
+Local Repository Status:
+------------------------
+✅ FIXED - Using MAX() instead of ANY_VALUE()
+✅ Committed to GitHub
+✅ Pushed to GitHub
+
+Server Status:
+--------------
+❌ NOT DEPLOYED - Server still has old code
+❌ Still using ANY_VALUE() function
+❌ Causing MySQL errors
+
+=======================================================
+IMMEDIATE ACTION REQUIRED
+=======================================================
+
+The file that needs to be uploaded to your server:
+
+📂 SOURCE FILE (on your computer):
+/Users/abiodun/Desktop/64_folder/coop_admin/loan/classes/BatchManager.php
+
+📂 DESTINATION (on server):
+/home/emmaggic/public_html/coop_admin/loan/classes/BatchManager.php
+
+=======================================================
+DEPLOYMENT OPTIONS
+=======================================================
+
+Option A: Upload via cPanel (RECOMMENDED)
+------------------------------------------
+1. Open: https://emmaggi.com:2083 (or https://emmaggi.com/cpanel)
+2. Click "File Manager"
+3. Navigate to: public_html/coop_admin/loan/classes/
+4. Find "BatchManager.php"
+5. Click "Upload" button
+6. Select the BatchManager.php from your desktop
+7. Overwrite the existing file
+
+Option B: Upload via FTP
+-------------------------
+1. Open your FTP client (FileZilla, etc.)
+2. Connect to emmaggi.com
+3. Navigate to: /home/emmaggic/public_html/coop_admin/loan/classes/
+4. Upload BatchManager.php
+5. Overwrite when prompted
+
+Option C: SSH + Git Pull (if available)
+----------------------------------------
+ssh emmaggi.com
+cd /home/emmaggic/public_html/coop_admin
+git pull origin master
+
+=======================================================
+VERIFICATION AFTER UPLOAD
+=======================================================
+
+After uploading, test by visiting:
+https://www.emmaggi.com/coop_admin/loan/home.php
+
+Expected Result:
+- ✅ Batches should display
+- ✅ No errors in error_log
+- ✅ Page loads correctly
+
+Current Result:
+- ❌ "Error fetching batches" message
+- ❌ No batches displayed
+
+=======================================================
+
+CRITICAL FILE LOCATION:
+Local:  loan/classes/BatchManager.php (line 128: uses MAX)
+Server: loan/classes/BatchManager.php (line 128: uses ANY_VALUE - WRONG!)
+
+ACTION: Upload the local file to replace the server file!
+
+=======================================================
