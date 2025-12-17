@@ -63,12 +63,19 @@ if ($stmt->num_rows == 1) {
     try {
         // Server settings
         $mail->isSMTP(); // Set mailer to use SMTP
-        $mail->Host = 'mail.emmaggi.com'; // Specify main and backup SMTP servers
+        // Load email configuration from .env
+        require_once __DIR__ . '/../config/EnvConfig.php';
+        $smtpHost = EnvConfig::get('SMTP_HOST', 'mail.emmaggi.com');
+        $smtpPort = EnvConfig::get('SMTP_PORT', 465);
+        $smtpUsername = EnvConfig::get('SMTP_USERNAME', 'vcms@emmaggi.com');
+        $smtpPassword = EnvConfig::get('SMTP_PASSWORD', '');
+        
+        $mail->Host = $smtpHost; // Specify main and backup SMTP servers
         $mail->SMTPAuth = true; // Enable SMTP authentication
-        $mail->Username = 'no-reply@emmaggi.com'; // SMTP username
-        $mail->Password = 'Banzoo@7980'; // SMTP password
-        $mail->SMTPSecure = 'tls'; // Enable TLS encryption, `ssl` also accepted
-        $mail->Port = 587; // TCP port to connect to
+        $mail->Username = $smtpUsername; // SMTP username
+        $mail->Password = $smtpPassword; // SMTP password
+        $mail->SMTPSecure = ($smtpPort == 465) ? 'ssl' : 'tls'; // Enable TLS/SSL encryption
+        $mail->Port = (int)$smtpPort; // TCP port to connect to
 
         // Recipients
         $mail->setFrom('no-reply@emmaggi.com', 'Password Rest');

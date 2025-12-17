@@ -10,12 +10,20 @@ use PHPMailer\PHPMailer\SMTP;
 <?php
 
 function sendMail($coop_no){
+    require_once __DIR__ . '/config/EnvConfig.php';
     
-$hostname_coop = "localhost";
-$database_coop = "emmaggic_coop";
-$username_coop = "emmaggic_root";
-$password_coop = "Oluwaseyi";
-$conn = mysqli_connect($hostname_coop, $username_coop, $password_coop) or trigger_error(mysql_error(),E_USER_ERROR); 
+    // Load database configuration from .env
+    $dbConfig = EnvConfig::getDatabaseConfig();
+    $hostname_coop = $dbConfig['host'];
+    $database_coop = $dbConfig['name'];
+    $username_coop = $dbConfig['user'];
+    $password_coop = $dbConfig['password'];
+    
+    $conn = mysqli_connect($hostname_coop, $username_coop, $password_coop);
+    if (!$conn) {
+        trigger_error("Connection failed: " . mysqli_connect_error(), E_USER_ERROR);
+    }
+    mysqli_select_db($conn, $database_coop) or trigger_error("Database selection failed: " . mysqli_error($conn), E_USER_ERROR); 
 
 
 $sql = "SELECT
@@ -60,8 +68,15 @@ INNER JOIN tblemployees ON tblemployees.CoopID = tblusers_online.Username WHERE 
 	//SMTP::DEBUG_SERVER = client and server messages
 	$mail->SMTPDebug = SMTP::DEBUG_OFF;
 
+	// Load email configuration from .env
+	require_once __DIR__ . '/config/EnvConfig.php';
+	$smtpHost = EnvConfig::get('SMTP_HOST', 'mail.emmaggi.com');
+	$smtpPort = EnvConfig::get('SMTP_PORT', 465);
+	$smtpUsername = EnvConfig::get('SMTP_USERNAME', 'vcms@emmaggi.com');
+	$smtpPassword = EnvConfig::get('SMTP_PASSWORD', '');
+	
 	//Set the hostname of the mail server
-	$mail->Host = "mail.emmaggi.com";
+	$mail->Host = $smtpHost;
 	//Use `$mail->Host = gethostbyname('smtp.gmail.com');`
 	//if your network does not support SMTP over IPv6,
 	//though this may cause issues with TLS
@@ -69,7 +84,7 @@ INNER JOIN tblemployees ON tblemployees.CoopID = tblusers_online.Username WHERE 
 	//Set the SMTP port number:
 	// - 465 for SMTP with implicit TLS, a.k.a. RFC8314 SMTPS or
 	// - 587 for SMTP+STARTTLS
-	$mail->Port = 465;
+	$mail->Port = (int)$smtpPort;
 
 	//Set the encryption mechanism to use:
 	// - SMTPS (implicit TLS on port 465) or
@@ -80,10 +95,10 @@ INNER JOIN tblemployees ON tblemployees.CoopID = tblusers_online.Username WHERE 
 	$mail->SMTPAuth = true;
 
 	//Username to use for SMTP authentication - use full email address for gmail
-	$mail->Username = "vcms@emmaggi.com";
+	$mail->Username = $smtpUsername;
 
 	//Password to use for SMTP authentication
-	$mail->Password = "Banzoo@7980";
+	$mail->Password = $smtpPassword;
 
 	//Set who the message is to be sent from
 	//Note that with gmail you can only use your account address (same as `Username`)
@@ -125,12 +140,20 @@ INNER JOIN tblemployees ON tblemployees.CoopID = tblusers_online.Username WHERE 
 }
 
 function resetMail($coop_no){
+    require_once __DIR__ . '/config/EnvConfig.php';
     
-$hostname_coop = "localhost";
-$database_coop = "emmaggic_coop";
-$username_coop = "emmaggic_root";
-$password_coop = "Oluwaseyi";
-$conn = mysqli_connect($hostname_coop, $username_coop, $password_coop) or trigger_error(mysql_error(),E_USER_ERROR); 
+    // Load database configuration from .env
+    $dbConfig = EnvConfig::getDatabaseConfig();
+    $hostname_coop = $dbConfig['host'];
+    $database_coop = $dbConfig['name'];
+    $username_coop = $dbConfig['user'];
+    $password_coop = $dbConfig['password'];
+    
+    $conn = mysqli_connect($hostname_coop, $username_coop, $password_coop);
+    if (!$conn) {
+        trigger_error("Connection failed: " . mysqli_connect_error(), E_USER_ERROR);
+    }
+    mysqli_select_db($conn, $database_coop) or trigger_error("Database selection failed: " . mysqli_error($conn), E_USER_ERROR); 
 
 
 $sql = "SELECT
@@ -174,8 +197,15 @@ INNER JOIN tblemployees ON tblemployees.CoopID = tblusers_online.Username WHERE 
 	//SMTP::DEBUG_SERVER = client and server messages
 	$mail->SMTPDebug = SMTP::DEBUG_OFF;
 
+	// Load email configuration from .env
+	require_once __DIR__ . '/config/EnvConfig.php';
+	$smtpHost = EnvConfig::get('SMTP_HOST', 'mail.emmaggi.com');
+	$smtpPort = EnvConfig::get('SMTP_PORT', 465);
+	$smtpUsername = EnvConfig::get('SMTP_USERNAME', 'vcms@emmaggi.com');
+	$smtpPassword = EnvConfig::get('SMTP_PASSWORD', '');
+	
 	//Set the hostname of the mail server
-	$mail->Host = "mail.emmaggi.com";
+	$mail->Host = $smtpHost;
 	//Use `$mail->Host = gethostbyname('smtp.gmail.com');`
 	//if your network does not support SMTP over IPv6,
 	//though this may cause issues with TLS
@@ -183,7 +213,7 @@ INNER JOIN tblemployees ON tblemployees.CoopID = tblusers_online.Username WHERE 
 	//Set the SMTP port number:
 	// - 465 for SMTP with implicit TLS, a.k.a. RFC8314 SMTPS or
 	// - 587 for SMTP+STARTTLS
-	$mail->Port = 465;
+	$mail->Port = (int)$smtpPort;
 
 	//Set the encryption mechanism to use:
 	// - SMTPS (implicit TLS on port 465) or
@@ -194,10 +224,10 @@ INNER JOIN tblemployees ON tblemployees.CoopID = tblusers_online.Username WHERE 
 	$mail->SMTPAuth = true;
 
 	//Username to use for SMTP authentication - use full email address for gmail
-	$mail->Username = "vcms@emmaggi.com";
+	$mail->Username = $smtpUsername;
 
 	//Password to use for SMTP authentication
-	$mail->Password = "Banzoo@7980";
+	$mail->Password = $smtpPassword;
 
 	//Set who the message is to be sent from
 	//Note that with gmail you can only use your account address (same as `Username`)
