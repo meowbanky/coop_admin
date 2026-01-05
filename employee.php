@@ -532,6 +532,7 @@ class EmployeeManager {
         try {
             const response = await fetch('api/employee.php', {
                 method: 'POST',
+                credentials: 'same-origin',
                 body: formData
             });
 
@@ -557,6 +558,7 @@ class EmployeeManager {
         try {
             const response = await fetch('api/employee.php', {
                 method: 'POST',
+                credentials: 'same-origin',
                 body: formData
             });
 
@@ -587,6 +589,7 @@ class EmployeeManager {
         try {
             const response = await fetch('api/employee.php', {
                 method: 'POST',
+                credentials: 'same-origin',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },

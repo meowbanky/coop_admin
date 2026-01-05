@@ -14,14 +14,20 @@ $filename = $_GET['BATCH'];
 /*******YOU DO NOT NEED TO EDIT ANYTHING BELOW THIS LINE*******/
 //create MySQL connection
 $sql = "SELECT concat(excel.Narration,' ',excel.PaymentRefID) as 'Payment Reference', beneficiaryCode as 'Beneficiary code', excel.BeneficiaryName as 'Beneficiary Name', excel.AccountNumber as 'Account Number', excel.AccountType as 'Account Type', excel.CBNCode, excel.IsCashCard as 'Is Cash Card', excel.Narration, excel.Amount, excel.EMailAddress as 'Email Address', excel.NGN as 'Currency code' FROM excel where Batch ='".$filename."'";
-$Connect = @mysqli_connect($DB_Server, $DB_Username, $DB_Password)
-    or die("Couldn't connect to MySQL:<br>" . mysqli_error($Connect) . "<br>" . mysqli_errno($Connect));
+$Connect = @mysqli_connect($DB_Server, $DB_Username, $DB_Password);
+if (!$Connect) {
+    die("Couldn't connect to MySQL:<br>" . mysqli_connect_error() . "<br>" . mysqli_connect_errno());
+}
 //select database
-$Db = @mysqli_select_db($Connect,$DB_DBName)
-    or die("Couldn't select database:<br>" . mysqli_error($Connect). "<br>" . mysqli_errno($Connect));
+$Db = @mysqli_select_db($Connect, $DB_DBName);
+if (!$Db) {
+    die("Couldn't select database:<br>" . mysqli_error($Connect) . "<br>" . mysqli_errno($Connect));
+}
 //execute query
-$result = @mysqli_query($Connect,$sql)
-    or die("Couldn't execute query:<br>" . mysqli_error($Connect). "<br>" . mysqli_errno($Connect));
+$result = @mysqli_query($Connect, $sql);
+if (!$result) {
+    die("Couldn't execute query:<br>" . mysqli_error($Connect) . "<br>" . mysqli_errno($Connect));
+}
     $row = mysqli_fetch_assoc($result);
     $x = array_keys($row);
 $file_ending = "xls";
