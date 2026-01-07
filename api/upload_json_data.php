@@ -56,11 +56,11 @@ try {
         throw new Exception('Invalid local period ID');
     }
     
-    // Select database
-    mysqli_select_db($coop, $database);
+    // Select database (PDO handles this in connection, but ensuring we are good)
+    // No need for mysqli_select_db
     
     // Start transaction
-    mysqli_begin_transaction($coop);
+    $coop->beginTransaction();
     
     $successCount = 0;
     $errorCount = 0;
@@ -84,13 +84,10 @@ try {
                      FROM tblemployees 
                      LEFT JOIN tbl_extra ON tblemployees.CoopID = tbl_extra.COOPID 
                      WHERE StaffID = ?";
-        $stmt = mysqli_prepare($coop, $sqlStaff);
-        mysqli_stmt_bind_param($stmt, "s", $staffId);
-        mysqli_stmt_execute($stmt);
-        $staffResult = mysqli_stmt_get_result($stmt);
-        $staffRow = mysqli_fetch_assoc($staffResult);
-        $staffFound = mysqli_num_rows($staffResult) > 0;
-        mysqli_stmt_close($stmt);
+        $stmt = $coop->prepare($sqlStaff);
+        $stmt->execute([$staffId]);
+        $staffRow = $stmt->fetch(PDO::FETCH_ASSOC);
+        $staffFound = $staffRow ? true : false;
         
         if ($staffFound) {
             $coopId = $staffRow['CoopID'];
@@ -101,64 +98,49 @@ try {
             
             // 1. Update/Insert tbl_monthlycontribution
             $checkSql = "SELECT COUNT(*) AS count FROM tbl_monthlycontribution WHERE coopID = ? AND period = ?";
-            $checkStmt = mysqli_prepare($coop, $checkSql);
-            mysqli_stmt_bind_param($checkStmt, "si", $coopId, $localPeriodId);
-            mysqli_stmt_execute($checkStmt);
-            mysqli_stmt_bind_result($checkStmt, $count);
-            mysqli_stmt_fetch($checkStmt);
-            mysqli_stmt_close($checkStmt);
+            $checkStmt = $coop->prepare($checkSql);
+            $checkStmt->execute([$coopId, $localPeriodId]);
+            $count = $checkStmt->fetchColumn();
             
             if ($count > 0) {
                 // Update existing record
                 $sql = "UPDATE tbl_monthlycontribution 
                         SET MonthlyContribution = ? 
                         WHERE coopID = ? AND period = ?";
-                $stmt = mysqli_prepare($coop, $sql);
-                mysqli_stmt_bind_param($stmt, "dsi", $newValue, $coopId, $localPeriodId);
+                $stmt = $coop->prepare($sql);
+                $stmt->execute([$newValue, $coopId, $localPeriodId]);
             } else {
                 // Insert new record
                 $sql = "INSERT INTO tbl_monthlycontribution (coopID, MonthlyContribution, period) 
                         VALUES (?, ?, ?)";
-                $stmt = mysqli_prepare($coop, $sql);
-                mysqli_stmt_bind_param($stmt, "sdi", $coopId, $newValue, $localPeriodId);
+                $stmt = $coop->prepare($sql);
+                $stmt->execute([$coopId, $newValue, $localPeriodId]);
             }
             
-            if (mysqli_stmt_execute($stmt)) {
-                mysqli_stmt_close($stmt);
-                
-                // 2. Update/Insert tbl_loansavings
-                $checkSql2 = "SELECT COUNT(*) AS count FROM tbl_loansavings WHERE COOPID = ? AND period = ?";
-                $checkStmt2 = mysqli_prepare($coop, $checkSql2);
-                mysqli_stmt_bind_param($checkStmt2, "si", $coopId, $localPeriodId);
-                mysqli_stmt_execute($checkStmt2);
-                mysqli_stmt_bind_result($checkStmt2, $count2);
-                mysqli_stmt_fetch($checkStmt2);
-                mysqli_stmt_close($checkStmt2);
-                
-                if ($count2 > 0) {
-                    $sql2 = "UPDATE tbl_loansavings 
-                            SET Amount = ? 
-                            WHERE COOPID = ? AND period = ?";
-                    $stmt2 = mysqli_prepare($coop, $sql2);
-                    mysqli_stmt_bind_param($stmt2, "dsi", $loanSavings, $coopId, $localPeriodId);
-                } else {
-                    $sql2 = "INSERT INTO tbl_loansavings (COOPID, Amount, period) 
-                            VALUES (?, ?, ?)";
-                    $stmt2 = mysqli_prepare($coop, $sql2);
-                    mysqli_stmt_bind_param($stmt2, "sdi", $coopId, $loanSavings, $localPeriodId);
-                }
-                
-                if (mysqli_stmt_execute($stmt2)) {
-                    $successCount++;
-                } else {
-                    $errorCount++;
-                    $errors[] = "Failed to update loan savings for {$staffId}: " . mysqli_stmt_error($stmt2);
-                }
-                mysqli_stmt_close($stmt2);
+            // 2. Update/Insert tbl_loansavings
+            $checkSql2 = "SELECT COUNT(*) AS count FROM tbl_loansavings WHERE COOPID = ? AND period = ?";
+            $checkStmt2 = $coop->prepare($checkSql2);
+            $checkStmt2->execute([$coopId, $localPeriodId]);
+            $count2 = $checkStmt2->fetchColumn();
+            
+            if ($count2 > 0) {
+                $sql2 = "UPDATE tbl_loansavings 
+                        SET Amount = ? 
+                        WHERE COOPID = ? AND period = ?";
+                $stmt2 = $coop->prepare($sql2);
+                $success = $stmt2->execute([$loanSavings, $coopId, $localPeriodId]);
+            } else {
+                $sql2 = "INSERT INTO tbl_loansavings (COOPID, Amount, period) 
+                        VALUES (?, ?, ?)";
+                $stmt2 = $coop->prepare($sql2);
+                $success = $stmt2->execute([$coopId, $loanSavings, $localPeriodId]);
+            }
+            
+            if ($success) {
+                $successCount++;
             } else {
                 $errorCount++;
-                $errors[] = "Failed to update monthly contribution for {$staffId}: " . mysqli_stmt_error($stmt);
-                mysqli_stmt_close($stmt);
+                $errors[] = "Failed to update loan savings for {$staffId}";
             }
         } else {
             // Staff not found - include name from API data if available
@@ -178,17 +160,19 @@ try {
         
         if (!empty($src)) {
             // Update MonthlyContribution for non-matching StaffIDs
+            $srcArray = array_fill(0, count(array_filter($processedStaffIds, 'is_numeric')), '?');
+            $srcPlaceholders = implode(',', $srcArray);
+            
             $update1 = "UPDATE tbl_monthlycontribution 
                        SET MonthlyContribution = 0 
                        WHERE period = ? AND CoopID IN (
                            SELECT tblemployees.CoopID 
                            FROM tblemployees 
-                           WHERE StaffID NOT IN ($src)
+                           WHERE StaffID NOT IN ($srcPlaceholders)
                        )";
-            $stmt1 = mysqli_prepare($coop, $update1);
-            mysqli_stmt_bind_param($stmt1, "i", $localPeriodId);
-            mysqli_stmt_execute($stmt1);
-            mysqli_stmt_close($stmt1);
+            $stmt1 = $coop->prepare($update1);
+            $params = array_merge([$localPeriodId], array_filter($processedStaffIds, 'is_numeric'));
+            $stmt1->execute($params);
             
             // Update LoanSavings for non-matching StaffIDs
             $update2 = "UPDATE tbl_loansavings 
@@ -196,18 +180,17 @@ try {
                         WHERE period = ? AND COOPID IN (
                             SELECT tblemployees.CoopID 
                             FROM tblemployees 
-                            WHERE StaffID NOT IN ($src)
+                            WHERE StaffID NOT IN ($srcPlaceholders)
                         )";
-            $stmt2 = mysqli_prepare($coop, $update2);
-            mysqli_stmt_bind_param($stmt2, "i", $localPeriodId);
-            mysqli_stmt_execute($stmt2);
-            mysqli_stmt_close($stmt2);
+            $stmt2 = $coop->prepare($update2);
+            // Re-use params as they are the same structure
+            $stmt2->execute($params);
         }
     }
     
     // Commit transaction if most records were successful
     if ($successCount > 0 && $errorCount < ($successCount / 2)) {
-        mysqli_commit($coop);
+        $coop->commit();
         
         // Format not found staff with names
         $displayNF = 'All records processed successfully.';
@@ -238,14 +221,14 @@ try {
         ]);
     } else {
         // Rollback if too many errors
-        mysqli_rollback($coop);
+        $coop->rollBack();
         throw new Exception("Upload failed: Too many errors ({$errorCount} errors out of " . count($data) . " records). Transaction rolled back.");
     }
     
 } catch (Exception $e) {
     // Rollback transaction on error
     if (isset($coop)) {
-        mysqli_rollback($coop);
+        $coop->rollBack();
     }
     
     http_response_code(500);
@@ -257,8 +240,7 @@ try {
 }
 
 // Close database connection
-if (isset($coop)) {
-    mysqli_close($coop);
-}
+// PDO closes automatically or set to null
+//$coop = null;
 
 ob_end_flush();

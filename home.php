@@ -140,12 +140,18 @@ include 'includes/header.php';
 <!-- Accounting Financial Widgets (if accounting tables exist) -->
 <?php
 // Check if accounting tables exist
-$accountsExist = mysqli_query($coop, "SHOW TABLES LIKE 'coop_accounts'");
-if ($accountsExist && mysqli_num_rows($accountsExist) > 0) {
+try {
+    $accountsExist = $coop->query("SHOW TABLES LIKE 'coop_accounts'");
+    $hasAccounts = $accountsExist->rowCount() > 0;
+} catch (PDOException $e) {
+    $hasAccounts = false;
+}
+
+if ($hasAccounts) {
     // Get current period
     $currentPeriodQuery = "SELECT id, PayrollPeriod FROM tbpayrollperiods ORDER BY id DESC LIMIT 1";
-    $currentPeriodResult = mysqli_query($coop, $currentPeriodQuery);
-    $currentPeriod = mysqli_fetch_assoc($currentPeriodResult);
+    $stmt = $coop->query($currentPeriodQuery);
+    $currentPeriod = $stmt->fetch(PDO::FETCH_ASSOC);
     $currentPeriodId = $currentPeriod['id'] ?? 0;
     
     if ($currentPeriodId > 0) {
@@ -185,13 +191,15 @@ if ($accountsExist && mysqli_num_rows($accountsExist) > 0) {
             <p class="text-sm opacity-90 mt-1">Period: <?= htmlspecialchars($currentPeriod['PayrollPeriod']) ?></p>
         </div>
         <div>
-            <div class="inline-flex items-center px-4 py-2 rounded-lg <?= $trialBalanced ? 'bg-green-500' : 'bg-yellow-500' ?> shadow-md">
+            <div
+                class="inline-flex items-center px-4 py-2 rounded-lg <?= $trialBalanced ? 'bg-green-500' : 'bg-yellow-500' ?> shadow-md">
                 <i class="fas fa-<?= $trialBalanced ? 'check-circle' : 'exclamation-triangle' ?> mr-2"></i>
-                <span class="font-bold"><?= $trialBalanced ? 'Trial Balance: Balanced' : 'Trial Balance: Review Needed' ?></span>
+                <span
+                    class="font-bold"><?= $trialBalanced ? 'Trial Balance: Balanced' : 'Trial Balance: Review Needed' ?></span>
             </div>
         </div>
     </div>
-    
+
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <!-- Cash & Bank Widget -->
         <div class="bg-white/20 backdrop-blur-sm rounded-lg p-4 hover:bg-white/30 transition-all">
@@ -202,7 +210,7 @@ if ($accountsExist && mysqli_num_rows($accountsExist) > 0) {
             <p class="text-2xl font-bold">₦<?= number_format($cashBalance, 2) ?></p>
             <p class="text-xs opacity-75 mt-1">Main Account Balance</p>
         </div>
-        
+
         <!-- Member Loans Widget -->
         <div class="bg-white/20 backdrop-blur-sm rounded-lg p-4 hover:bg-white/30 transition-all">
             <div class="flex items-center mb-2">
@@ -212,7 +220,7 @@ if ($accountsExist && mysqli_num_rows($accountsExist) > 0) {
             <p class="text-2xl font-bold">₦<?= number_format($loansBalance, 2) ?></p>
             <p class="text-xs opacity-75 mt-1">Outstanding Loans</p>
         </div>
-        
+
         <!-- Member Savings Widget -->
         <div class="bg-white/20 backdrop-blur-sm rounded-lg p-4 hover:bg-white/30 transition-all">
             <div class="flex items-center mb-2">
@@ -222,7 +230,7 @@ if ($accountsExist && mysqli_num_rows($accountsExist) > 0) {
             <p class="text-2xl font-bold">₦<?= number_format($savingsBalance, 2) ?></p>
             <p class="text-xs opacity-75 mt-1">Ordinary Savings</p>
         </div>
-        
+
         <!-- Member Shares Widget -->
         <div class="bg-white/20 backdrop-blur-sm rounded-lg p-4 hover:bg-white/30 transition-all">
             <div class="flex items-center mb-2">
@@ -233,7 +241,7 @@ if ($accountsExist && mysqli_num_rows($accountsExist) > 0) {
             <p class="text-xs opacity-75 mt-1">Share Capital</p>
         </div>
     </div>
-    
+
     <!-- Additional Summary Row -->
     <div class="mt-4 grid grid-cols-3 gap-4 pt-4 border-t border-white/20">
         <div class="text-center">
@@ -477,7 +485,7 @@ if ($accountsExist && mysqli_num_rows($accountsExist) > 0) {
     <?php endif; ?>
 
     <!-- ==================== ACCOUNTING MODULE SECTION ==================== -->
-    
+
     <!-- Chart of Accounts (Admin & Accountant) -->
     <?php if ($userRole == 'Admin' || $userRole == 'Accountant'): ?>
     <div class="bg-white rounded-lg shadow-lg p-6 card-hover">

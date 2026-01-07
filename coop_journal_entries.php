@@ -10,11 +10,13 @@ $accountingEngine = new AccountingEngine($coop, $database);
 // Get periods for dropdown
 $periods = [];
 $periodQuery = "SELECT id, PayrollPeriod FROM tbpayrollperiods ORDER BY id DESC";
-$periodResult = mysqli_query($coop, $periodQuery);
-if ($periodResult) {
-    while ($row = mysqli_fetch_assoc($periodResult)) {
+try {
+    $stmt = $coop->query($periodQuery);
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $periods[] = $row;
     }
+} catch (PDOException $e) {
+    // Handle error
 }
 
 // Filters
@@ -26,24 +28,20 @@ $searchQuery = isset($_GET['search']) ? trim($_GET['search']) : '';
 // Build WHERE clause
 $where = ['1=1'];
 $params = [];
-$types = '';
 
 if ($selectedPeriod > 0) {
     $where[] = "je.periodid = ?";
     $params[] = $selectedPeriod;
-    $types .= 'i';
 }
 
 if ($selectedStatus) {
     $where[] = "je.status = ?";
     $params[] = $selectedStatus;
-    $types .= 's';
 }
 
 if ($selectedType) {
     $where[] = "je.entry_type = ?";
     $params[] = $selectedType;
-    $types .= 's';
 }
 
 if ($searchQuery) {
@@ -51,7 +49,6 @@ if ($searchQuery) {
     $searchParam = "%{$searchQuery}%";
     $params[] = $searchParam;
     $params[] = $searchParam;
-    $types .= 'ss';
 }
 
 // Get journal entries
@@ -64,18 +61,13 @@ $sql = "SELECT
         ORDER BY je.entry_date DESC, je.id DESC
         LIMIT 100";
 
-$stmt = mysqli_prepare($coop, $sql);
-if (!empty($params)) {
-    mysqli_stmt_bind_param($stmt, $types, ...$params);
-}
-mysqli_stmt_execute($stmt);
-$result = mysqli_stmt_get_result($stmt);
+$stmt = $coop->prepare($sql);
+$stmt->execute($params);
 
 $entries = [];
-while ($row = mysqli_fetch_assoc($result)) {
+while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
     $entries[] = $row;
 }
-mysqli_stmt_close($stmt);
 
 // Get statistics
 $statsQuery = "SELECT 
@@ -84,8 +76,12 @@ $statsQuery = "SELECT
     SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) as draft,
     SUM(total_amount) as total_amount
 FROM coop_journal_entries" . ($selectedPeriod > 0 ? " WHERE periodid = {$selectedPeriod}" : "");
-$statsResult = mysqli_query($coop, $statsQuery);
-$stats = mysqli_fetch_assoc($statsResult);
+try {
+    $statsResult = $coop->query($statsQuery);
+    $stats = $statsResult->fetch(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $stats = ['total' => 0, 'posted' => 0, 'draft' => 0, 'total_amount' => 0];
+}
 ?>
 
 <div class="container mx-auto px-4 py-8 max-w-7xl">

@@ -9,15 +9,9 @@
  */
 class CashflowStatement {
     private $db;
-    private $database_name;
     
     public function __construct($database_connection, $database_name = null) {
         $this->db = $database_connection;
-        $this->database_name = $database_name;
-        
-        if ($database_name) {
-            mysqli_select_db($this->db, $database_name);
-        }
     }
     
     /**
@@ -133,13 +127,10 @@ class CashflowStatement {
                     LEFT JOIN coop_period_balances pb ON a.id = pb.account_id AND pb.periodid = ?
                     WHERE a.account_type = 'revenue' AND a.is_active = TRUE";
         
-        $stmt = mysqli_prepare($this->db, $revenue_sql);
-        mysqli_stmt_bind_param($stmt, "i", $periodid);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $row = mysqli_fetch_assoc($result);
+        $stmt = $this->db->prepare($revenue_sql);
+        $stmt->execute([$periodid]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
         $revenue = floatval($row['total'] ?? 0);
-        mysqli_stmt_close($stmt);
         
         // Expenses
         $expense_sql = "SELECT 
@@ -148,13 +139,10 @@ class CashflowStatement {
                     LEFT JOIN coop_period_balances pb ON a.id = pb.account_id AND pb.periodid = ?
                     WHERE a.account_type = 'expense' AND a.is_active = TRUE";
         
-        $stmt = mysqli_prepare($this->db, $expense_sql);
-        mysqli_stmt_bind_param($stmt, "i", $periodid);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $row = mysqli_fetch_assoc($result);
+        $stmt = $this->db->prepare($expense_sql);
+        $stmt->execute([$periodid]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
         $expense = floatval($row['total'] ?? 0);
-        mysqli_stmt_close($stmt);
         
         return $revenue - $expense;
     }
@@ -172,12 +160,9 @@ class CashflowStatement {
                 LEFT JOIN coop_period_balances pb ON a.id = pb.account_id AND pb.periodid = ?
                 WHERE a.id = ?";
         
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "ii", $periodid, $account_id);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $row = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$periodid, $account_id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if (!$row) return 0;
         
@@ -210,12 +195,9 @@ class CashflowStatement {
                 AND a.account_code LIKE '12%'
                 AND a.account_code NOT LIKE '121%'"; // Exclude depreciation accounts
         
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "i", $periodid);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $row = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$periodid]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
         
         return floatval($row['total'] ?? 0);
     }
@@ -234,12 +216,9 @@ class CashflowStatement {
                 AND a.account_code LIKE '12%'
                 AND a.account_code NOT LIKE '121%'"; // Exclude depreciation accounts
         
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "i", $periodid);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $row = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$periodid]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
         
         return floatval($row['total'] ?? 0);
     }
@@ -254,12 +233,9 @@ class CashflowStatement {
                 LEFT JOIN coop_period_balances pb ON a.id = pb.account_id AND pb.periodid = ?
                 WHERE a.account_code LIKE '31%'"; // Members fund accounts
         
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "i", $periodid);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $row = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$periodid]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
         
         return floatval($row['total'] ?? 0);
     }
@@ -274,12 +250,9 @@ class CashflowStatement {
                 LEFT JOIN coop_period_balances pb ON a.id = pb.account_id AND pb.periodid = ?
                 WHERE a.account_code LIKE '22%'"; // Non-current liabilities
         
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "i", $periodid);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $row = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$periodid]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
         
         return floatval($row['total'] ?? 0);
     }
@@ -297,12 +270,9 @@ class CashflowStatement {
                 LEFT JOIN coop_period_balances pb ON a.id = pb.account_id AND pb.periodid = ?
                 WHERE a.id IN (2, 3, 4)"; // Cash and bank accounts
         
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "i", $periodid);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $row = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$periodid]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
         
         return floatval($row['total'] ?? 0);
     }
@@ -317,12 +287,9 @@ class CashflowStatement {
                 FROM coop_period_balances pb
                 WHERE pb.account_id = ? AND pb.periodid = ?";
         
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "ii", $account_id, $periodid);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $row = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$account_id, $periodid]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if (!$row) return 0;
         

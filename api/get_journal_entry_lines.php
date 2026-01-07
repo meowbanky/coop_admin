@@ -21,17 +21,13 @@ try {
             WHERE jel.journal_entry_id = ?
             ORDER BY jel.line_number";
     
-    $stmt = mysqli_prepare($coop, $sql);
-    mysqli_stmt_bind_param($stmt, "i", $entry_id);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
+    $stmt = $coop->prepare($sql);
+    $stmt->execute([$entry_id]);
     
     $lines = [];
-    while ($row = mysqli_fetch_assoc($result)) {
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $lines[] = $row;
     }
-    
-    mysqli_stmt_close($stmt);
     
     echo json_encode([
         'success' => true,

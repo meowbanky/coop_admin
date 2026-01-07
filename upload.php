@@ -45,13 +45,17 @@ include 'includes/header.php';
                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     <option value="0">Choose a payroll period...</option>
                     <?php
-                mysqli_select_db($coop, $database);
+                // mysqli_select_db($coop, $database); // Not needed
                 $query = "SELECT * FROM tbpayrollperiods ORDER BY id DESC";
-                $result = mysqli_query($coop, $query) or die(mysqli_error($coop));
-                while ($row = mysqli_fetch_assoc($result)) {
-                    echo '<option value="' . htmlspecialchars($row['id']) . '">' . htmlspecialchars($row['PayrollPeriod']) . '</option>';
+                try {
+                     $stmt = $coop->query($query);
+                     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                        echo '<option value="' . htmlspecialchars($row['id']) . '">' . htmlspecialchars($row['PayrollPeriod']) . '</option>';
+                     }
+                } catch (PDOException $e) {
+                    die($e->getMessage());
                 }
-                mysqli_free_result($result);
+                // mysqli_free_result($result);
             ?>
                 </select>
             </div>

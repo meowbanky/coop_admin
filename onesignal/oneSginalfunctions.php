@@ -32,12 +32,15 @@ $apiInstance = new DefaultApi(
 
 function createNotificationGeneral($enContent): Notification
 {
-    global $coop;
-    global $database_coop;
+    global $conn;
 
-    mysqli_select_db($coop, $database_coop);
-    $sql = "INSERT INTO tbl_notification (subject,message,coop_id,date) VALUES ('Notification','{$enContent}',-1,now())";
-    $query = mysqli_query($coop, $sql);
+    $sql = "INSERT INTO tbl_notification (subject,message,coop_id,date) VALUES ('Notification',?, -1, now())";
+    try {
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([$enContent]);
+    } catch (PDOException $e) {
+        // error_log($e->getMessage()); 
+    }
 
 
     $content = new StringMap();
@@ -56,12 +59,15 @@ function createNotificationGeneral($enContent): Notification
 function createNotificationPlayer($enContent, $player, $coopid): Notification
 {
 
-    global $coop;
-    global $database_coop;
+    global $conn;
 
-    mysqli_select_db($coop, $database_coop);
-    $sql = "INSERT INTO tbl_notification (subject,message,coop_id,date) VALUES ('Notification','{$enContent}','{$coopid}',now())";
-    $query = mysqli_query($coop, $sql);
+    $sql = "INSERT INTO tbl_notification (subject,message,coop_id,date) VALUES ('Notification', ?, ?, now())";
+    try {
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([$enContent, $coopid]);
+    } catch (PDOException $e) {
+        // error_log($e->getMessage());
+    }
 
 
     $content = new StringMap();

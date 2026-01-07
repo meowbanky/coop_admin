@@ -1,33 +1,30 @@
 <?php
-# FileName="Connection_php_mysql.htm"
-# Type="MYSQL"
-# HTTP="true"
-
 require_once __DIR__ . '/../config/EnvConfig.php';
 
-// Load database configuration from .env
 $dbConfig = EnvConfig::getDatabaseConfig();
+
+// Legacy variables for backward compatibility
 $hostname = $dbConfig['host'];
 $database = $dbConfig['name'];
 $username = $dbConfig['user'];
 $password = $dbConfig['password'];
 
-// MySQLi connection
-$coop = mysqli_connect($hostname, $username, $password);
-if (!$coop) {
-    die("Connection failed: " . mysqli_connect_error());
-}
-mysqli_select_db($coop, $database) or die("Database selection failed: " . mysqli_error($coop));
-
-// Set charset to utf8
-mysqli_set_charset($coop, "utf8");
-
-// PDO connection
 try {
-    $conn = new PDO("mysql:host=$hostname;dbname=$database", $username, $password, array(PDO::ATTR_PERSISTENT=>true));
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch(PDOException $e) {
-    error_log("Database Connection Error: " . $e->getMessage());
-    echo "Failed Connection: " . $e->getMessage();
+    $conn = new PDO(
+        "mysql:host={$hostname};dbname={$database};charset=utf8mb4",
+        $username,
+        $password,
+        [
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_PERSISTENT         => true,
+        ]
+    );
+    
+    // Alias for backward compatibility with code using $coop
+    $coop = $conn;
+    
+} catch (PDOException $e) {
+    error_log('DB Connection Error: ' . $e->getMessage());
+    die('Database connection failed.');
 }
-?>

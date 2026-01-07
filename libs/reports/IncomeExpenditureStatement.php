@@ -9,15 +9,10 @@
  */
 class IncomeExpenditureStatement {
     private $db;
-    private $database_name;
     
     public function __construct($database_connection, $database_name = null) {
         $this->db = $database_connection;
-        $this->database_name = $database_name;
-        
-        if ($database_name) {
-            mysqli_select_db($this->db, $database_name);
-        }
+        // PDO connects to DB via DSN, so select_db is typically not needed if connected correctly.
     }
     
     /**
@@ -97,12 +92,9 @@ class IncomeExpenditureStatement {
         
         // Get appropriation if exists
         $appropriation_sql = "SELECT * FROM coop_appropriation WHERE periodid = ?";
-        $stmt = mysqli_prepare($this->db, $appropriation_sql);
-        mysqli_stmt_bind_param($stmt, "i", $periodid);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $appropriation_data = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
+        $stmt = $this->db->prepare($appropriation_sql);
+        $stmt->execute([$periodid]);
+        $appropriation_data = $stmt->fetch(PDO::FETCH_ASSOC);
         
         $appropriation = [
             'dividend' => floatval($appropriation_data['dividend_amount'] ?? 0),
@@ -142,12 +134,9 @@ class IncomeExpenditureStatement {
                 LEFT JOIN coop_period_balances pb ON a.id = pb.account_id AND pb.periodid = ?
                 WHERE a.id = ?";
         
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "ii", $periodid, $account_id);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $row = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$periodid, $account_id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if (!$row) return 0;
         
@@ -175,13 +164,11 @@ class IncomeExpenditureStatement {
                 WHERE a.account_category = ? AND a.is_active = TRUE
                 GROUP BY a.normal_balance";
         
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "is", $periodid, $category);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$periodid, $category]);
         
         $total = 0;
-        while ($row = mysqli_fetch_assoc($result)) {
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $debit = floatval($row['total_debit']);
             $credit = floatval($row['total_credit']);
             
@@ -192,7 +179,6 @@ class IncomeExpenditureStatement {
             }
         }
         
-        mysqli_stmt_close($stmt);
         return $total;
     }
 }

@@ -9,11 +9,13 @@ require_once('includes/header.php');
 // Get all periods
 $periods = [];
 $periodQuery = "SELECT id, PayrollPeriod FROM tbpayrollperiods ORDER BY id DESC";
-$periodResult = mysqli_query($coop, $periodQuery);
-if ($periodResult) {
-    while ($row = mysqli_fetch_assoc($periodResult)) {
+try {
+    $stmt = $coop->query($periodQuery);
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $periods[] = $row;
     }
+} catch (PDOException $e) {
+    // Handle error if needed
 }
 
 // Get selected periods (up to 5)

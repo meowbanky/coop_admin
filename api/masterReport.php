@@ -104,12 +104,10 @@ function deleteRecords() {
             // Find the journal entry for this transaction
             $journalQuery = "SELECT id, entry_number FROM coop_journal_entries 
                             WHERE source_document = ? AND status = 'posted' AND is_reversed = FALSE";
-            $stmt = mysqli_prepare($coop, $journalQuery);
-            mysqli_stmt_bind_param($stmt, "s", $sourceDoc);
-            mysqli_stmt_execute($stmt);
-            $journalResult = mysqli_stmt_get_result($stmt);
+            $stmt = $coop->prepare($journalQuery);
+            $stmt->execute([$sourceDoc]);
             
-            if ($journalEntry = mysqli_fetch_assoc($journalResult)) {
+            if ($journalEntry = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 // Reverse the journal entry
                 $reverseResult = $accountingEngine->reverseEntry(
                     $journalEntry['id'],
@@ -124,7 +122,6 @@ function deleteRecords() {
                     error_log("Failed to reverse journal entry for $coopId, period $period: {$reverseResult['error']}");
                 }
             }
-            mysqli_stmt_close($stmt);
         }
         
         // STEP 2: Delete from all related tables in bulk

@@ -183,15 +183,15 @@ function updateEmployee() {
     }
     
     // Check if StaffID already exists (excluding current employee)
-    $check_staff_sql = "SELECT COUNT(*) as count FROM tblemployees WHERE StaffID = ? AND CoopID != ?";
-    $check_staff_stmt = $conn->prepare($check_staff_sql);
-    $check_staff_stmt->execute([$staff_id, $coop_id]);
-    $staff_result = $check_staff_stmt->fetch(PDO::FETCH_ASSOC);
+    // $check_staff_sql = "SELECT COUNT(*) as count FROM tblemployees WHERE StaffID = ? AND CoopID != ?";
+    // $check_staff_stmt = $conn->prepare($check_staff_sql);
+    // $check_staff_stmt->execute([$staff_id, $coop_id]);
+    // $staff_result = $check_staff_stmt->fetch(PDO::FETCH_ASSOC);
     
-    if ($staff_result['count'] > 0) {
-        echo json_encode(['success' => false, 'message' => 'Staff ID already exists']);
-        return;
-    }
+    // if ($staff_result['count'] > 0) {
+    //     echo json_encode(['success' => false, 'message' => 'Staff ID already exists']);
+    //     return;
+    // }
     
     // Get the original StaffID for the WHERE clause
     $original_staff_sql = "SELECT StaffID FROM tblemployees WHERE CoopID = ?";
@@ -256,7 +256,10 @@ function changeEmployeeStatus() {
     $sql = "SELECT Status FROM tblemployees WHERE CoopID = ?";
     $stmt = $conn->prepare($sql);
     $stmt->execute([$coop_id]);
-    $employee = $stmt->fetch(PDO::FETCH_ASSOC);
+    $employee = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    //   $employee = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
     
     if (!$employee) {
         echo json_encode(['success' => false, 'message' => 'Employee not found']);

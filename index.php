@@ -279,7 +279,9 @@ if (isset($_GET['logout'])) {
                     dataType: 'json'
                 });
 
-                if (response.success === 'true') {
+                console.log(response);
+
+                if (response.success === true) {
                     this.showSuccess('Login successful! Redirecting...');
                     setTimeout(() => {
                         window.location.href = 'home.php';
@@ -287,6 +289,7 @@ if (isset($_GET['logout'])) {
                 } else {
                     this.showError(response.message || 'Login failed. Please check your credentials.');
                 }
+
             } catch (error) {
                 console.error('Login error:', error);
                 this.showError('An error occurred during login. Please try again.');

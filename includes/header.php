@@ -303,11 +303,17 @@ $pageTitle = $pageTitle ?? 'OOUTH COOP';
                 <!-- Accounting Section Divider -->
                 <?php 
                 if (isset($coop)) {
-                    $accountsExist = mysqli_query($coop, "SHOW TABLES LIKE 'coop_accounts'");
+                    // Check if table exists using PDO
+                    try {
+                        $result = $coop->query("SHOW TABLES LIKE 'coop_accounts'");
+                        $accountsExist = $result->rowCount() > 0;
+                    } catch (PDOException $e) {
+                         $accountsExist = false;
+                    }
                 } else {
                     $accountsExist = false;
                 }
-                if ($accountsExist && mysqli_num_rows($accountsExist) > 0): 
+                if ($accountsExist): 
                 ?>
                 <div class="pt-4 pb-2 px-4">
                     <div
@@ -319,7 +325,7 @@ $pageTitle = $pageTitle ?? 'OOUTH COOP';
                 <?php endif; ?>
                 <?php endif; ?>
 
-                <?php if (($userRole == 'Admin' || $userRole == 'Accountant') && $accountsExist && mysqli_num_rows($accountsExist) > 0): ?>
+                <?php if (($userRole == 'Admin' || $userRole == 'Accountant') && $accountsExist): ?>
                 <!-- Chart of Accounts -->
                 <a href="coop_chart_of_accounts.php"
                     class="menu-item flex items-center space-x-3 px-4 py-3 rounded-lg <?= basename($currentPage) === 'coop_chart_of_accounts.php' ? 'active' : '' ?>">

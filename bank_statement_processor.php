@@ -79,12 +79,11 @@ function handleFileUpload() {
             // Check if file was already processed
             $file_hash = md5_file($tmp_name);
             $check_query = "SELECT id FROM bank_statement_files WHERE file_hash = ?";
-            $check_stmt = mysqli_prepare($coop, $check_query);
-            mysqli_stmt_bind_param($check_stmt, 's', $file_hash);
-            mysqli_stmt_execute($check_stmt);
-            $check_result = mysqli_stmt_get_result($check_stmt);
+            $check_stmt = $coop->prepare($check_query);
+            $check_stmt->execute([$file_hash]);
+            $check_result = $check_stmt->fetchColumn();
             
-            if (mysqli_num_rows($check_result) > 0) {
+            if ($check_result) {
                 continue; // Skip already processed files
             }
             
@@ -110,9 +109,8 @@ function handleFileUpload() {
             
             // Record file processing
             $insert_file_query = "INSERT INTO bank_statement_files (filename, file_path, file_hash, period_id, uploaded_by, upload_date) VALUES (?, ?, ?, ?, ?, NOW())";
-            $insert_file_stmt = mysqli_prepare($coop, $insert_file_query);
-            mysqli_stmt_bind_param($insert_file_stmt, 'sssis', $file_name, $file_path, $file_hash, $period, $_SESSION['SESS_FIRST_NAME']);
-            mysqli_stmt_execute($insert_file_stmt);
+            $insert_file_stmt = $coop->prepare($insert_file_query);
+            $insert_file_stmt->execute([$file_name, $file_path, $file_hash, $period, $_SESSION['SESS_FIRST_NAME']]);
             
             $uploaded_files[] = $file_name;
         }
@@ -297,12 +295,10 @@ function findEmployeeMatch($name) {
               CONCAT(FirstName, ' ', LastName) = ? OR
               FirstName = ? OR LastName = ?";
     
-    $stmt = mysqli_prepare($coop, $query);
-    mysqli_stmt_bind_param($stmt, 'ssss', $name, $name, $name, $name);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
+    $stmt = $coop->prepare($query);
+    $stmt->execute([$name, $name, $name, $name]);
     
-    if ($row = mysqli_fetch_assoc($result)) {
+    if ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         return $row;
     }
     
@@ -311,13 +307,11 @@ function findEmployeeMatch($name) {
         if (strlen($part) > 2) {
             $fuzzy_query = "SELECT CoopID, FirstName, MiddleName, LastName FROM tblemployees WHERE 
                            FirstName LIKE ? OR MiddleName LIKE ? OR LastName LIKE ?";
-            $fuzzy_stmt = mysqli_prepare($coop, $fuzzy_query);
+            $fuzzy_stmt = $coop->prepare($fuzzy_query);
             $search_term = "%$part%";
-            mysqli_stmt_bind_param($fuzzy_stmt, 'sss', $search_term, $search_term, $search_term);
-            mysqli_stmt_execute($fuzzy_stmt);
-            $fuzzy_result = mysqli_stmt_get_result($fuzzy_stmt);
+            $fuzzy_stmt->execute([$search_term, $search_term, $search_term]);
             
-            if ($row = mysqli_fetch_assoc($fuzzy_result)) {
+            if ($row = $fuzzy_stmt->fetch(PDO::FETCH_ASSOC)) {
                 return $row;
             }
         }
@@ -340,20 +334,20 @@ function handleInsertTransaction($input) {
             $query = "INSERT INTO tbl_monthlycontribution (coopID, MonthlyContribution, period) 
                      VALUES (?, ?, ?) 
                      ON DUPLICATE KEY UPDATE MonthlyContribution = ?";
-            $stmt = mysqli_prepare($coop, $query);
-            mysqli_stmt_bind_param($stmt, 'sddd', $coop_id, $amount, $period, $amount);
+            $stmt = $coop->prepare($query);
+            $success = $stmt->execute([$coop_id, $amount, $period, $amount]);
         } else {
             // Insert into debit table
             $query = "INSERT INTO tbl_debits (coopID, amount, period, transaction_date) 
                      VALUES (?, ?, ?, NOW())";
-            $stmt = mysqli_prepare($coop, $query);
-            mysqli_stmt_bind_param($stmt, 'sdi', $coop_id, $amount, $period);
+            $stmt = $coop->prepare($query);
+            $success = $stmt->execute([$coop_id, $amount, $period]);
         }
         
-        if (mysqli_stmt_execute($stmt)) {
+        if ($success) {
             echo json_encode(['success' => true, 'message' => 'Transaction inserted successfully']);
         } else {
-            throw new Exception('Failed to insert transaction: ' . mysqli_error($coop));
+            throw new Exception('Failed to insert transaction');
         }
         
     } catch (Exception $e) {
@@ -372,16 +366,11 @@ function handleSearchEmployees($input) {
                  OR CONCAT(FirstName, ' ', MiddleName, ' ', LastName) LIKE ?
                  ORDER BY FirstName, LastName LIMIT 20";
         
-        $stmt = mysqli_prepare($coop, $query);
+        $stmt = $coop->prepare($query);
         $search_pattern = "%$search_term%";
-        mysqli_stmt_bind_param($stmt, 'ssss', $search_pattern, $search_pattern, $search_pattern, $search_pattern);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
+        $stmt->execute([$search_pattern, $search_pattern, $search_pattern, $search_pattern]);
         
-        $employees = [];
-        while ($row = mysqli_fetch_assoc($result)) {
-            $employees[] = $row;
-        }
+        $employees = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         echo json_encode(['success' => true, 'employees' => $employees]);
         
@@ -397,21 +386,17 @@ function handleGetFileDetails($input) {
         $file_id = $input['file_id'];
         
         $query = "SELECT * FROM bank_statement_files WHERE id = ?";
-        $stmt = mysqli_prepare($coop, $query);
-        mysqli_stmt_bind_param($stmt, 'i', $file_id);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
+        $stmt = $coop->prepare($query);
+        $stmt->execute([$file_id]);
         
-        if ($file = mysqli_fetch_assoc($result)) {
+        if ($file = $stmt->fetch(PDO::FETCH_ASSOC)) {
             // Get unmatched transactions for this file
             $transactions_query = "SELECT * FROM unmatched_transactions WHERE file_id = ?";
-            $transactions_stmt = mysqli_prepare($coop, $transactions_query);
-            mysqli_stmt_bind_param($transactions_stmt, 'i', $file_id);
-            mysqli_stmt_execute($transactions_stmt);
-            $transactions_result = mysqli_stmt_get_result($transactions_stmt);
+            $transactions_stmt = $coop->prepare($transactions_query);
+            $transactions_stmt->execute([$file_id]);
             
             $transactions = [];
-            while ($transaction = mysqli_fetch_assoc($transactions_result)) {
+            while ($transaction = $transactions_stmt->fetch(PDO::FETCH_ASSOC)) {
                 $transactions[] = [
                     'name' => $transaction['name'],
                     'amount' => $transaction['amount'],
@@ -440,12 +425,10 @@ function handleReprocessFile($input) {
         
         // Get file details
         $query = "SELECT * FROM bank_statement_files WHERE id = ?";
-        $stmt = mysqli_prepare($coop, $query);
-        mysqli_stmt_bind_param($stmt, 'i', $file_id);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
+        $stmt = $coop->prepare($query);
+        $stmt->execute([$file_id]);
         
-        if ($file = mysqli_fetch_assoc($result)) {
+        if ($file = $stmt->fetch(PDO::FETCH_ASSOC)) {
             // Extract text from file again
             $file_type = mime_content_type($file['file_path']);
             $extracted_text = extractTextFromFile($file['file_path'], $file_type);
@@ -457,9 +440,8 @@ function handleReprocessFile($input) {
             // For reprocessing, we'll need an OpenAI key - this would need to be stored or provided
             // For now, we'll just mark it as reprocessed
             $update_query = "UPDATE bank_statement_files SET processed = 1 WHERE id = ?";
-            $update_stmt = mysqli_prepare($coop, $update_query);
-            mysqli_stmt_bind_param($update_stmt, 'i', $file_id);
-            mysqli_stmt_execute($update_stmt);
+            $update_stmt = $coop->prepare($update_query);
+            $update_stmt->execute([$file_id]);
             
             echo json_encode(['success' => true, 'message' => 'File reprocessed successfully']);
         } else {
@@ -519,9 +501,9 @@ function createTables() {
         INDEX (resolved)
     )";
     
-    mysqli_query($coop, $files_table);
-    mysqli_query($coop, $debits_table);
-    mysqli_query($coop, $unmatched_table);
+    $coop->exec($files_table);
+    $coop->exec($debits_table);
+    $coop->exec($unmatched_table);
 }
 
 // Create tables on first run

@@ -14,10 +14,6 @@ class PeriodClosingProcessor {
     public function __construct($database_connection, $database_name = null) {
         $this->db = $database_connection;
         $this->database_name = $database_name;
-        
-        if ($database_name) {
-            mysqli_select_db($this->db, $database_name);
-        }
     }
     
     /**
@@ -33,12 +29,9 @@ class PeriodClosingProcessor {
         // Check if already closed
         $sql = "SELECT COUNT(*) as count FROM coop_period_balances 
                 WHERE periodid = ? AND is_closed = TRUE LIMIT 1";
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "i", $periodid);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $row = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$periodid]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if ($row['count'] > 0) {
             $issues[] = "Period is already closed";
@@ -47,12 +40,9 @@ class PeriodClosingProcessor {
         // Check for draft journal entries
         $sql = "SELECT COUNT(*) as count FROM coop_journal_entries 
                 WHERE periodid = ? AND status = 'draft'";
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "i", $periodid);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $row = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$periodid]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if ($row['count'] > 0) {
             $warnings[] = "{$row['count']} draft journal entries will not be included";
@@ -100,7 +90,7 @@ class PeriodClosingProcessor {
                 ];
             }
             
-            mysqli_begin_transaction($this->db);
+            $this->db->beginTransaction();
             
             try {
                 $entries_created = [];
@@ -125,7 +115,7 @@ class PeriodClosingProcessor {
                 // Step 4: Create opening balances for next period (if exists)
                 $this->createOpeningBalancesForNextPeriod($periodid);
                 
-                mysqli_commit($this->db);
+                $this->db->commit();
                 
                 return [
                     'success' => true,
@@ -134,7 +124,7 @@ class PeriodClosingProcessor {
                 ];
                 
             } catch (Exception $e) {
-                mysqli_rollback($this->db);
+                $this->db->rollBack();
                 throw $e;
             }
             
@@ -246,8 +236,8 @@ class PeriodClosingProcessor {
                  retained_earnings, is_posted, approved_by, approval_date)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE, ?, NOW())";
         
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "iddddddddddi",
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
             $periodid,
             $appropriation_data['surplus_amount'],
             $appropriation_data['dividend'] ?? 0,
@@ -260,10 +250,7 @@ class PeriodClosingProcessor {
             $appropriation_data['welfare_fund'] ?? 0,
             $appropriation_data['retained_earnings'] ?? 0,
             $user_id
-        );
-        
-        mysqli_stmt_execute($stmt);
-        mysqli_stmt_close($stmt);
+        ]);
         
         // Create journal entry for appropriation
         $lines = [];
@@ -326,10 +313,8 @@ class PeriodClosingProcessor {
                 SET is_closed = TRUE, closed_at = NOW(), closed_by = ?
                 WHERE periodid = ?";
         
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "ii", $user_id, $periodid);
-        mysqli_stmt_execute($stmt);
-        mysqli_stmt_close($stmt);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$user_id, $periodid]);
     }
     
     /**
@@ -342,12 +327,9 @@ class PeriodClosingProcessor {
                 ORDER BY id ASC 
                 LIMIT 1";
         
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "i", $periodid);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $next_period = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$periodid]);
+        $next_period = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if (!$next_period) {
             return; // No next period
@@ -371,10 +353,8 @@ class PeriodClosingProcessor {
                 opening_debit = VALUES(opening_debit),
                 opening_credit = VALUES(opening_credit)";
         
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "ii", $next_periodid, $periodid);
-        mysqli_stmt_execute($stmt);
-        mysqli_stmt_close($stmt);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$next_periodid, $periodid]);
         
         // Also initialize member accounts for next period
         require_once('MemberAccountManager.php');
@@ -400,27 +380,23 @@ class PeriodClosingProcessor {
                         SET is_closed = FALSE, closed_at = NULL, closed_by = NULL
                         WHERE periodid = ?";
                 
-                $stmt = mysqli_prepare($this->db, $sql);
-                mysqli_stmt_bind_param($stmt, "i", $periodid);
-                mysqli_stmt_execute($stmt);
-                mysqli_stmt_close($stmt);
+                $stmt = $this->db->prepare($sql);
+                $stmt->execute([$periodid]);
                 
                 // Log action
                 $log_sql = "INSERT INTO coop_audit_trail 
                            (user_id, action_type, table_name, record_id, notes)
                            VALUES (?, 'reopen_period', 'coop_period_balances', ?, ?)";
                 
-                $stmt = mysqli_prepare($this->db, $log_sql);
-                mysqli_stmt_bind_param($stmt, "iis", $user_id, $periodid, $reason);
-                mysqli_stmt_execute($stmt);
-                mysqli_stmt_close($stmt);
+                $stmt = $this->db->prepare($log_sql);
+                $stmt->execute([$user_id, $periodid, $reason]);
                 
-                mysqli_commit($this->db);
+                $this->db->commit();
                 
                 return ['success' => true];
                 
             } catch (Exception $e) {
-                mysqli_rollback($this->db);
+                $this->db->rollBack();
                 throw $e;
             }
             
@@ -448,12 +424,9 @@ class PeriodClosingProcessor {
                 WHERE periodid = ?
                 LIMIT 1";
         
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "i", $periodid);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $row = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$periodid]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if (!$row) {
             return [

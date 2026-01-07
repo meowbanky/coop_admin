@@ -88,29 +88,27 @@ try {
         case 'get_local_periods':
             // Get local payroll periods from database
             require_once(__DIR__ . '/../Connections/coop.php');
-            mysqli_select_db($coop, $database);
+            // PDO selects db from DSN
             
             $query = "SELECT id, PayrollPeriod, PhysicalYear, PhysicalMonth 
                      FROM tbpayrollperiods 
                      ORDER BY id DESC";
-            $result = mysqli_query($coop, $query);
             
-            if ($result) {
-                $periods = [];
-                while ($row = mysqli_fetch_assoc($result)) {
-                    $periods[] = $row;
-                }
+            try {
+                $stmt = $coop->query($query);
+                $periods = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 
                 echo json_encode([
                     'success' => true,
                     'data' => $periods,
                     'message' => 'Local periods loaded successfully'
                 ]);
-            } else {
-                throw new Exception('Failed to fetch local periods: ' . mysqli_error($coop));
+            } catch (PDOException $e) {
+                throw new Exception('Failed to fetch local periods: ' . $e->getMessage());
             }
             
-            mysqli_close($coop);
+            // PDO closes automatically
+            //$coop = null; 
             break;
             
         case 'test_connection':

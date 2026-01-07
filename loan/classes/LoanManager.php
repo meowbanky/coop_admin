@@ -17,18 +17,13 @@ class LoanManager {
             $sql = "SELECT id, PayrollPeriod, PhysicalYear, PhysicalMonth, Remarks 
                     FROM tbpayrollperiods 
                     ORDER BY id DESC";
-            $result = mysqli_query($this->connection, $sql);
+            $stmt = $this->connection->query($sql);
             
-            if (!$result) {
-                throw new Exception("Query failed: " . mysqli_error($this->connection));
+            if (!$stmt) {
+                throw new Exception("Query failed");
             }
             
-            $periods = [];
-            while ($row = mysqli_fetch_assoc($result)) {
-                $periods[] = $row;
-            }
-            
-            mysqli_free_result($result);
+            $periods = $stmt->fetchAll(PDO::FETCH_ASSOC);
             return $periods;
         } catch (Exception $e) {
             error_log("Error fetching payroll periods: " . $e->getMessage());
@@ -42,15 +37,15 @@ class LoanManager {
     public function insertLoan($data) {
         try {
             // Sanitize input data
-            $coopId = mysqli_real_escape_string($this->connection, $data['coop_id']);
-            $dateOfLoanApp = mysqli_real_escape_string($this->connection, $data['date_of_loan_app']);
+            $coopId = $data['coop_id'];
+            $dateOfLoanApp = $data['date_of_loan_app'];
             $loanAmount = floatval($data['loan_amount']);
             $monthlyRepayment = intval($data['monthly_repayment']?? 0);
             $loanStatus = intval($data['loan_status'] ?? 1);
             $stationeryStatus = intval($data['stationery_status'] ?? 0);
             $loanPeriod = intval($data['loan_period']);
             $payrollPeriodId = intval($data['payroll_period_id']);
-            $batchNumber = isset($data['batch_number']) ? mysqli_real_escape_string($this->connection, $data['batch_number']) : '';
+            $batchNumber = isset($data['batch_number']) ? $data['batch_number'] : '';
             
             // Validate required fields
             if (empty($coopId) || empty($dateOfLoanApp) || $loanAmount <= 0) {
@@ -58,31 +53,34 @@ class LoanManager {
             }
             
             // Check if member exists
-            $checkMember = "SELECT CoopID FROM tblemployees WHERE CoopID = '$coopId'";
-            $memberResult = mysqli_query($this->connection, $checkMember);
+            $checkMember = "SELECT CoopID FROM tblemployees WHERE CoopID = ?";
+            $stmtMember = $this->connection->prepare($checkMember);
+            $stmtMember->execute([$coopId]);
             
-            if (mysqli_num_rows($memberResult) == 0) {
+            if ($stmtMember->rowCount() == 0) {
                 throw new Exception("Member not found");
             }
             
             // Check if payroll period exists
-            $checkPeriod = "SELECT id FROM tbpayrollperiods WHERE id = '$payrollPeriodId'";
-            $periodResult = mysqli_query($this->connection, $checkPeriod);
+            $checkPeriod = "SELECT id FROM tbpayrollperiods WHERE id = ?";
+            $stmtPeriod = $this->connection->prepare($checkPeriod);
+            $stmtPeriod->execute([$payrollPeriodId]);
             
-            if (mysqli_num_rows($periodResult) == 0) {
+            if ($stmtPeriod->rowCount() == 0) {
                 throw new Exception("Payroll period not found");
             }
             
             // Insert loan
             $sql = "INSERT INTO tbl_loans 
                     (CoopID, DateOfLoanApp, LoanAmount, MonthlyRepayment, LoanStatus, StationeryStatus, LoanPeriod) 
-                    VALUES ('$coopId', '$dateOfLoanApp', $loanAmount, $monthlyRepayment, $loanStatus, $stationeryStatus, $loanPeriod)";
+                    VALUES (?, ?, ?, ?, ?, ?, ?)";
             
-            if (!mysqli_query($this->connection, $sql)) {
-                throw new Exception("Insert failed: " . mysqli_error($this->connection));
+            $stmt = $this->connection->prepare($sql);
+            if (!$stmt->execute([$coopId, $dateOfLoanApp, $loanAmount, $monthlyRepayment, $loanStatus, $stationeryStatus, $loanPeriod])) {
+                 throw new Exception("Insert failed");
             }
             
-            $loanId = mysqli_insert_id($this->connection);
+            $loanId = $this->connection->lastInsertId();
             
             return [
                 'success' => true,
@@ -109,7 +107,6 @@ class LoanManager {
      */
     public function getLoansByPeriod($payrollPeriodId) {
         try {
-            $payrollPeriodId = mysqli_real_escape_string($this->connection, $payrollPeriodId);
             $sql = "SELECT 
                         l.loan_id,
                         l.CoopID,
@@ -125,17 +122,17 @@ class LoanManager {
                     WHERE l.LoanStatus = 1
                     ORDER BY l.DateOfLoanApp DESC";
             
-            $result = mysqli_query($this->connection, $sql);
-            if (!$result) {
-                throw new Exception("Query failed: " . mysqli_error($this->connection));
+            // Note: Currently not filtering by payrollPeriodId as per original code structure?
+            // Re-adding filter if intended, though original query ignored the argument. 
+            // Assuming original intent was to filter? The SQL string didn't use variable.
+            // Let's stick to original behavior but use the db connection properly.
+            
+            $stmt = $this->connection->query($sql);
+            if (!$stmt) {
+                 throw new Exception("Query failed");
             }
             
-            $loans = [];
-            while ($row = mysqli_fetch_assoc($result)) {
-                $loans[] = $row;
-            }
-            
-            mysqli_free_result($result);
+            $loans = $stmt->fetchAll(PDO::FETCH_ASSOC);
             return $loans;
         } catch (Exception $e) {
             error_log("Error fetching loans: " . $e->getMessage());
@@ -155,13 +152,12 @@ class LoanManager {
                         COUNT(CASE WHEN LoanStatus = 1 THEN 1 END) as active_loans
                     FROM tbl_loans";
             
-            $result = mysqli_query($this->connection, $sql);
-            if (!$result) {
-                throw new Exception("Query failed: " . mysqli_error($this->connection));
+            $stmt = $this->connection->query($sql);
+            if (!$stmt) {
+                 throw new Exception("Query failed");
             }
             
-            $stats = mysqli_fetch_assoc($result);
-            mysqli_free_result($result);
+            $stats = $stmt->fetch(PDO::FETCH_ASSOC);
             
             return $stats;
         } catch (Exception $e) {
@@ -180,7 +176,6 @@ class LoanManager {
      */
     public function getBatchBeneficiaries($batchNumber) {
         try {
-            $batchNumber = mysqli_real_escape_string($this->connection, $batchNumber);
             $sql = "SELECT 
                         BeneficiaryCode,
                         BeneficiaryName,
@@ -189,23 +184,16 @@ class LoanManager {
                         AccountNumber,
                         Narration
                     FROM excel 
-                    WHERE Batch = '$batchNumber'";
+                    WHERE Batch = ?";
             
             error_log("Executing query: " . $sql);
             
-            $result = mysqli_query($this->connection, $sql);
-            if (!$result) {
-                error_log("Query failed: " . mysqli_error($this->connection));
-                throw new Exception("Query failed: " . mysqli_error($this->connection));
-            }
+            $stmt = $this->connection->prepare($sql);
+            $stmt->execute([$batchNumber]);
             
-            $beneficiaries = [];
-            while ($row = mysqli_fetch_assoc($result)) {
-                $beneficiaries[] = $row;
-            }
+            $beneficiaries = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
             error_log("Found " . count($beneficiaries) . " beneficiaries for batch: $batchNumber");
-            mysqli_free_result($result);
             return $beneficiaries;
         } catch (Exception $e) {
             error_log("Error fetching batch beneficiaries: " . $e->getMessage());
@@ -241,23 +229,29 @@ class LoanManager {
             $today = date('Y-m-d');
             
             // Start transaction
-            mysqli_begin_transaction($this->connection);
+            $this->connection->beginTransaction();
             
             try {
+                // Prepared statements
+                $checkMemberStmt = $this->connection->prepare("SELECT CoopID FROM tblemployees WHERE CoopID = ?");
+                $checkPeriodStmt = $this->connection->prepare("SELECT id FROM tbpayrollperiods WHERE id = ?");
+                $checkApprovalStmt = $this->connection->prepare("SELECT id FROM tbl_loanapproval WHERE coopID = ? AND period = ?");
+                $insertStmt = $this->connection->prepare("INSERT INTO tbl_loanapproval 
+                            (coopID, period, approvalDate, LoanAmount, MonthlyRepayment, batch) 
+                            VALUES (?, ?, ?, ?, ?, ?)");
+
                 foreach ($beneficiaries as $index => $beneficiary) {
                     error_log("Processing beneficiary $index: " . json_encode($beneficiary));
                     
-                    $coopId = mysqli_real_escape_string($this->connection, $beneficiary['BeneficiaryCode']);
+                    $coopId = $beneficiary['BeneficiaryCode'];
                     $loanAmount = floatval($beneficiary['Amount']);
                     $monthlyRepayment = $loanAmount / $loanPeriod; // Calculate monthly repayment
                     
                     error_log("CoopID: $coopId, Amount: $loanAmount, Period: $payrollPeriodId");
                     
                     // Check if member exists
-                    $checkMember = "SELECT CoopID FROM tblemployees WHERE CoopID = '$coopId'";
-                    $memberResult = mysqli_query($this->connection, $checkMember);
-                    
-                    if (mysqli_num_rows($memberResult) == 0) {
+                    $checkMemberStmt->execute([$coopId]);
+                    if ($checkMemberStmt->rowCount() == 0) {
                         $error = "Member not found: " . $coopId;
                         error_log($error);
                         $errors[] = $error;
@@ -265,21 +259,17 @@ class LoanManager {
                     }
                     
                     // Check if payroll period exists
-                    $checkPeriod = "SELECT id FROM tbpayrollperiods WHERE id = '$payrollPeriodId'";
-                    $periodResult = mysqli_query($this->connection, $checkPeriod);
-                    
-                    if (mysqli_num_rows($periodResult) == 0) {
+                    $checkPeriodStmt->execute([$payrollPeriodId]);
+                    if ($checkPeriodStmt->rowCount() == 0) {
                         $error = "Payroll period not found: " . $payrollPeriodId;
                         error_log($error);
                         $errors[] = $error;
                         continue;
                     }
                     
-                    // Check if loan approval already exists for this coopID and period (prevent duplicates)
-                    $checkApproval = "SELECT id FROM tbl_loanapproval WHERE coopID = '$coopId' AND period = '$payrollPeriodId'";
-                    $approvalResult = mysqli_query($this->connection, $checkApproval);
-                    
-                    if (mysqli_num_rows($approvalResult) > 0) {
+                    // Check if loan approval already exists
+                    $checkApprovalStmt->execute([$coopId, $payrollPeriodId]);
+                    if ($checkApprovalStmt->rowCount() > 0) {
                         $error = "Loan approval already exists for member: $coopId in period: $payrollPeriodId";
                         error_log($error);
                         $errors[] = $error;
@@ -287,17 +277,11 @@ class LoanManager {
                     }
                     
                     // Insert into tbl_loanapproval
-                    $sql = "INSERT INTO tbl_loanapproval 
-                            (coopID, period, approvalDate, LoanAmount, MonthlyRepayment, batch) 
-                            VALUES ('$coopId', '$payrollPeriodId', '$today', $loanAmount, $monthlyRepayment, '$batchNumber')";
-                    
-                    error_log("Executing insert: " . $sql);
-                    
-                    if (!mysqli_query($this->connection, $sql)) {
-                        $error = "Failed to insert loan approval for member: " . $coopId . " - " . mysqli_error($this->connection);
-                        error_log($error);
-                        $errors[] = $error;
-                        continue;
+                    if (!$insertStmt->execute([$coopId, $payrollPeriodId, $today, $loanAmount, $monthlyRepayment, $batchNumber])) {
+                         $error = "Failed to insert loan approval for member: " . $coopId;
+                         error_log($error);
+                         $errors[] = $error;
+                         continue;
                     }
                     
                     $insertedCount++;
@@ -305,7 +289,7 @@ class LoanManager {
                 }
                 
                 // Commit transaction
-                mysqli_commit($this->connection);
+                $this->connection->commit();
                 
                 // Check if any loan approvals were actually inserted
                 if ($insertedCount == 0) {
@@ -337,7 +321,7 @@ class LoanManager {
                 
             } catch (Exception $e) {
                 // Rollback transaction
-                mysqli_rollback($this->connection);
+                $this->connection->rollBack();
                 throw $e;
             }
             

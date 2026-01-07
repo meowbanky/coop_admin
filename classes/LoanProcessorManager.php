@@ -17,9 +17,12 @@ class LoanProcessorManager {
             throw new Exception('Database connection is null');
         }
         
-        // Ensure database is selected
-        if (!mysqli_select_db($this->connection, $this->database)) {
-            throw new Exception('Database selection failed: ' . mysqli_error($this->connection));
+        // Ensure database is selected - PDO handles this via DSN, so we typically don't need to select db again
+        // But for compatibility if checking, we can try a simple query
+        try {
+            // $this->connection->query("USE " . $this->database); // Optional if already in DSN
+        } catch (PDOException $e) {
+             throw new Exception('Database selection failed: ' . $e->getMessage());
         }
         
         // Log successful initialization
@@ -40,11 +43,11 @@ class LoanProcessorManager {
                 WHERE Status = 'Active' 
                 ORDER BY FirstName, LastName";
         
-        $result = mysqli_query($this->connection, $sql);
+        $stmt = $this->connection->query($sql);
         $employees = [];
         
-        if ($result) {
-            while ($row = mysqli_fetch_assoc($result)) {
+        if ($stmt) {
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 $employees[] = [
                     'coop_id' => $row['CoopID'],
                     'full_name' => trim($row['FullName'] ?? ''),
@@ -66,7 +69,7 @@ class LoanProcessorManager {
             return [];
         }
         
-        $searchTerm = mysqli_real_escape_string($this->connection, $searchTerm);
+        // $searchTerm = mysqli_real_escape_string($this->connection, $searchTerm); // PDO prepares statements instead
         
         $sql = "SELECT 
                     CoopID, 
@@ -75,27 +78,28 @@ class LoanProcessorManager {
                     MiddleName,
                     LastName
                 FROM tblemployees 
-                WHERE (CoopID LIKE '%$searchTerm%' 
-                    OR FirstName LIKE '%$searchTerm%' 
-                    OR LastName LIKE '%$searchTerm%' 
-                    OR MiddleName LIKE '%$searchTerm%')
+                WHERE (CoopID LIKE ? 
+                    OR FirstName LIKE ? 
+                    OR LastName LIKE ? 
+                    OR MiddleName LIKE ?)
                     AND Status = 'Active' 
                 ORDER BY FirstName, LastName
                 LIMIT 10";
         
-        $result = mysqli_query($this->connection, $sql);
+        $stmt = $this->connection->prepare($sql);
+        $term = "%$searchTerm%";
+        $stmt->execute([$term, $term, $term, $term]);
+        
         $employees = [];
         
-        if ($result) {
-            while ($row = mysqli_fetch_assoc($result)) {
-                $employees[] = [
-                    'coop_id' => $row['CoopID'],
-                    'full_name' => trim($row['FullName'] ?? ''),
-                    'first_name' => $row['FirstName'],
-                    'middle_name' => $row['MiddleName'],
-                    'last_name' => $row['LastName']
-                ];
-            }
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $employees[] = [
+                'coop_id' => $row['CoopID'],
+                'full_name' => trim($row['FullName'] ?? ''),
+                'first_name' => $row['FirstName'],
+                'middle_name' => $row['MiddleName'],
+                'last_name' => $row['LastName']
+            ];
         }
         
         return $employees;
@@ -105,7 +109,7 @@ class LoanProcessorManager {
      * Get employee details including bank information
      */
     public function getEmployeeDetails($coopId) {
-        $coopId = mysqli_real_escape_string($this->connection, $coopId);
+        // $coopId = mysqli_real_escape_string($this->connection, $coopId);
         
         // Get employee basic info
         $sql = "SELECT 
@@ -124,12 +128,13 @@ class LoanProcessorManager {
                 FROM tblemployees e
                 LEFT JOIN tblaccountno a ON a.COOPNO = e.CoopID
                 LEFT JOIN tblbankcode bc ON bc.bank = a.Bank
-                WHERE e.CoopID = '$coopId' AND e.Status = 'Active'";
+                WHERE e.CoopID = ? AND e.Status = 'Active'";
         
-        $result = mysqli_query($this->connection, $sql);
+        $stmt = $this->connection->prepare($sql);
+        $stmt->execute([$coopId]);
         
-        if ($result && mysqli_num_rows($result) > 0) {
-            return mysqli_fetch_assoc($result);
+        if ($stmt->rowCount() > 0) {
+            return $stmt->fetch(PDO::FETCH_ASSOC);
         }
         
         return null;
@@ -140,11 +145,11 @@ class LoanProcessorManager {
      */
     public function getPayrollPeriods() {
         $sql = "SELECT * FROM tbpayrollperiods ORDER BY id DESC";
-        $result = mysqli_query($this->connection, $sql);
+        $stmt = $this->connection->query($sql);
         $periods = [];
         
-        if ($result) {
-            while ($row = mysqli_fetch_assoc($result)) {
+        if ($stmt) {
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 $periods[] = [
                     'id' => $row['id'],
                     'payroll_period' => $row['PayrollPeriod'],
@@ -161,8 +166,8 @@ class LoanProcessorManager {
      * Calculate loan details for an employee
      */
     public function calculateLoanDetails($coopId, $periodId) {
-        $coopId = mysqli_real_escape_string($this->connection, $coopId);
-        $periodId = mysqli_real_escape_string($this->connection, $periodId);
+        // $coopId = mysqli_real_escape_string($this->connection, $coopId);
+        // $periodId = mysqli_real_escape_string($this->connection, $periodId);
         
         // Get employee's shares and savings from master transaction table
         $sql = "SELECT 
@@ -170,10 +175,12 @@ class LoanProcessorManager {
                     IFNULL(SUM(savingsAmount), 0) as total_savings,
                     IFNULL(SUM(sharesAmount + savingsAmount), 0) as total_shares_savings
                 FROM tbl_mastertransact 
-                WHERE COOPID = '$coopId'";
+                WHERE COOPID = ?";
         
-        $result = mysqli_query($this->connection, $sql);
-        $sharesData = mysqli_fetch_assoc($result);
+        $stmt = $this->connection->prepare($sql);
+        $stmt->execute([$coopId]);
+        $sharesData = $stmt->fetch(PDO::FETCH_ASSOC);
+        
         $totalShares = $sharesData['total_shares'] ?? 0;
         $totalSavings = $sharesData['total_savings'] ?? 0;
         $totalSharesSavings = $sharesData['total_shares_savings'] ?? 0;
@@ -185,19 +192,20 @@ class LoanProcessorManager {
         $loanBalanceSql = "SELECT 
                             (SELECT IFNULL(SUM(LoanAmount), 0) 
                              FROM tbl_loans 
-                             WHERE CoopID = '$coopId') as total_loans,
+                             WHERE CoopID = ?) as total_loans,
                             (SELECT IFNULL(SUM(loanRepayment), 0) 
                              FROM tbl_mastertransact 
-                             WHERE COOPID = '$coopId') as total_repayments,
+                             WHERE COOPID = ?) as total_repayments,
                             (SELECT COUNT(*) 
                              FROM tbl_loans 
-                             WHERE CoopID = '$coopId') as loan_count,
+                             WHERE CoopID = ?) as loan_count,
                             (SELECT COUNT(*) 
                              FROM tbl_mastertransact 
-                             WHERE COOPID = '$coopId' AND loanRepayment > 0) as repayment_count";
+                             WHERE COOPID = ? AND loanRepayment > 0) as repayment_count";
         
-        $loanBalanceResult = mysqli_query($this->connection, $loanBalanceSql);
-        $loanBalanceData = mysqli_fetch_assoc($loanBalanceResult);
+        $stmtBalance = $this->connection->prepare($loanBalanceSql);
+        $stmtBalance->execute([$coopId, $coopId, $coopId, $coopId]);
+        $loanBalanceData = $stmtBalance->fetch(PDO::FETCH_ASSOC);
         
         $totalLoans = $loanBalanceData['total_loans'] ?? 0;
         $totalRepayments = $loanBalanceData['total_repayments'] ?? 0;
@@ -245,9 +253,9 @@ class LoanProcessorManager {
      * Update loan information
      */
     public function updateLoan($data) {
-        $coopId = mysqli_real_escape_string($this->connection, $data['coop_id']);
+        $coopId = $data['coop_id'];
         $loanAmount = floatval($data['loan_amount']);
-        $periodId = mysqli_real_escape_string($this->connection, $data['period_id']);
+        $periodId = $data['period_id'];
         $batch = $data['batch'] ?? $_SESSION['Batch'] ?? '';
         $insertedBy = $_SESSION['complete_name'] ?? 'System';
         
@@ -268,35 +276,32 @@ class LoanProcessorManager {
         $monthlyRepayment = $loanAmount / 12;
         
         // Start transaction
-        mysqli_begin_transaction($this->connection);
+        $this->connection->beginTransaction();
         
         try {
             // Update existing loan in tbl_loanapproval
             $updateSql = "UPDATE tbl_loanapproval 
-                         SET LoanAmount = $loanAmount, 
-                             MonthlyRepayment = $monthlyRepayment,
-                             batch = '$batch',
-                             insertedBy = '$insertedBy'
-                         WHERE coopID = '$coopId' AND period = $periodId";
+                         SET LoanAmount = ?, 
+                             MonthlyRepayment = ?,
+                             batch = ?,
+                             insertedBy = ?
+                         WHERE coopID = ? AND period = ?";
             
-            if (!mysqli_query($this->connection, $updateSql)) {
-                throw new Exception('Failed to update tbl_loanapproval: ' . mysqli_error($this->connection));
-            }
-            
-            $affectedRows = mysqli_affected_rows($this->connection);
+            $stmtUpdate = $this->connection->prepare($updateSql);
+            $stmtUpdate->execute([$loanAmount, $monthlyRepayment, $batch, $insertedBy, $coopId, $periodId]);
+            $affectedRows = $stmtUpdate->rowCount();
             
             if ($affectedRows === 0) {
                 // If no existing loan found, create a new one
                 $today = date('Y-m-d');
                 $insertSql = "INSERT INTO tbl_loanapproval 
                              (coopID, period, approvalDate, LoanAmount, StationeryPayment, MonthlyRepayment, insertedBy, batch) 
-                             VALUES ('$coopId', $periodId, '$today', $loanAmount, 0.00, $monthlyRepayment, '$insertedBy', '$batch')";
+                             VALUES (?, ?, ?, ?, 0.00, ?, ?, ?)";
                 
-                if (!mysqli_query($this->connection, $insertSql)) {
-                    throw new Exception('Failed to insert into tbl_loanapproval: ' . mysqli_error($this->connection));
-                }
+                $stmtInsert = $this->connection->prepare($insertSql);
+                $stmtInsert->execute([$coopId, $periodId, $today, $loanAmount, $monthlyRepayment, $insertedBy, $batch]);
                 
-                $approvalId = mysqli_insert_id($this->connection);
+                $approvalId = $this->connection->lastInsertId();
                 $message = 'New loan created successfully';
             } else {
                 $message = 'Loan updated successfully';
@@ -304,7 +309,7 @@ class LoanProcessorManager {
             }
             
             // Commit transaction
-            mysqli_commit($this->connection);
+            $this->connection->commit();
             
             return [
                 'success' => true,
@@ -319,7 +324,7 @@ class LoanProcessorManager {
             
         } catch (Exception $e) {
             // Rollback transaction
-            mysqli_rollback($this->connection);
+            $this->connection->rollBack();
             error_log("Update loan error: " . $e->getMessage());
             return [
                 'success' => false,
@@ -332,7 +337,6 @@ class LoanProcessorManager {
      * Get loan list for an employee
      */
     public function getLoanList($coopId, $periodId = null) {
-        $coopId = mysqli_real_escape_string($this->connection, $coopId);
         
         $sql = "SELECT 
                     l.loan_id,
@@ -350,35 +354,36 @@ class LoanProcessorManager {
                 FROM tbl_loans l
                 LEFT JOIN tbpayrollperiods p ON p.id = l.LoanPeriod
                 LEFT JOIN tbl_loanapproval la ON la.coopID = l.CoopID AND la.period = l.LoanPeriod
-                WHERE l.CoopID = '$coopId'";
+                WHERE l.CoopID = ?";
+        
+        $params = [$coopId];
         
         if ($periodId) {
-            $periodId = mysqli_real_escape_string($this->connection, $periodId);
-            $sql .= " AND l.LoanPeriod = '$periodId'";
+            $sql .= " AND l.LoanPeriod = ?";
+            $params[] = $periodId;
         }
         
         $sql .= " ORDER BY l.DateOfLoanApp DESC";
         
-        $result = mysqli_query($this->connection, $sql);
+        $stmt = $this->connection->prepare($sql);
+        $stmt->execute($params);
         $loans = [];
         
-        if ($result) {
-            while ($row = mysqli_fetch_assoc($result)) {
-                $loans[] = [
-                    'loan_id' => $row['loan_id'],
-                    'coop_id' => $row['CoopID'],
-                    'date_of_loan_app' => $row['DateOfLoanApp'],
-                    'loan_amount' => number_format($row['LoanAmount'], 2),
-                    'monthly_repayment' => number_format($row['MonthlyRepayment'], 2),
-                    'loan_status' => $row['LoanStatus'],
-                    'status_text' => $row['StatusText'],
-                    'payroll_period' => $row['PayrollPeriod'] ?? 'N/A',
-                    'loan_period' => $row['LoanPeriod'],
-                    'approval_date' => $row['approvalDate'] ?? 'N/A',
-                    'inserted_by' => $row['insertedBy'] ?? 'N/A',
-                    'batch' => $row['batch'] ?? 'N/A'
-                ];
-            }
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $loans[] = [
+                'loan_id' => $row['loan_id'],
+                'coop_id' => $row['CoopID'],
+                'date_of_loan_app' => $row['DateOfLoanApp'],
+                'loan_amount' => number_format($row['LoanAmount'], 2),
+                'monthly_repayment' => number_format($row['MonthlyRepayment'], 2),
+                'loan_status' => $row['LoanStatus'],
+                'status_text' => $row['StatusText'],
+                'payroll_period' => $row['PayrollPeriod'] ?? 'N/A',
+                'loan_period' => $row['LoanPeriod'],
+                'approval_date' => $row['approvalDate'] ?? 'N/A',
+                'inserted_by' => $row['insertedBy'] ?? 'N/A',
+                'batch' => $row['batch'] ?? 'N/A'
+            ];
         }
         
         return $loans;
@@ -388,7 +393,6 @@ class LoanProcessorManager {
      * Get loan approval data for an employee
      */
     public function getLoanApprovalData($periodId) {
-        $periodId = mysqli_real_escape_string($this->connection, $periodId);
         
         $sql = "SELECT 
                     la.id,
@@ -403,27 +407,27 @@ class LoanProcessorManager {
                     p.PayrollPeriod
                 FROM tbl_loanapproval la
                 LEFT JOIN tbpayrollperiods p ON p.id = la.period
-                WHERE la.period = '$periodId'
+                WHERE la.period = ?
                 ORDER BY la.approvalDate DESC";
         
-        $result = mysqli_query($this->connection, $sql);
+        $stmt = $this->connection->prepare($sql);
+        $stmt->execute([$periodId]);
+        
         $approvals = [];
         
-        if ($result) {
-            while ($row = mysqli_fetch_assoc($result)) {
-                $approvals[] = [
-                    'approval_id' => $row['id'],
-                    'coop_id' => $row['coopID'],
-                    'period' => $row['period'],
-                    'approval_date' => $row['approvalDate'],
-                    'loan_amount' => number_format($row['LoanAmount'], 2),
-                    'stationery_payment' => number_format($row['StationeryPayment'], 2),
-                    'monthly_repayment' => number_format($row['MonthlyRepayment'], 2),
-                    'inserted_by' => $row['insertedBy'],
-                    'batch' => $row['batch'],
-                    'payroll_period' => $row['PayrollPeriod'] ?? 'N/A'
-                ];
-            }
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $approvals[] = [
+                'approval_id' => $row['id'],
+                'coop_id' => $row['coopID'],
+                'period' => $row['period'],
+                'approval_date' => $row['approvalDate'],
+                'loan_amount' => number_format($row['LoanAmount'], 2),
+                'stationery_payment' => number_format($row['StationeryPayment'], 2),
+                'monthly_repayment' => number_format($row['MonthlyRepayment'], 2),
+                'inserted_by' => $row['insertedBy'],
+                'batch' => $row['batch'],
+                'payroll_period' => $row['PayrollPeriod'] ?? 'N/A'
+            ];
         }
         
         return $approvals;
@@ -433,20 +437,19 @@ class LoanProcessorManager {
      * Get current loan balance for an employee
      */
     public function getCurrentLoanBalance($coopId) {
-        $coopId = mysqli_real_escape_string($this->connection, $coopId);
         
         $sql = "SELECT 
                     (SELECT IFNULL(SUM(LoanAmount), 0) 
                      FROM tbl_loans 
-                     WHERE CoopID = '$coopId') as total_loans,
+                     WHERE CoopID = ?) as total_loans,
                     (SELECT IFNULL(SUM(loanRepayment), 0) 
                      FROM tbl_mastertransact 
-                     WHERE COOPID = '$coopId') as total_repayments";
+                     WHERE COOPID = ?) as total_repayments";
         
-        $result = mysqli_query($this->connection, $sql);
+        $stmt = $this->connection->prepare($sql);
+        $stmt->execute([$coopId, $coopId]);
         
-        if ($result) {
-            $data = mysqli_fetch_assoc($result);
+        if ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $totalLoans = $data['total_loans'] ?? 0;
             $totalRepayments = $data['total_repayments'] ?? 0;
             $currentBalance = $totalLoans - $totalRepayments;
@@ -475,7 +478,6 @@ class LoanProcessorManager {
      * Get all loans for a specific period from loan approval table
      */
     public function getCurrentPeriodLoans($periodId) {
-        $periodId = mysqli_real_escape_string($this->connection, $periodId);
         
         $sql = "SELECT 
                     la.id as loan_approval_id,
@@ -487,22 +489,20 @@ class LoanProcessorManager {
                     CONCAT(COALESCE(e.FirstName, ''), ' ', COALESCE(e.MiddleName, ''), ' ', COALESCE(e.LastName, '')) as CompleteName
                 FROM tbl_loanapproval la
                 LEFT JOIN tblemployees e ON la.coopID = e.CoopID
-                WHERE la.period = '$periodId'
+                WHERE la.period = ?
                 ORDER BY la.approvalDate DESC, la.coopID ASC";
         
-        error_log("Current Period Loans SQL: " . $sql);
-        $result = mysqli_query($this->connection, $sql);
+        // error_log("Current Period Loans SQL: " . $sql);
+        $stmt = $this->connection->prepare($sql);
         
-        if (!$result) {
-            error_log("Current Period Loans Query Error: " . mysqli_error($this->connection));
-        }
-        
-        if ($result) {
+        try {
+            $stmt->execute([$periodId]);
+            
             $loans = [];
             $totalLoanAmount = 0;
             $totalMonthlyRepayment = 0;
             
-            while ($row = mysqli_fetch_assoc($result)) {
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 $loanAmount = floatval($row['LoanAmount']);
                 $monthlyRepayment = floatval($row['MonthlyRepayment']);
                 
@@ -527,16 +527,19 @@ class LoanProcessorManager {
                 'count' => count($loans)
             ];
             
-            error_log("Current Period Loans Result: " . json_encode($result_data));
+            // error_log("Current Period Loans Result: " . json_encode($result_data));
             return $result_data;
+            
+        } catch (PDOException $e) {
+            error_log("Current Period Loans Query Error: " . $e->getMessage());
+            
+            return [
+                'loans' => [],
+                'total_loan_amount' => 0,
+                'total_monthly_repayment' => 0,
+                'count' => 0
+            ];
         }
-        
-        return [
-            'loans' => [],
-            'total_loan_amount' => 0,
-            'total_monthly_repayment' => 0,
-            'count' => 0
-        ];
     }
     
     /**
@@ -553,22 +556,20 @@ class LoanProcessorManager {
      * Delete a loan from loan approval table
      */
     public function deleteLoan($loanApprovalId) {
-        $loanApprovalId = mysqli_real_escape_string($this->connection, $loanApprovalId);
         
         // Start transaction
-        mysqli_begin_transaction($this->connection);
+        $this->connection->beginTransaction();
         
         try {
             // Delete from tbl_loanapproval
-            $approvalSql = "DELETE FROM tbl_loanapproval WHERE id = '$loanApprovalId'";
-            if (!mysqli_query($this->connection, $approvalSql)) {
-                throw new Exception('Failed to delete from tbl_loanapproval: ' . mysqli_error($this->connection));
-            }
+            $approvalSql = "DELETE FROM tbl_loanapproval WHERE id = ?";
+            $stmt = $this->connection->prepare($approvalSql);
+            $stmt->execute([$loanApprovalId]);
             
-            $approvalAffected = mysqli_affected_rows($this->connection);
+            $approvalAffected = $stmt->rowCount();
             
             // Commit transaction
-            mysqli_commit($this->connection);
+            $this->connection->commit();
             
             if ($approvalAffected > 0) {
                 return [
@@ -587,7 +588,7 @@ class LoanProcessorManager {
             
         } catch (Exception $e) {
             // Rollback transaction
-            mysqli_rollback($this->connection);
+            $this->connection->rollBack();
             error_log("Delete loan error: " . $e->getMessage());
             return [
                 'success' => false,

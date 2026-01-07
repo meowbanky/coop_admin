@@ -14,21 +14,25 @@ $bankQuery = "SELECT id, account_code, account_name
               FROM coop_accounts 
               WHERE account_code LIKE '110%' AND is_active = TRUE
               ORDER BY account_code";
-$bankResult = mysqli_query($coop, $bankQuery);
-if ($bankResult) {
-    while ($row = mysqli_fetch_assoc($bankResult)) {
+try {
+    $stmt = $coop->query($bankQuery);
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $bankAccounts[] = $row;
     }
+} catch (PDOException $e) {
+    // Handle error
 }
 
 // Get periods
 $periods = [];
 $periodQuery = "SELECT id, PayrollPeriod FROM tbpayrollperiods ORDER BY id DESC";
-$periodResult = mysqli_query($coop, $periodQuery);
-if ($periodResult) {
-    while ($row = mysqli_fetch_assoc($periodResult)) {
+try {
+    $stmt = $coop->query($periodQuery);
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $periods[] = $row;
     }
+} catch (PDOException $e) {
+    // Handle error
 }
 
 // Get reconciliation history

@@ -46,25 +46,16 @@ class BatchManager {
         
         try {
             $sql = "INSERT INTO tbl_batch (batch) VALUES (?)";
-            $stmt = mysqli_prepare($this->connection, $sql);
+            $stmt = $this->connection->prepare($sql);
             
-            if (!$stmt) {
-                throw new Exception("Prepare failed: " . mysqli_error($this->connection));
-            }
-            
-            mysqli_stmt_bind_param($stmt, "s", $batchNumber);
-            $result = mysqli_stmt_execute($stmt);
-            
-            if ($result) {
-                $batchId = mysqli_insert_id($this->connection);
-                mysqli_stmt_close($stmt);
+            if ($stmt->execute([$batchNumber])) {
+                $batchId = $this->connection->lastInsertId();
                 return [
                     'success' => true, 
                     'message' => 'Batch created successfully',
                     'data' => ['batch_id' => $batchId]
                 ];
             } else {
-                mysqli_stmt_close($stmt);
                 return ['success' => false, 'message' => 'Failed to create batch'];
             }
         } catch (Exception $e) {
@@ -131,30 +122,19 @@ class BatchManager {
                     GROUP BY tbl_batch.Batch 
                     ORDER BY batch_id DESC";
             
-        
-            
-            $result = mysqli_query($this->connection, $sql);
-            if (!$result) {
+            $stmt = $this->connection->query($sql);
+            if (!$stmt) {
                 error_log("BatchManager: Query FAILED!");
-                error_log("MySQL Error: " . mysqli_error($this->connection));
-                error_log("MySQL Error Number: " . mysqli_errno($this->connection));
-                throw new Exception("Query failed: " . mysqli_error($this->connection));
+                throw new Exception("Query failed");
             }
             
-            
-            
-            $batches = [];
-            while ($row = mysqli_fetch_assoc($result)) {
-                $batches[] = $row;
-            }
+            $batches = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
             error_log("BatchManager: Found " . count($batches) . " batches");
             if (count($batches) > 0) {
                 error_log("BatchManager: First batch sample: " . print_r($batches[0], true));
             }
            
-            
-            mysqli_free_result($result);
             return $batches;
         } catch (Exception $e) {
             error_log("========================================");
@@ -170,17 +150,10 @@ class BatchManager {
     private function batchExists($batchNumber) {
         try {
             $sql = "SELECT COUNT(*) FROM tbl_batch WHERE batch = ?";
-            $stmt = mysqli_prepare($this->connection, $sql);
+            $stmt = $this->connection->prepare($sql);
+            $stmt->execute([$batchNumber]);
             
-            if (!$stmt) {
-                return false;
-            }
-            
-            mysqli_stmt_bind_param($stmt, "s", $batchNumber);
-            mysqli_stmt_execute($stmt);
-            mysqli_stmt_bind_result($stmt, $count);
-            mysqli_stmt_fetch($stmt);
-            mysqli_stmt_close($stmt);
+            $count = $stmt->fetchColumn();
             
             return $count > 0;
         } catch (Exception $e) {
@@ -206,13 +179,12 @@ class BatchManager {
                     FROM tbl_batch 
                     LEFT JOIN excel ON tbl_batch.batch = excel.Batch";
             
-            $result = mysqli_query($this->connection, $sql);
-            if (!$result) {
-                throw new Exception("Query failed: " . mysqli_error($this->connection));
+            $stmt = $this->connection->query($sql);
+            if (!$stmt) {
+                throw new Exception("Query failed");
             }
             
-            $stats = mysqli_fetch_assoc($result);
-            mysqli_free_result($result);
+            $stats = $stmt->fetch(PDO::FETCH_ASSOC);
             
             return $stats ? $stats : [];
         } catch (Exception $e) {

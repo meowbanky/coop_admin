@@ -12,18 +12,15 @@ $showInactive = isset($_GET['show_inactive']) ? true : false;
 // Build WHERE clause
 $where = [];
 $params = [];
-$types = '';
 
 if ($filterType) {
     $where[] = "a.account_type = ?";
     $params[] = $filterType;
-    $types .= 's';
 }
 
 if ($filterCategory) {
     $where[] = "a.account_category = ?";
     $params[] = $filterCategory;
-    $types .= 's';
 }
 
 if ($searchQuery) {
@@ -32,7 +29,6 @@ if ($searchQuery) {
     $params[] = $searchParam;
     $params[] = $searchParam;
     $params[] = $searchParam;
-    $types .= 'sss';
 }
 
 if (!$showInactive) {
@@ -51,18 +47,13 @@ $sql = "SELECT
         {$whereClause}
         ORDER BY a.account_code";
 
-$stmt = mysqli_prepare($coop, $sql);
-if (!empty($params)) {
-    mysqli_stmt_bind_param($stmt, $types, ...$params);
-}
-mysqli_stmt_execute($stmt);
-$result = mysqli_stmt_get_result($stmt);
+$stmt = $coop->prepare($sql);
+$stmt->execute($params);
 
 $accounts = [];
-while ($row = mysqli_fetch_assoc($result)) {
+while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
     $accounts[] = $row;
 }
-mysqli_stmt_close($stmt);
 
 // Get statistics
 $statsQuery = "SELECT 
@@ -75,8 +66,8 @@ $statsQuery = "SELECT
     SUM(CASE WHEN is_control_account = TRUE THEN 1 ELSE 0 END) as control,
     SUM(CASE WHEN is_system_account = TRUE THEN 1 ELSE 0 END) as system_accounts
 FROM coop_accounts WHERE is_active = TRUE";
-$statsResult = mysqli_query($coop, $statsQuery);
-$stats = mysqli_fetch_assoc($statsResult);
+$statsResult = $coop->query($statsQuery);
+$stats = $statsResult->fetch(PDO::FETCH_ASSOC);
 ?>
 
 <div class="container mx-auto px-4 py-8 max-w-7xl">

@@ -10,11 +10,14 @@ $balanceCalculator = new AccountBalanceCalculator($coop, $database);
 // Get periods for dropdown
 $periods = [];
 $periodQuery = "SELECT id, PayrollPeriod FROM tbpayrollperiods ORDER BY id DESC";
-$periodResult = mysqli_query($coop, $periodQuery);
-if ($periodResult) {
-    while ($row = mysqli_fetch_assoc($periodResult)) {
+$periodQuery = "SELECT id, PayrollPeriod FROM tbpayrollperiods ORDER BY id DESC";
+try {
+    $stmt = $coop->query($periodQuery);
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $periods[] = $row;
     }
+} catch (PDOException $e) {
+    // Handle error
 }
 
 // Get selected period

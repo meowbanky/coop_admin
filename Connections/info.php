@@ -16,12 +16,12 @@ if (empty($database_info) || empty($username_info)) {
     die("Info database configuration not found in .env file. Please set DB_INFO_NAME, DB_INFO_USER, and DB_INFO_PASSWORD.");
 }
 
-// MySQLi connection
-$info = mysqli_connect($hostname_info, $username_info, $password_info);
-if (!$info) {
-    die("Connection failed: " . mysqli_connect_error());
-}
-mysqli_select_db($info, $database_info) or die("Database selection failed: " . mysqli_error($info));
+// MySQLi connection - REMOVED during PDO migration
+// $info = mysqli_connect($hostname_info, $username_info, $password_info);
+// if (!$info) {
+//     die("Connection failed: " . mysqli_connect_error());
+// }
+// mysqli_select_db($info, $database_info) or die("Database selection failed: " . mysqli_error($info));
 
 // PDO connection
 try {

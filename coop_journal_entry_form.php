@@ -6,11 +6,11 @@ require_once('includes/header.php');
 // Get periods for dropdown
 $periods = [];
 $periodQuery = "SELECT id, PayrollPeriod FROM tbpayrollperiods ORDER BY id DESC";
-$periodResult = mysqli_query($coop, $periodQuery);
-if ($periodResult) {
-    while ($row = mysqli_fetch_assoc($periodResult)) {
-        $periods[] = $row;
-    }
+try {
+    $stmt = $conn->query($periodQuery);
+    $periods = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    error_log("Error fetching periods: " . $e->getMessage());
 }
 
 // Get all active accounts for dropdown
@@ -19,12 +19,12 @@ $accountsQuery = "SELECT id, account_code, account_name, account_type, normal_ba
                   WHERE is_active = TRUE 
                   AND is_control_account = FALSE
                   ORDER BY account_code";
-$accountsResult = mysqli_query($coop, $accountsQuery);
-$accounts = [];
-if ($accountsResult) {
-    while ($row = mysqli_fetch_assoc($accountsResult)) {
-        $accounts[] = $row;
-    }
+try {
+    $stmt = $conn->query($accountsQuery);
+    $accounts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    error_log("Error fetching accounts: " . $e->getMessage());
+    $accounts = [];
 }
 ?>
 

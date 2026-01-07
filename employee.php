@@ -1,7 +1,7 @@
 <?php 
 ini_set('max_execution_time', '300');
 require_once('Connections/coop.php');
-include_once('classes/model.php');
+// include_once('classes/model.php');
 
 // Set page title
 $pageTitle = 'OOUTH COOP - Employee Management';
@@ -67,7 +67,14 @@ if (!empty($params)) {
 } else {
     $stmt->execute();
 }
-$employees = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+ $stmt = $conn->prepare($sql);
+if (!empty($params)) {
+    $stmt->execute($params);
+} else {
+    $stmt->execute();
+}
+$employees = $stmt->fetchAll(PDO::FETCH_ASSOC);  // This is correct and will now work
 
 // Get departments for filter (from the Department field in tblemployees)
 $dept_sql = "SELECT DISTINCT Department as DepartmentName FROM tblemployees WHERE Department IS NOT NULL AND Department != '' ORDER BY Department";
@@ -589,7 +596,6 @@ class EmployeeManager {
         try {
             const response = await fetch('api/employee.php', {
                 method: 'POST',
-                credentials: 'same-origin',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },

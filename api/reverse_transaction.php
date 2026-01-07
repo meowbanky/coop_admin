@@ -25,18 +25,15 @@ try {
             AND status = 'posted'
             ORDER BY id ASC";
     
-    $stmt = mysqli_prepare($coop, $sql);
+    $stmt = $coop->prepare($sql);
     $contrib_pattern = "CONTRIB-{$memberid}-%";
     $loan_pattern = "LOAN-{$memberid}-%";
-    mysqli_stmt_bind_param($stmt, "iss", $periodid, $contrib_pattern, $loan_pattern);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
+    $stmt->execute([$periodid, $contrib_pattern, $loan_pattern]);
     
     $entries_to_reverse = [];
-    while ($row = mysqli_fetch_assoc($result)) {
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $entries_to_reverse[] = $row;
     }
-    mysqli_stmt_close($stmt);
     
     if (empty($entries_to_reverse)) {
         echo json_encode([

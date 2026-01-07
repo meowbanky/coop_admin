@@ -13,7 +13,7 @@ $history_query = "SELECT bsf.*, tbp.PayrollPeriod, tbp.PhysicalYear, tbp.Physica
                  FROM bank_statement_files bsf 
                  LEFT JOIN tbpayrollperiods tbp ON bsf.period_id = tbp.id 
                  ORDER BY bsf.upload_date DESC";
-$history_result = mysqli_query($coop, $history_query);
+$history_result = $coop->query($history_query);
 ?>
 
 <!DOCTYPE html>
@@ -70,7 +70,7 @@ $history_result = mysqli_query($coop, $history_query);
                         <h5><i class="fa fa-list"></i> Uploaded Files</h5>
                     </div>
                     <div class="card-body">
-                        <?php if (mysqli_num_rows($history_result) > 0) { ?>
+                        <?php if ($history_result && $history_result->rowCount() > 0) { ?>
                         <div class="table-responsive">
                             <table class="table table-striped" id="historyTable">
                                 <thead>
@@ -84,7 +84,7 @@ $history_result = mysqli_query($coop, $history_query);
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php while ($file = mysqli_fetch_assoc($history_result)) { ?>
+                                    <?php while ($file = $history_result->fetch(PDO::FETCH_ASSOC)) { ?>
                                     <tr>
                                         <td>
                                             <strong><?php echo htmlspecialchars($file['filename']); ?></strong>
@@ -157,8 +157,8 @@ $history_result = mysqli_query($coop, $history_query);
                                         <h4 class="mb-0">
                                             <?php 
                                             $total_query = "SELECT COUNT(*) as total FROM bank_statement_files";
-                                            $total_result = mysqli_query($coop, $total_query);
-                                            $total = mysqli_fetch_assoc($total_result)['total'];
+                                            $total_result = $coop->query($total_query);
+                                            $total = $total_result->fetch(PDO::FETCH_ASSOC)['total'];
                                             echo $total;
                                             ?>
                                         </h4>
@@ -179,8 +179,8 @@ $history_result = mysqli_query($coop, $history_query);
                                         <h4 class="mb-0">
                                             <?php 
                                             $processed_query = "SELECT COUNT(*) as processed FROM bank_statement_files WHERE processed = 1";
-                                            $processed_result = mysqli_query($coop, $processed_query);
-                                            $processed = mysqli_fetch_assoc($processed_result)['processed'];
+                                            $processed_result = $coop->query($processed_query);
+                                            $processed = $processed_result->fetch(PDO::FETCH_ASSOC)['processed'];
                                             echo $processed;
                                             ?>
                                         </h4>
@@ -201,8 +201,8 @@ $history_result = mysqli_query($coop, $history_query);
                                         <h4 class="mb-0">
                                             <?php 
                                             $pending_query = "SELECT COUNT(*) as pending FROM bank_statement_files WHERE processed = 0";
-                                            $pending_result = mysqli_query($coop, $pending_query);
-                                            $pending = mysqli_fetch_assoc($pending_result)['pending'];
+                                            $pending_result = $coop->query($pending_query);
+                                            $pending = $pending_result->fetch(PDO::FETCH_ASSOC)['pending'];
                                             echo $pending;
                                             ?>
                                         </h4>
@@ -223,8 +223,8 @@ $history_result = mysqli_query($coop, $history_query);
                                         <h4 class="mb-0">
                                             <?php 
                                             $unmatched_query = "SELECT COUNT(*) as unmatched FROM unmatched_transactions WHERE resolved = 0";
-                                            $unmatched_result = mysqli_query($coop, $unmatched_query);
-                                            $unmatched = mysqli_fetch_assoc($unmatched_result)['unmatched'];
+                                            $unmatched_result = $coop->query($unmatched_query);
+                                            $unmatched = $unmatched_result->fetch(PDO::FETCH_ASSOC)['unmatched'];
                                             echo $unmatched;
                                             ?>
                                         </h4>

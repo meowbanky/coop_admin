@@ -163,7 +163,7 @@
                 </div>
                 <div class="flex items-end">
                     <button id="update-loan-btn"
-                        class="w-full bg-success hover:bg-green-600 text-white font-medium py-3 px-6 rounded-lg transition-all flex items-center justify-center">
+                        class="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-6 rounded-lg transition-all flex items-center justify-center">
                         <i class="fas fa-save mr-2"></i>
                         Update Loan
                     </button>

@@ -9,10 +9,10 @@ $accountsQuery = "SELECT id, account_code, account_name, account_type
                   FROM coop_accounts 
                   WHERE is_active = TRUE 
                   ORDER BY account_code";
-$accountsResult = mysqli_query($coop, $accountsQuery);
+$stmt = $coop->query($accountsQuery);
 $accounts = [];
-if ($accountsResult) {
-    while ($row = mysqli_fetch_assoc($accountsResult)) {
+if ($stmt) {
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $accounts[] = $row;
     }
 }
@@ -20,9 +20,9 @@ if ($accountsResult) {
 // Get periods
 $periods = [];
 $periodQuery = "SELECT id, PayrollPeriod FROM tbpayrollperiods ORDER BY id DESC";
-$periodResult = mysqli_query($coop, $periodQuery);
-if ($periodResult) {
-    while ($row = mysqli_fetch_assoc($periodResult)) {
+$stmt = $coop->query($periodQuery);
+if ($stmt) {
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $periods[] = $row;
     }
 }
@@ -39,12 +39,9 @@ $runningBalance = 0;
 if ($selectedAccount > 0 && $selectedPeriod > 0) {
     // Get account details
     $sql = "SELECT * FROM coop_accounts WHERE id = ?";
-    $stmt = mysqli_prepare($coop, $sql);
-    mysqli_stmt_bind_param($stmt, "i", $selectedAccount);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-    $accountDetails = mysqli_fetch_assoc($result);
-    mysqli_stmt_close($stmt);
+    $stmt = $coop->prepare($sql);
+    $stmt->execute([$selectedAccount]);
+    $accountDetails = $stmt->fetch(PDO::FETCH_ASSOC);
     
     // Get opening balance
     $calculator = new AccountBalanceCalculator($coop, $database);
@@ -67,12 +64,10 @@ if ($selectedAccount > 0 && $selectedPeriod > 0) {
             AND je.status = 'posted'
             ORDER BY je.entry_date ASC, je.id ASC, jel.line_number ASC";
     
-    $stmt = mysqli_prepare($coop, $sql);
-    mysqli_stmt_bind_param($stmt, "ii", $selectedAccount, $selectedPeriod);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
+    $stmt = $coop->prepare($sql);
+    $stmt->execute([$selectedAccount, $selectedPeriod]);
     
-    while ($row = mysqli_fetch_assoc($result)) {
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $debit = floatval($row['debit_amount']);
         $credit = floatval($row['credit_amount']);
         
@@ -85,8 +80,6 @@ if ($selectedAccount > 0 && $selectedPeriod > 0) {
         $row['running_balance'] = $runningBalance;
         $transactions[] = $row;
     }
-    
-    mysqli_stmt_close($stmt);
 }
 ?>
 

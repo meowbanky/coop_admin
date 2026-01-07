@@ -7,13 +7,16 @@ require_once('libs/reports/CashflowStatement.php');
 require_once('includes/header.php');
 
 // Get periods for dropdown
+// Get periods for dropdown
 $periods = [];
 $periodQuery = "SELECT id, PayrollPeriod FROM tbpayrollperiods ORDER BY id DESC";
-$periodResult = mysqli_query($coop, $periodQuery);
-if ($periodResult) {
-    while ($row = mysqli_fetch_assoc($periodResult)) {
+try {
+    $stmt = $coop->query($periodQuery);
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $periods[] = $row;
     }
+} catch (PDOException $e) {
+    // Handle error
 }
 
 // Get selected period

@@ -10,9 +10,9 @@ $memberAccountManager = new MemberAccountManager($coop, $database);
 // Get periods for dropdown
 $periods = [];
 $periodQuery = "SELECT id, PayrollPeriod FROM tbpayrollperiods ORDER BY id DESC";
-$periodResult = mysqli_query($coop, $periodQuery);
-if ($periodResult) {
-    while ($row = mysqli_fetch_assoc($periodResult)) {
+$stmt = $coop->query($periodQuery);
+if ($stmt) {
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $periods[] = $row;
     }
 }
@@ -22,10 +22,10 @@ $membersQuery = "SELECT CoopID as memberid, CONCAT(LastName, ', ', FirstName, ' 
                  FROM tblemployees 
                  WHERE Status = 'Active'
                  ORDER BY CoopID";
-$membersResult = mysqli_query($coop, $membersQuery);
+$stmt = $coop->query($membersQuery);
 $members = [];
-if ($membersResult) {
-    while ($row = mysqli_fetch_assoc($membersResult)) {
+if ($stmt) {
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $members[] = $row;
     }
 }

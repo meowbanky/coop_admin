@@ -14,10 +14,6 @@ class BankReconciliationService {
     public function __construct($database_connection, $database_name = null) {
         $this->db = $database_connection;
         $this->database_name = $database_name;
-        
-        if ($database_name) {
-            mysqli_select_db($this->db, $database_name);
-        }
     }
     
     /**
@@ -58,8 +54,8 @@ class BankReconciliationService {
                      reconciled_balance, is_balanced, variance, reconciled_by, notes)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             
-            $stmt = mysqli_prepare($this->db, $sql);
-            mysqli_stmt_bind_param($stmt, "iisdddddddiids",
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([
                 $periodid,
                 $bank_account_id,
                 $reconciliation_date,
@@ -74,14 +70,9 @@ class BankReconciliationService {
                 $variance,
                 $reconciled_by,
                 $notes
-            );
+            ]);
             
-            if (!mysqli_stmt_execute($stmt)) {
-                throw new Exception("Failed to create reconciliation: " . mysqli_stmt_error($stmt));
-            }
-            
-            $reconciliation_id = mysqli_insert_id($this->db);
-            mysqli_stmt_close($stmt);
+            $reconciliation_id = $this->db->lastInsertId();
             
             // If there are bank charges or interest, create adjusting journal entries
             if ($bank_charges > 0 || $bank_interest > 0) {
@@ -195,29 +186,23 @@ class BankReconciliationService {
                 JOIN coop_accounts a ON br.bank_account_id = a.id
                 LEFT JOIN tbpayrollperiods pp ON br.periodid = pp.id";
         
+        $params = [];
         if ($bank_account_id) {
             $sql .= " WHERE br.bank_account_id = ?";
+            $params[] = $bank_account_id;
         }
         
         $sql .= " ORDER BY br.reconciliation_date DESC, br.id DESC LIMIT ?";
+        $params[] = $limit;
         
-        $stmt = mysqli_prepare($this->db, $sql);
-        
-        if ($bank_account_id) {
-            mysqli_stmt_bind_param($stmt, "ii", $bank_account_id, $limit);
-        } else {
-            mysqli_stmt_bind_param($stmt, "i", $limit);
-        }
-        
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
         
         $records = [];
-        while ($row = mysqli_fetch_assoc($result)) {
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $records[] = $row;
         }
         
-        mysqli_stmt_close($stmt);
         return $records;
     }
     

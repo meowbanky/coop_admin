@@ -13,8 +13,14 @@ if (!isset($_SESSION['SESS_FIRST_NAME'])) {
 $openai_configured = EnvConfig::hasOpenAIKey();
 
 // Get payroll periods for dropdown
-$periods_query = "SELECT id, PayrollPeriod, PhysicalYear, PhysicalMonth FROM tbpayrollperiods ORDER BY id DESC";
-$periods_result = mysqli_query($coop, $periods_query);
+$periods_result = [];
+try {
+    $periods_query = "SELECT id, PayrollPeriod, PhysicalYear, PhysicalMonth FROM tbpayrollperiods ORDER BY id DESC";
+    $stmt = $conn->query($periods_query);
+    $periods_result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    error_log("Error fetching periods: " . $e->getMessage());
+}
 ?>
 
 <!DOCTYPE html>
@@ -148,7 +154,7 @@ $periods_result = mysqli_query($coop, $periods_query);
                                         <select class="form-control" id="period" name="period" required
                                             <?php echo !$openai_configured ? 'disabled' : ''; ?>>
                                             <option value="">Select a period...</option>
-                                            <?php while ($period = mysqli_fetch_assoc($periods_result)) { ?>
+                                            <?php foreach ($periods_result as $period) { ?>
                                             <option value="<?php echo $period['id']; ?>">
                                                 <?php echo $period['PayrollPeriod'] . ' (' . $period['PhysicalMonth'] . ' ' . $period['PhysicalYear'] . ')'; ?>
                                             </option>
