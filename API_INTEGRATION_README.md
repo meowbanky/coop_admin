@@ -41,8 +41,8 @@ You will receive:
    ```
 3. Edit `config/api_config.php` and update:
    ```php
-   define('OOUTH_API_KEY', 'oouth_005_deduc_48_ed7dee3ccb995727');
-   define('OOUTH_API_SECRET', '4e85095ce0bfdf69ce4aa231d809d59156a8493171abba20add75d1ebc4e8ff7');
+   define('OOUTH_API_KEY', 'oouth_005_deduc_48_ed7dee3cxxxxxxx');
+   define('OOUTH_API_SECRET', '4e85095ce0bfdf69ce4aa231d809d5915xxxxxxxxxxxx');
    define('OOUTH_ORGANIZATION_ID', '005'); // e.g., 005
    define('OOUTH_RESOURCE_TYPE', 'deduction'); // or 'allowance'
    define('OOUTH_RESOURCE_ID', '48'); // e.g., 48 for Pension
