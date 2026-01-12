@@ -22,7 +22,7 @@ This integration allows you to fetch deduction/allowance data from the OOUTH Sal
 
 Contact OOUTH Salary System Administrator:
 
-- **Email:** api-support@oouth.edu.ng
+- **Email:** api-support@oouth.com
 - **Provide:** Organization name, contact email, phone, resource needed
 
 You will receive:
