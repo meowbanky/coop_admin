@@ -27,7 +27,7 @@ Contact OOUTH Salary System Administrator:
 
 You will receive:
 
-- API Key (e.g., `oouth_005_deduc_48_a1b2c3d4e5f6g7h8`)
+- API Key (e.g., `oouth_005_deduc_48_a1b2c3dxxxxxxx`)
 - API Secret (64-character string) **⚠️ Keep this secret!**
 - Organization ID (e.g., `005`)
 - Resource Access (deduction or allowance ID)
