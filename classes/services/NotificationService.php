@@ -8,25 +8,17 @@ class NotificationService {
 
     public function __construct($db) {
         $this->db = $db;
-        $this->oneSignalConfig = [
-            'appId' => 'aeef154f-9807-4dff-b7a6-d215ac0c1281',
-            'apiKey' => 'os_v2_app_v3xrkt4ya5g77n5g2ik2ydasqhzzj6vsgq2edvnl26mbtdef3vzdr7xt6rk7gxrkd2sdbozy37ssbciza5xxwuhcpckzjhhogtmeiza'
-        ];
-        $this->smsConfig = [
-            'sender' => 'OOUTHCOOP',
-            'apiKey' => 'TLg1GY6Gwcnii12H3EY0LWg4tCFQgcsOg4NVLpdQqm413h32QFJR0VxN4q08jT',
-            'endpoint' => 'https://v3.api.termii.com/api/sms/send'
-
-        ];
+        $this->oneSignalConfig = \EnvConfig::getOneSignalConfig();
+        $this->smsConfig = \EnvConfig::getSmsConfig();
     }
 
     public function sendTransactionNotification($memberId, $periodId) {
         try {
             // Get transaction details
             $transactionData = $this->getTransactionDetails($memberId, $periodId);
-//            error_log('transatino data '.json_encode($transactionData));
             if (!$transactionData) {
-                throw new \Exception("No transaction data found");
+               // throw new \Exception("No transaction data found");
+               return false;
             }
 
             // Format message
@@ -108,17 +100,22 @@ class NotificationService {
         FROM tbl_mastertransact 
         INNER JOIN tblemployees ON tbl_mastertransact.COOPID = tblemployees.CoopID
         LEFT JOIN tbpayrollperiods ON tbl_mastertransact.TransactionPeriod = tbpayrollperiods.id 
-        WHERE tblemployees.CoopID = '" . mysqli_real_escape_string($this->db, $memberId) . "' 
-        AND tbl_mastertransact.TransactionPeriod = " . (int)$periodId . "
+        WHERE tblemployees.CoopID = :memberId 
+        AND tbl_mastertransact.TransactionPeriod = :periodId
         GROUP BY tbl_mastertransact.COOPID, tbpayrollperiods.id, tblemployees.LastName, tblemployees.FirstName, tblemployees.MiddleName, tblemployees.MobileNumber
         ORDER BY tbpayrollperiods.id DESC LIMIT 1";
 
-        $result = mysqli_query($this->db, $query);
-        if (!$result) {
-            throw new \Exception("Database query failed: " . mysqli_error($this->db));
+        $stmt = $this->db->prepare($query);
+        if (!$stmt) {
+             throw new \Exception("Database prepare failed: " . implode(" ", $this->db->errorInfo()));
         }
+        
+        $stmt->execute([
+            ':memberId' => $memberId,
+            ':periodId' => (int)$periodId
+        ]);
 
-        return mysqli_fetch_assoc($result);
+        return $stmt->fetch(\PDO::FETCH_ASSOC);
     }
 
     private function formatTransactionMessage($data) {
@@ -154,7 +151,8 @@ class NotificationService {
 
     private function sendSMS($phone, $message) {
         if (empty($phone)) {
-            throw new \Exception("Phone number is required");
+            // throw new \Exception("Phone number is required");
+             return false;
         }
 
         $phone = $this->formatPhoneNumber($phone);
@@ -254,14 +252,18 @@ class NotificationService {
     }
 
     private function logNotification($memberId, $message) {
-        $memberId = mysqli_real_escape_string($this->db, $memberId);
-        $message = mysqli_real_escape_string($this->db, $message);
-
         $query = "INSERT INTO notifications 
                   (coop_id, message, created_at, status) 
                   VALUES 
-                  ('$memberId', '$message', NOW(), 'unread')";
-
-        return mysqli_query($this->db, $query);
+                  (:coop_id, :message, NOW(), 'unread')";
+        
+        $stmt = $this->db->prepare($query);
+        if ($stmt) {
+            return $stmt->execute([
+                ':coop_id' => $memberId,
+                ':message' => $message
+            ]);
+        }
+        return false;
     }
 }

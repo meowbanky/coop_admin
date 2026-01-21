@@ -293,6 +293,9 @@
                                 Transactions
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Batch Total
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Status
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -303,7 +306,7 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         <?php if (empty($batches)): ?>
                         <tr>
-                            <td colspan="5" class="px-6 py-12 text-center">
+                            <td colspan="6" class="px-6 py-12 text-center">
                                 <div class="text-gray-400">
                                     <i class="fas fa-inbox text-4xl mb-4"></i>
                                     <h3 class="text-lg font-medium text-gray-900 mb-2">No batches found</h3>
@@ -325,6 +328,9 @@
                                     class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                     <?= $batch['transaction_count'] ?> transactions
                                 </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
+                                &#8358;<?= number_format($batch['batch_total'] ?? 0, 2) ?>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 <?php if ($batch['transaction_count'] > 0): ?>

@@ -7,6 +7,53 @@ include 'includes/header.php';
 
 ?>
 
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    /* Custom styles to match Tailwind inputs */
+    .select2-container .select2-selection--single {
+        height: 42px !important;
+        border: 1px solid #d1d5db !important; /* gray-300 */
+        border-radius: 0.5rem !important; /* rounded-lg */
+        display: flex !important;
+        align-items: center !important;
+    }
+    
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 40px !important;
+        right: 10px !important;
+    }
+    
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        padding-left: 12px !important;
+        color: #374151 !important; /* gray-700 */
+        font-size: 0.875rem !important; /* text-sm */
+    }
+
+    .select2-container--default .select2-selection--single:focus {
+        border-color: #3b82f6 !important; /* blue-500 */
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5) !important;
+    }
+    
+    .select2-dropdown {
+        border-color: #d1d5db !important;
+        border-radius: 0.5rem !important;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+    }
+</style>
+
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+$(document).ready(function() {
+    $('#member_id').select2({
+        width: '100%',
+        placeholder: "Select Members",
+        allowClear: true
+    });
+});
+</script>
+
 <?php
 ini_set('max_execution_time', '0');
 

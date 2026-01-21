@@ -115,6 +115,7 @@ class BatchManager {
         try {
             $sql = "SELECT 
                         count(BeneficiaryCode) AS transaction_count,
+                        SUM(excel.Amount) AS batch_total,
                         tbl_batch.Batch AS batch_number,
                         MAX(tbl_batch.batchid) AS batch_id
                     FROM tbl_batch 

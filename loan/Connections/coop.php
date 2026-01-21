@@ -19,6 +19,9 @@ try {
     
     // Alias $conn for compatibility if needed (some files might use it)
     $conn = $db; 
+    
+    // Alias $coop for backward compatibility (used in loan/home.php)
+    $coop = $db;
 
 } catch (Exception $e) {
     // Display a user-friendly error message

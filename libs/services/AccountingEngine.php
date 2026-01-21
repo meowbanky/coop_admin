@@ -15,7 +15,7 @@ class AccountingEngine {
     /**
      * Constructor
      * 
-     * @param mysqli $database_connection Database connection
+     * @param PDO $database_connection Database connection
      * @param string $database_name Database name (optional)
      */
     public function __construct($database_connection, $database_name = null) {
@@ -23,7 +23,14 @@ class AccountingEngine {
         $this->database_name = $database_name;
         
         if ($database_name) {
-            mysqli_select_db($this->db, $database_name);
+             // In PDO, we usually select DB in DSN, but if needed we can issue USE command
+             // Or rely on the connection already having the right DB selected.
+             // Given the context of the error "mysqli_select_db", we'll try to execute USE if provided.
+             try {
+                $this->db->exec("USE `$database_name`");
+             } catch (PDOException $e) {
+                 error_log("AccountingEngine: Failed to select database $database_name. " . $e->getMessage());
+             }
         }
     }
     
@@ -57,7 +64,7 @@ class AccountingEngine {
             $entry_number = $this->generateEntryNumber($periodid);
             
             // Begin transaction
-            mysqli_begin_transaction($this->db);
+            $this->db->beginTransaction();
             
             try {
                 // Insert journal entry header
@@ -65,18 +72,17 @@ class AccountingEngine {
                         (entry_number, entry_date, periodid, entry_type, source_document, description, total_amount, created_by, status) 
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'draft')";
                 
-                $stmt = mysqli_prepare($this->db, $sql);
-                mysqli_stmt_bind_param($stmt, "ssisssdi", 
+                $stmt = $this->db->prepare($sql);
+                $result = $stmt->execute([
                     $entry_number, $entry_date, $periodid, $entry_type, 
                     $source_document, $description, $total_amount, $created_by
-                );
+                ]);
                 
-                if (!mysqli_stmt_execute($stmt)) {
-                    throw new Exception("Failed to create journal entry: " . mysqli_stmt_error($stmt));
+                if (!$result) {
+                    throw new Exception("Failed to create journal entry: " . implode(" ", $stmt->errorInfo()));
                 }
                 
-                $entry_id = mysqli_insert_id($this->db);
-                mysqli_stmt_close($stmt);
+                $entry_id = $this->db->lastInsertId();
                 
                 // Insert journal entry lines
                 $line_number = 1;
@@ -86,7 +92,7 @@ class AccountingEngine {
                 }
                 
                 // Commit transaction
-                mysqli_commit($this->db);
+                $this->db->commit();
                 
                 return [
                     'success' => true,
@@ -96,7 +102,9 @@ class AccountingEngine {
                 ];
                 
             } catch (Exception $e) {
-                mysqli_rollback($this->db);
+                if ($this->db->inTransaction()) {
+                    $this->db->rollBack();
+                }
                 throw $e;
             }
             
@@ -129,15 +137,13 @@ class AccountingEngine {
             }
             
             // Begin transaction
-            mysqli_begin_transaction($this->db);
+            $this->db->beginTransaction();
             
             try {
                 // Update entry status
                 $sql = "UPDATE coop_journal_entries SET status = 'posted' WHERE id = ?";
-                $stmt = mysqli_prepare($this->db, $sql);
-                mysqli_stmt_bind_param($stmt, "i", $entry_id);
-                mysqli_stmt_execute($stmt);
-                mysqli_stmt_close($stmt);
+                $stmt = $this->db->prepare($sql);
+                $stmt->execute([$entry_id]);
                 
                 // Get all lines for this entry
                 $lines = $this->getJournalEntryLines($entry_id);
@@ -162,12 +168,14 @@ class AccountingEngine {
                     json_encode(['status' => 'posted'])
                 );
                 
-                mysqli_commit($this->db);
+                $this->db->commit();
                 
                 return ['success' => true];
                 
             } catch (Exception $e) {
-                mysqli_rollback($this->db);
+                if ($this->db->inTransaction()) {
+                    $this->db->rollBack();
+                }
                 throw $e;
             }
             
@@ -241,10 +249,8 @@ class AccountingEngine {
             
             // Mark original as reversed
             $sql = "UPDATE coop_journal_entries SET is_reversed = TRUE, reversed_by_entry_id = ? WHERE id = ?";
-            $stmt = mysqli_prepare($this->db, $sql);
-            mysqli_stmt_bind_param($stmt, "ii", $result['entry_id'], $entry_id);
-            mysqli_stmt_execute($stmt);
-            mysqli_stmt_close($stmt);
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([$result['entry_id'], $entry_id]);
             
             return [
                 'success' => true,
@@ -331,7 +337,7 @@ class AccountingEngine {
                 (journal_entry_id, line_number, account_id, debit_amount, credit_amount, description, reference_type, reference_id) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         
-        $stmt = mysqli_prepare($this->db, $sql);
+        $stmt = $this->db->prepare($sql);
         
         $debit = isset($line['debit_amount']) ? floatval($line['debit_amount']) : 0;
         $credit = isset($line['credit_amount']) ? floatval($line['credit_amount']) : 0;
@@ -339,7 +345,7 @@ class AccountingEngine {
         $reference_type = isset($line['reference_type']) ? $line['reference_type'] : null;
         $reference_id = isset($line['reference_id']) ? $line['reference_id'] : null;
         
-        mysqli_stmt_bind_param($stmt, "iiiddssi",
+        $result = $stmt->execute([
             $entry_id,
             $line_number,
             $line['account_id'],
@@ -348,13 +354,11 @@ class AccountingEngine {
             $description,
             $reference_type,
             $reference_id
-        );
+        ]);
         
-        if (!mysqli_stmt_execute($stmt)) {
-            throw new Exception("Failed to insert journal line: " . mysqli_stmt_error($stmt));
+        if (!$result) {
+            throw new Exception("Failed to insert journal line: " . implode(" ", $stmt->errorInfo()));
         }
-        
-        mysqli_stmt_close($stmt);
     }
     
     /**
@@ -368,12 +372,9 @@ class AccountingEngine {
     private function updatePeriodBalance($periodid, $account_id, $debit_amount, $credit_amount) {
         // Check if balance record exists
         $sql = "SELECT id FROM coop_period_balances WHERE periodid = ? AND account_id = ?";
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "ii", $periodid, $account_id);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $exists = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$periodid, $account_id]);
+        $exists = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if ($exists) {
             // Update existing balance
@@ -384,37 +385,35 @@ class AccountingEngine {
                         closing_credit = opening_credit + period_credit + ?
                     WHERE periodid = ? AND account_id = ?";
             
-            $stmt = mysqli_prepare($this->db, $sql);
-            mysqli_stmt_bind_param($stmt, "ddddii",
+            $stmt = $this->db->prepare($sql);
+            $result = $stmt->execute([
                 $debit_amount,
                 $credit_amount,
                 $debit_amount,
                 $credit_amount,
                 $periodid,
                 $account_id
-            );
+            ]);
         } else {
             // Insert new balance record
             $sql = "INSERT INTO coop_period_balances 
                     (periodid, account_id, opening_debit, opening_credit, period_debit, period_credit, closing_debit, closing_credit) 
                     VALUES (?, ?, 0, 0, ?, ?, ?, ?)";
             
-            $stmt = mysqli_prepare($this->db, $sql);
-            mysqli_stmt_bind_param($stmt, "iidddd",
+            $stmt = $this->db->prepare($sql);
+            $result = $stmt->execute([
                 $periodid,
                 $account_id,
                 $debit_amount,
                 $credit_amount,
                 $debit_amount,
                 $credit_amount
-            );
+            ]);
         }
         
-        if (!mysqli_stmt_execute($stmt)) {
-            throw new Exception("Failed to update period balance: " . mysqli_stmt_error($stmt));
+        if (!$result) {
+            throw new Exception("Failed to update period balance: " . implode(" ", $stmt->errorInfo()));
         }
-        
-        mysqli_stmt_close($stmt);
     }
     
     /**
@@ -427,12 +426,9 @@ class AccountingEngine {
     private function generateEntryNumber($periodid) {
         // Get period details
         $sql = "SELECT PayrollPeriod FROM tbpayrollperiods WHERE id = ?";
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "i", $periodid);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $period = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$periodid]);
+        $period = $stmt->fetch(PDO::FETCH_ASSOC);
         
         // Extract year from period (assuming format contains year)
         $year = date('Y');
@@ -446,12 +442,9 @@ class AccountingEngine {
                 WHERE entry_number LIKE ?";
         
         $pattern = "JE-{$year}-%";
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "s", $pattern);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $row = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$pattern]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
         
         $next_num = ($row['max_num'] ?? 0) + 1;
         
@@ -466,12 +459,9 @@ class AccountingEngine {
      */
     public function getJournalEntry($entry_id) {
         $sql = "SELECT * FROM coop_journal_entries WHERE id = ?";
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "i", $entry_id);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $entry = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$entry_id]);
+        $entry = $stmt->fetch(PDO::FETCH_ASSOC);
         
         return $entry;
     }
@@ -489,17 +479,11 @@ class AccountingEngine {
                 WHERE jel.journal_entry_id = ?
                 ORDER BY jel.line_number";
         
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "i", $entry_id);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$entry_id]);
         
-        $lines = [];
-        while ($row = mysqli_fetch_assoc($result)) {
-            $lines[] = $row;
-        }
+        $lines = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        mysqli_stmt_close($stmt);
         return $lines;
     }
     
@@ -521,8 +505,8 @@ class AccountingEngine {
         $ip_address = $_SERVER['REMOTE_ADDR'] ?? null;
         $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? null;
         
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "ississss",
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
             $user_id,
             $action_type,
             $table_name,
@@ -531,10 +515,7 @@ class AccountingEngine {
             $new_values,
             $ip_address,
             $user_agent
-        );
-        
-        mysqli_stmt_execute($stmt);
-        mysqli_stmt_close($stmt);
+        ]);
     }
     
     /**
@@ -545,12 +526,9 @@ class AccountingEngine {
      */
     public function getAccount($account_id) {
         $sql = "SELECT * FROM coop_accounts WHERE id = ?";
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "i", $account_id);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $account = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$account_id]);
+        $account = $stmt->fetch(PDO::FETCH_ASSOC);
         
         return $account;
     }
@@ -563,12 +541,9 @@ class AccountingEngine {
      */
     public function getAccountByCode($account_code) {
         $sql = "SELECT * FROM coop_accounts WHERE account_code = ?";
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "s", $account_code);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $account = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$account_code]);
+        $account = $stmt->fetch(PDO::FETCH_ASSOC);
         
         return $account;
     }

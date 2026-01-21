@@ -208,7 +208,8 @@ if (!isset($_SESSION['SESS_MEMBER_ID']) || (trim($_SESSION['SESS_MEMBER_ID']) ==
                         <label class="block text-sm font-medium text-gray-700 mb-2">Year</label>
                         <select name="periodyear"
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <option value="<?php echo date('Y'); ?>"><?php echo date('Y'); ?></option>
+                            <option value="<?php echo date('Y')-1; ?>"><?php echo date('Y')-1; ?></option>
+                            <option value="<?php echo date('Y'); ?>" selected><?php echo date('Y'); ?></option>
                             <option value="<?php echo date('Y')+1; ?>"><?php echo date('Y')+1; ?></option>
                         </select>
                     </div>

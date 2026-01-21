@@ -18,18 +18,12 @@ class BeneficiaryManager {
                            tblemployees.coopid, tblemployees.bank, tblemployees.AccountNo, tblemployees.BankCode 
                     FROM tblemployees";
             
-            $result = mysqli_query($this->connection, $sql);
-            if (!$result) {
-                throw new Exception("Query failed: " . mysqli_error($this->connection));
+            $stmt = $this->connection->query($sql);
+            if (!$stmt) {
+                throw new Exception("Query failed");
             }
             
-            $employees = [];
-            while ($row = mysqli_fetch_assoc($result)) {
-                $employees[] = $row;
-            }
-            
-            mysqli_free_result($result);
-            return $employees;
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             error_log("Error fetching employees: " . $e->getMessage());
             return [];
@@ -41,27 +35,18 @@ class BeneficiaryManager {
      */
     public function getBeneficiaries($batch) {
         try {
-            $batch = mysqli_real_escape_string($this->connection, $batch);
             $sql = "SELECT CONCAT(excel.Narration, ' ', excel.PaymentRefID) AS PaymentReference, 
                            excel.BeneficiaryName, excel.AccountNumber, excel.AccountType, 
                            excel.CBNCode, excel.IsCashCard, excel.Narration, excel.Amount, 
                            excel.EMailAddress, excel.NGN, excel.BeneficiaryCode, excel.batch, excel.Bank 
                     FROM excel 
-                    WHERE batch='$batch' 
+                    WHERE batch = :batch 
                     ORDER BY PaymentRefID DESC";
             
-            $result = mysqli_query($this->connection, $sql);
-            if (!$result) {
-                throw new Exception("Query failed: " . mysqli_error($this->connection));
-            }
+            $stmt = $this->connection->prepare($sql);
+            $stmt->execute(['batch' => $batch]);
             
-            $beneficiaries = [];
-            while ($row = mysqli_fetch_assoc($result)) {
-                $beneficiaries[] = $row;
-            }
-            
-            mysqli_free_result($result);
-            return $beneficiaries;
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             error_log("Error fetching beneficiaries: " . $e->getMessage());
             return [];
@@ -73,16 +58,12 @@ class BeneficiaryManager {
      */
     public function getBatchTotal($batch) {
         try {
-            $batch = mysqli_real_escape_string($this->connection, $batch);
-            $sql = "SELECT SUM(excel.Amount) AS Sum FROM excel WHERE Batch='$batch'";
+            $sql = "SELECT SUM(excel.Amount) AS Sum FROM excel WHERE Batch = :batch";
             
-            $result = mysqli_query($this->connection, $sql);
-            if (!$result) {
-                throw new Exception("Query failed: " . mysqli_error($this->connection));
-            }
+            $stmt = $this->connection->prepare($sql);
+            $stmt->execute(['batch' => $batch]);
             
-            $row = mysqli_fetch_assoc($result);
-            mysqli_free_result($result);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
             
             return $row['Sum'] ?? 0;
         } catch (Exception $e) {
@@ -96,39 +77,61 @@ class BeneficiaryManager {
      */
     public function addBeneficiary($data) {
         try {
-            // Sanitize input data with null checks
-            $beneficiaryCode = isset($data['txtCoopid']) ? mysqli_real_escape_string($this->connection, $data['txtCoopid']) : '';
-            $beneficiaryName = isset($data['CoopName']) ? mysqli_real_escape_string($this->connection, $data['CoopName']) : '';
-            $accountNumber = isset($data['txtBankAccountNo']) ? mysqli_real_escape_string($this->connection, $data['txtBankAccountNo']) : '';
-            $cbnCode = isset($data['txtbankcode']) ? mysqli_real_escape_string($this->connection, $data['txtbankcode']) : '';
-            $narration = isset($data['txNarration']) ? mysqli_real_escape_string($this->connection, $data['txNarration']) : '';
+            // Sanitize input data
+            $beneficiaryCode = $data['txtCoopid'] ?? '';
+            $beneficiaryName = $data['CoopName'] ?? '';
+            $accountNumber = $data['txtBankAccountNo'] ?? '';
+            $cbnCode = $data['txtbankcode'] ?? '';
+            $narration = $data['txNarration'] ?? '';
             $amount = isset($data['txtAmount']) ? floatval(str_replace(',', '', $data['txtAmount'])) : 0;
-            $batch = isset($data['Batch']) ? mysqli_real_escape_string($this->connection, $data['Batch']) : '';
-            $bank = isset($data['txtBankName']) ? mysqli_real_escape_string($this->connection, $data['txtBankName']) : '';
+            $batch = $data['Batch'] ?? '';
+            $bank = $data['txtBankName'] ?? '';
             
             // Check if beneficiary already exists in this batch
-            $checkSql = "SELECT COUNT(*) as count FROM excel WHERE BeneficiaryCode='$beneficiaryCode' AND Batch='$batch'";
-            $checkResult = mysqli_query($this->connection, $checkSql);
-            $checkRow = mysqli_fetch_assoc($checkResult);
+            $checkSql = "SELECT COUNT(*) as count FROM excel WHERE BeneficiaryCode = :code AND Batch = :batch";
+            $stmtCheck = $this->connection->prepare($checkSql);
+            $stmtCheck->execute(['code' => $beneficiaryCode, 'batch' => $batch]);
+            $count = $stmtCheck->fetchColumn();
             
-            if ($checkRow['count'] > 0) {
+            if ($count > 0) {
                 // Update existing record
                 $sql = "UPDATE excel SET 
-                            BeneficiaryName='$beneficiaryName', 
-                            AccountNumber='$accountNumber', 
-                            CBNCode='$cbnCode', 
-                            Bank='$bank', 
-                            Narration='$narration', 
-                            Amount=$amount 
-                        WHERE BeneficiaryCode='$beneficiaryCode' AND Batch='$batch'";
+                            BeneficiaryName = :name, 
+                            AccountNumber = :acc, 
+                            CBNCode = :cbn, 
+                            Bank = :bank, 
+                            Narration = :narration, 
+                            Amount = :amount 
+                        WHERE BeneficiaryCode = :code AND Batch = :batch";
+                $params = [
+                    'name' => $beneficiaryName,
+                    'acc' => $accountNumber,
+                    'cbn' => $cbnCode,
+                    'bank' => $bank,
+                    'narration' => $narration,
+                    'amount' => $amount,
+                    'code' => $beneficiaryCode,
+                    'batch' => $batch
+                ];
             } else {
                 // Insert new record
                 $sql = "INSERT INTO excel (BeneficiaryCode, BeneficiaryName, AccountNumber, CBNCode, Narration, Amount, Batch, Bank) 
-                        VALUES ('$beneficiaryCode', '$beneficiaryName', '$accountNumber', '$cbnCode', '$narration', $amount, '$batch', '$bank')";
+                        VALUES (:code, :name, :acc, :cbn, :narration, :amount, :batch, :bank)";
+                $params = [
+                    'code' => $beneficiaryCode,
+                    'name' => $beneficiaryName,
+                    'acc' => $accountNumber,
+                    'cbn' => $cbnCode,
+                    'narration' => $narration,
+                    'amount' => $amount,
+                    'batch' => $batch,
+                    'bank' => $bank
+                ];
             }
             
-            if (!mysqli_query($this->connection, $sql)) {
-                throw new Exception("Insert failed: " . mysqli_error($this->connection));
+            $stmt = $this->connection->prepare($sql);
+            if (!$stmt->execute($params)) {
+                throw new Exception("Database operation failed");
             }
             
             return [
@@ -154,28 +157,38 @@ class BeneficiaryManager {
      */
     public function updateBeneficiary($data) {
         try {
-            // Sanitize input data with null checks
-            $beneficiaryCode = isset($data['txtCoopid']) ? mysqli_real_escape_string($this->connection, $data['txtCoopid']) : '';
-            $beneficiaryName = isset($data['CoopName']) ? mysqli_real_escape_string($this->connection, $data['CoopName']) : '';
-            $accountNumber = isset($data['txtBankAccountNo']) ? mysqli_real_escape_string($this->connection, $data['txtBankAccountNo']) : '';
-            $cbnCode = isset($data['txtbankcode']) ? mysqli_real_escape_string($this->connection, $data['txtbankcode']) : '';
-            $narration = isset($data['txNarration']) ? mysqli_real_escape_string($this->connection, $data['txNarration']) : '';
+            // Sanitize input data
+            $beneficiaryCode = $data['txtCoopid'] ?? '';
+            $beneficiaryName = $data['CoopName'] ?? '';
+            $accountNumber = $data['txtBankAccountNo'] ?? '';
+            $cbnCode = $data['txtbankcode'] ?? '';
+            $narration = $data['txNarration'] ?? '';
             $amount = isset($data['txtAmount']) ? floatval(str_replace(',', '', $data['txtAmount'])) : 0;
-            $batch = isset($data['Batch']) ? mysqli_real_escape_string($this->connection, $data['Batch']) : '';
-            $bank = isset($data['txtBankName']) ? mysqli_real_escape_string($this->connection, $data['txtBankName']) : '';
+            $batch = $data['Batch'] ?? '';
+            $bank = $data['txtBankName'] ?? '';
             
             $sql = "UPDATE excel SET 
-                        BeneficiaryName='$beneficiaryName', 
-                        AccountNumber='$accountNumber', 
-                        CBNCode='$cbnCode', 
-                        Bank='$bank', 
-                        Narration='$narration', 
-                        Amount=$amount, 
-                        Batch='$batch' 
-                    WHERE BeneficiaryCode='$beneficiaryCode'";
+                        BeneficiaryName = :name, 
+                        AccountNumber = :acc, 
+                        CBNCode = :cbn, 
+                        Bank = :bank, 
+                        Narration = :narration, 
+                        Amount = :amount, 
+                        Batch = :batch 
+                    WHERE BeneficiaryCode = :code";
             
-            if (!mysqli_query($this->connection, $sql)) {
-                throw new Exception("Update failed: " . mysqli_error($this->connection));
+            $stmt = $this->connection->prepare($sql);
+            if (!$stmt->execute([
+                'name' => $beneficiaryName,
+                'acc' => $accountNumber,
+                'cbn' => $cbnCode,
+                'bank' => $bank,
+                'narration' => $narration,
+                'amount' => $amount,
+                'batch' => $batch,
+                'code' => $beneficiaryCode
+            ])) {
+                throw new Exception("Update failed");
             }
             
             return [
@@ -201,13 +214,11 @@ class BeneficiaryManager {
      */
     public function deleteBeneficiary($beneficiaryCode, $batch) {
         try {
-            $beneficiaryCode = mysqli_real_escape_string($this->connection, $beneficiaryCode);
-            $batch = mysqli_real_escape_string($this->connection, $batch);
+            $sql = "DELETE FROM excel WHERE BeneficiaryCode = :code AND Batch = :batch";
             
-            $sql = "DELETE FROM excel WHERE BeneficiaryCode='$beneficiaryCode' AND Batch='$batch'";
-            
-            if (!mysqli_query($this->connection, $sql)) {
-                throw new Exception("Delete failed: " . mysqli_error($this->connection));
+            $stmt = $this->connection->prepare($sql);
+            if (!$stmt->execute(['code' => $beneficiaryCode, 'batch' => $batch])) {
+                throw new Exception("Delete failed");
             }
             
             return [
@@ -228,14 +239,13 @@ class BeneficiaryManager {
      */
     public function updateBeneficiaryAmount($beneficiaryCode, $amount, $batch) {
         try {
-            $beneficiaryCode = mysqli_real_escape_string($this->connection, $beneficiaryCode);
-            $amount = floatval(str_replace(',', '', $amount));
-            $batch = mysqli_real_escape_string($this->connection, $batch);
+            $amountVal = floatval(str_replace(',', '', $amount));
             
-            $sql = "UPDATE excel SET Amount=$amount WHERE BeneficiaryCode='$beneficiaryCode' AND Batch='$batch'";
+            $sql = "UPDATE excel SET Amount = :amount WHERE BeneficiaryCode = :code AND Batch = :batch";
             
-            if (!mysqli_query($this->connection, $sql)) {
-                throw new Exception("Update failed: " . mysqli_error($this->connection));
+            $stmt = $this->connection->prepare($sql);
+            if (!$stmt->execute(['amount' => $amountVal, 'code' => $beneficiaryCode, 'batch' => $batch])) {
+                throw new Exception("Update failed");
             }
             
             return [
@@ -243,7 +253,7 @@ class BeneficiaryManager {
                 'message' => 'Beneficiary amount updated successfully!',
                 'data' => [
                     'beneficiary_code' => $beneficiaryCode,
-                    'amount' => $amount
+                    'amount' => $amountVal
                 ]
             ];
         } catch (Exception $e) {
@@ -256,13 +266,12 @@ class BeneficiaryManager {
     }
     
     /**
-     * Search employees for autocomplete - using exact same logic as search.php
+     * Search employees for autocomplete
      */
     public function searchEmployees($query) {
         try {
-            $searchTerm = mysqli_real_escape_string($this->connection, $query);
+            $searchTerm = "%$query%";
             
-            // Exact same query as search.php
             $sql = "SELECT
                         tblemployees.CoopID, 
                         CONCAT(tblemployees.FirstName,' , ',tblemployees.MiddleName,' ',tblemployees.LastName) AS name, 
@@ -273,20 +282,17 @@ class BeneficiaryManager {
                         tblemployees
                         LEFT JOIN tblaccountno ON tblaccountno.COOPNO = tblemployees.CoopID
                         LEFT JOIN tblbankcode ON tblaccountno.Bank = tblbankcode.bank
-                    WHERE CoopID LIKE '%$searchTerm%' 
-                    OR lastname LIKE '%$searchTerm%' 
-                    OR firstname LIKE '%$searchTerm%' 
-                    OR middlename LIKE '%$searchTerm%' 
+                    WHERE CoopID LIKE :term 
+                    OR lastname LIKE :term 
+                    OR firstname LIKE :term 
+                    OR middlename LIKE :term 
                     LIMIT 10";
             
-            $result = mysqli_query($this->connection, $sql);
-            if (!$result) {
-                throw new Exception("Query failed: " . mysqli_error($this->connection));
-            }
+            $stmt = $this->connection->prepare($sql);
+            $stmt->execute(['term' => $searchTerm]);
             
-            // Exact same data structure as search.php
             $suggestions = [];
-            while ($row = mysqli_fetch_assoc($result)) {
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 $data = [];
                 $data['id'] = $row['CoopID'];
                 $data['coopname'] = $row['name'];
@@ -298,7 +304,6 @@ class BeneficiaryManager {
                 $suggestions[] = $data;
             }
             
-            mysqli_free_result($result);
             return $suggestions;
         } catch (Exception $e) {
             error_log("Error searching employees: " . $e->getMessage());
@@ -312,19 +317,13 @@ class BeneficiaryManager {
     public function getBanks() {
         try {
             $sql = "SELECT bank, bankcode FROM tblbankcode ORDER BY bank";
-            $result = mysqli_query($this->connection, $sql);
+            $stmt = $this->connection->query($sql);
             
-            if (!$result) {
-                throw new Exception("Query failed: " . mysqli_error($this->connection));
+            if (!$stmt) {
+                throw new Exception("Query failed");
             }
             
-            $banks = [];
-            while ($row = mysqli_fetch_assoc($result)) {
-                $banks[] = $row;
-            }
-            
-            mysqli_free_result($result);
-            return $banks;
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             error_log("Error fetching banks: " . $e->getMessage());
             return [];
@@ -336,16 +335,11 @@ class BeneficiaryManager {
      */
     public function getBankCode($bankName) {
         try {
-            $bankName = mysqli_real_escape_string($this->connection, $bankName);
-            $sql = "SELECT bankcode FROM tblbankcode WHERE bank = '$bankName' LIMIT 1";
-            $result = mysqli_query($this->connection, $sql);
+            $sql = "SELECT bankcode FROM tblbankcode WHERE bank = :bank LIMIT 1";
+            $stmt = $this->connection->prepare($sql);
+            $stmt->execute(['bank' => $bankName]);
             
-            if (!$result) {
-                throw new Exception("Query failed: " . mysqli_error($this->connection));
-            }
-            
-            $row = mysqli_fetch_assoc($result);
-            mysqli_free_result($result);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
             
             return $row ? $row['bankcode'] : '';
         } catch (Exception $e) {
@@ -359,7 +353,6 @@ class BeneficiaryManager {
      */
     public function getMemberBankDetails($coopId) {
         try {
-            $coopId = mysqli_real_escape_string($this->connection, $coopId);
             $sql = "SELECT 
                         e.CoopID,
                         CONCAT(e.FirstName, ' ', e.MiddleName, ' ', e.LastName) AS FullName,
@@ -370,15 +363,12 @@ class BeneficiaryManager {
                     FROM tblemployees e
                     LEFT JOIN tblaccountno a ON e.CoopID = a.COOPNO
                     LEFT JOIN tblbankcode bc ON a.Bank = bc.bank
-                    WHERE e.CoopID = '$coopId'";
+                    WHERE e.CoopID = :id";
             
-            $result = mysqli_query($this->connection, $sql);
-            if (!$result) {
-                throw new Exception("Query failed: " . mysqli_error($this->connection));
-            }
+            $stmt = $this->connection->prepare($sql);
+            $stmt->execute(['id' => $coopId]);
             
-            $member = mysqli_fetch_assoc($result);
-            mysqli_free_result($result);
+            $member = $stmt->fetch(PDO::FETCH_ASSOC);
             
             return $member ?: null;
         } catch (Exception $e) {
@@ -393,38 +383,53 @@ class BeneficiaryManager {
     public function updateMemberAccount($data) {
         try {
             // Sanitize input data
-            $coopId = mysqli_real_escape_string($this->connection, $data['coop_id']);
-            $bank = mysqli_real_escape_string($this->connection, $data['bank']);
-            $accountNo = mysqli_real_escape_string($this->connection, $data['account_no']);
-            $bankCode = mysqli_real_escape_string($this->connection, $data['bank_code']);
+            $coopId = $data['coop_id'] ?? '';
+            $bank = $data['bank'] ?? '';
+            $accountNo = $data['account_no'] ?? '';
+            $bankCode = $data['bank_code'] ?? '';
             
             // Check if member exists
-            $checkMember = "SELECT CoopID FROM tblemployees WHERE CoopID = '$coopId'";
-            $memberResult = mysqli_query($this->connection, $checkMember);
+            $checkMember = "SELECT CoopID FROM tblemployees WHERE CoopID = :id";
+            $stmtCheck = $this->connection->prepare($checkMember);
+            $stmtCheck->execute(['id' => $coopId]);
             
-            if (mysqli_num_rows($memberResult) == 0) {
+            if ($stmtCheck->rowCount() == 0) {
                 throw new Exception("Member not found");
             }
             
             // Check if account record exists
-            $checkAccount = "SELECT COOPNO FROM tblaccountno WHERE COOPNO = '$coopId'";
-            $accountResult = mysqli_query($this->connection, $checkAccount);
+            $checkAccount = "SELECT COOPNO FROM tblaccountno WHERE COOPNO = :id";
+            $stmtAccount = $this->connection->prepare($checkAccount);
+            $stmtAccount->execute(['id' => $coopId]);
             
-            if (mysqli_num_rows($accountResult) > 0) {
+            if ($stmtAccount->rowCount() > 0) {
                 // Update existing record
                 $sql = "UPDATE tblaccountno SET 
-                            Bank = '$bank',
-                            AccountNo = '$accountNo',
-                            bank_code = '$bankCode'
-                        WHERE COOPNO = '$coopId'";
+                            Bank = :bank,
+                            AccountNo = :acc,
+                            bank_code = :bc
+                        WHERE COOPNO = :id";
+                $params = [
+                    'bank' => $bank,
+                    'acc' => $accountNo,
+                    'bc' => $bankCode,
+                    'id' => $coopId
+                ];
             } else {
                 // Insert new record
                 $sql = "INSERT INTO tblaccountno (COOPNO, Bank, AccountNo, bank_code) 
-                        VALUES ('$coopId', '$bank', '$accountNo', '$bankCode')";
+                        VALUES (:id, :bank, :acc, :bc)";
+                $params = [
+                    'id' => $coopId,
+                    'bank' => $bank,
+                    'acc' => $accountNo,
+                    'bc' => $bankCode
+                ];
             }
             
-            if (!mysqli_query($this->connection, $sql)) {
-                throw new Exception("Update failed: " . mysqli_error($this->connection));
+            $stmt = $this->connection->prepare($sql);
+            if (!$stmt->execute($params)) {
+                throw new Exception("Database operation failed");
             }
             
             return [
@@ -446,3 +451,4 @@ class BeneficiaryManager {
         }
     }
 }
+?>

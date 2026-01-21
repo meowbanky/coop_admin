@@ -62,61 +62,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
     if (empty($username) || empty($password)) {
         $error_message = 'Please enter both username and password.';
     } else {
-        // Sanitize input
-        $username = mysqli_real_escape_string($coop, $username);
-        
-        // Query user from database
-        $sql = "SELECT user_id, Username, UPassword, CompleteName, AdminType, Status 
-                FROM tblusers 
-                WHERE Username = '$username' AND Status = 'Active'";
-        
-        $result = mysqli_query($coop, $sql);
-        
-        if ($result && mysqli_num_rows($result) > 0) {
-            $user = mysqli_fetch_assoc($result);
+        try {
+            // Query user from database using PDO prepared statement
+            $sql = "SELECT user_id, Username, UPassword, CompleteName, AdminType, Status 
+                    FROM tblusers 
+                    WHERE Username = :username AND Status = 'Active'";
             
-            // Debug: Log the password comparison
-            error_log("Login attempt - Username: $username, DB Password: " . $user['UPassword'] . ", Input Password: $password");
+            $stmt = $coop->prepare($sql);
+            $stmt->execute(['username' => $username]);
             
-            // Verify password using standard logic
-            $passwordValid = false;
-            
-            // Check if password is legacy bcrypt hash (starts with *)
-            if (strpos($user['UPassword'], '*') === 0) {
-                // For legacy bcrypt hashes starting with *, use crypt() function
-                $passwordValid = (crypt($password, $user['UPassword']) === $user['UPassword']);
-            } elseif (strpos($user['UPassword'], '$2y$') === 0 || 
-                      strpos($user['UPassword'], '$2a$') === 0 || 
-                      strpos($user['UPassword'], '$2b$') === 0) {
-                // Standard bcrypt with $2y$, $2a$, $2b$
-                $passwordValid = password_verify($password, $user['UPassword']);
+            if ($stmt->rowCount() > 0) {
+                $user = $stmt->fetch(PDO::FETCH_ASSOC);
+                
+                // Debug: Log the password comparison
+                error_log("Login attempt - Username: $username");
+                
+                // Verify password using standard logic
+                $passwordValid = false;
+                
+                // Check if password is legacy bcrypt hash (starts with *)
+                if (strpos($user['UPassword'], '*') === 0) {
+                    // For legacy bcrypt hashes starting with *, use crypt() function
+                    $passwordValid = (crypt($password, $user['UPassword']) === $user['UPassword']);
+                } elseif (strpos($user['UPassword'], '$2y$') === 0 || 
+                          strpos($user['UPassword'], '$2a$') === 0 || 
+                          strpos($user['UPassword'], '$2b$') === 0) {
+                    // Standard bcrypt with $2y$, $2a$, $2b$
+                    $passwordValid = password_verify($password, $user['UPassword']);
+                } else {
+                    // Plain text password comparison
+                    $passwordValid = ($password === $user['UPassword']);
+                }
+                
+                if ($passwordValid) {
+                    // Login successful
+                    $_SESSION['user_id'] = $user['user_id'];
+                    $_SESSION['username'] = $user['Username'];
+                    $_SESSION['complete_name'] = $user['CompleteName'];
+                    $_SESSION['admin_type'] = $user['AdminType'];
+                    
+                    error_log("Login successful for user: " . $user['Username']);
+                    
+                    // Set success message in session for display on home page
+                    $_SESSION['login_success'] = true;
+                    
+                    // Redirect to home page
+                    header('Location: home.php');
+                    exit();
+                } else {
+                    error_log("Login failed - Invalid password for user: $username");
+                    $error_message = 'Invalid password. Please check your password and try again.';
+                }
             } else {
-                // Plain text password comparison
-                $passwordValid = ($password === $user['UPassword']);
+                error_log("Login failed - User not found or inactive: $username");
+                $error_message = 'Invalid username or account is inactive.';
             }
-            
-            if ($passwordValid) {
-                // Login successful
-                $_SESSION['user_id'] = $user['user_id'];
-                $_SESSION['username'] = $user['Username'];
-                $_SESSION['complete_name'] = $user['CompleteName'];
-                $_SESSION['admin_type'] = $user['AdminType'];
-                
-                error_log("Login successful for user: " . $user['Username']);
-                
-                // Set success message in session for display on home page
-                $_SESSION['login_success'] = true;
-                
-                // Redirect to home page
-                header('Location: home.php');
-                exit();
-            } else {
-                error_log("Login failed - Invalid password for user: $username");
-                $error_message = 'Invalid password. Please check your password and try again.';
-            }
-            } else {
-            error_log("Login failed - User not found or inactive: $username");
-            $error_message = 'Invalid username or account is inactive.';
+        } catch (PDOException $e) {
+            error_log("Login error: " . $e->getMessage());
+            $error_message = 'System error. Please try again later.';
         }
     }
 }

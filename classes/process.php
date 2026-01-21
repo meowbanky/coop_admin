@@ -24,163 +24,159 @@ $periodID = isset($_GET['PeriodID']) ? (int)$_GET['PeriodID'] : -1;
 $memberID = isset($_GET['member_id']) ? $_GET['member_id'] : -1;
 
 // Start transaction
-mysqli_begin_transaction($coop);
+try {
+    $coop->beginTransaction();
 
-// Fetch global settings
-mysqli_select_db($coop, $database); // Ensure $database is defined in coop.php
-$settingsQuery = "SELECT setting_id, `value` FROM tbl_globa_settings WHERE setting_id IN (1, 3, 4, 5, 7, 8, 9)";
-$settingsResult = mysqli_query($coop, $settingsQuery) or die(mysqli_error($coop));
+    // Fetch global settings
+    // mysqli_select_db($coop, $database); // Not needed for PDO as DB is selected in DSN
+    $settingsQuery = "SELECT setting_id, `value` FROM tbl_globa_settings WHERE setting_id IN (1, 3, 4, 5, 7, 8, 9)";
+    $stmt = $coop->query($settingsQuery);
+    
+    $settings = [];
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $settings[$row['setting_id']] = $row['value'];
+    }
 
-$settings = [];
-while ($row = mysqli_fetch_assoc($settingsResult)) {
-    $settings[$row['setting_id']] = $row['value'];
-}
+    // Validate settings
+    $requiredSettings = [1, 3, 4, 5, 7, 8, 9];
+    foreach ($requiredSettings as $id) {
+        if (!isset($settings[$id])) {
+            error_log("Missing global setting ID: $id");
+            $coop->rollBack();
+            echo "ERROR: Missing global settings. Processing aborted.\n";
+            exit;
+        }
+    }
 
-// Validate settings
-$requiredSettings = [1, 3, 4, 5, 7, 8, 9];
-foreach ($requiredSettings as $id) {
-    if (!isset($settings[$id])) {
-        error_log("Missing global setting ID: $id");
-        mysqli_rollback($coop);
-        echo "ERROR: Missing global settings. Processing aborted.\n";
+    // Extract settings
+    $title = $settings[1];
+    $savingsRate = floatval($settings[4]);
+    $sharesRate = floatval($settings[3]);
+    $interestRate = floatval($settings[5]);
+    $entryFee = floatval($settings[7]);
+    $devLevy = floatval($settings[8]);
+    $stationery = floatval($settings[9]);
+
+    // Validate savings and shares rates
+    if ($savingsRate < 0 || $sharesRate < 0 || ($savingsRate + $sharesRate) > 1) {
+        error_log("Invalid savingsRate ($savingsRate) or sharesRate ($sharesRate) for period: $periodID");
+        $coop->rollBack();
+        echo "ERROR: Invalid savings or shares rate configuration.\n";
         exit;
     }
-}
 
-// Extract settings
-$title = $settings[1];
-$savingsRate = floatval($settings[4]);
-$sharesRate = floatval($settings[3]);
-$interestRate = floatval($settings[5]);
-$entryFee = floatval($settings[7]);
-$devLevy = floatval($settings[8]);
-$stationery = floatval($settings[9]);
-
-// Validate savings and shares rates
-if ($savingsRate < 0 || $sharesRate < 0 || ($savingsRate + $sharesRate) > 1) {
-    error_log("Invalid savingsRate ($savingsRate) or sharesRate ($sharesRate) for period: $periodID");
-    mysqli_rollback($coop);
-    echo "ERROR: Invalid savings or shares rate configuration.\n";
-    exit;
-}
-
-$memberQuery = "SELECT * FROM tblemployees WHERE `Status` = 'Active'";
-if ((int)$memberID == 0) {
-    // No filter
-} else {
-    $memberQuery .= " AND CoopID = ?";
-}
-
-try {
-    $stmt = mysqli_prepare($coop, $memberQuery);
-    if ((int)$memberID != 0) {
-        mysqli_stmt_bind_param($stmt, "s", $memberID);
+    $memberQuery = "SELECT * FROM tblemployees WHERE `Status` = 'Active'";
+    $params = [];
+    // Fix: Don't cast to int, as that converts alphanumeric IDs (like COOP-001) to 0
+    if ($memberID != '0' && $memberID != -1) {
+        $memberQuery .= " AND CoopID = ?";
+        $params[] = $memberID;
     }
 
-    mysqli_stmt_execute($stmt);
-    $memberResult = mysqli_stmt_get_result($stmt);
-    $totalRows = mysqli_num_rows($memberResult);
+    // try { // Inner try not needed if we catch PDOException at top level or handle specifically
+        $stmt = $coop->prepare($memberQuery);
+        $stmt->execute($params);
+        $totalRows = $stmt->rowCount();
 
-    // Initialize progress display
-    echo "PROGRESS_DATA: Starting processing... - 0%\n";
+        // Initialize progress display
+        echo "PROGRESS_DATA: Starting processing... - 0%\n";
 
-    if ($totalRows > 0) {
-        $i = 1;
-        while ($member = mysqli_fetch_assoc($memberResult)) {
-            if (isTransactionCompleted($coop, $member['CoopID'], $periodID)) {
-                continue;
-            }
-
-            $balances = calculateBalances($coop, $member['CoopID'], $periodID);
-            $contri = $balances['contri'];
-
-            if (!hasEntryFeePaid($coop, $member['CoopID'])) {
-                $contri = processEntryFee($coop, $member['CoopID'], $periodID, $contri, $entryFee);
-            }
-            processPendingCommodity($coop, $member['CoopID'], $periodID);
-
-            if ($contri > 0) {
-                $contri = processDevLevy($coop, $member['CoopID'], $periodID, $contri, $devLevy);
-                if (hasPendingLoan($coop, $member['CoopID'], $periodID)) {
-                    $contri = processStationery($coop, $member['CoopID'], $periodID, $contri, $stationery);
+        if ($totalRows > 0) {
+            $i = 1;
+            while ($member = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                if (isTransactionCompleted($coop, $member['CoopID'], $periodID)) {
+                    continue;
                 }
-            }
 
-            // Handle all balance scenarios
-            if ($contri > 0 && $balances['cb'] == 0 && $balances['lb'] == 0) {
-                processSavingsAndShares($coop, $member['CoopID'], $periodID, $contri, $savingsRate, $sharesRate);
-            }
-            
-            if ($balances['cb'] > 0 && $balances['lb'] > 0) {
-                $contri = processCommodityRepayment($coop, $member['CoopID'], $periodID, $contri, $balances['cb']);
-                $contri = processLoanRepayment($coop, $member['CoopID'], $periodID, $contri, $balances['lb'], $interestRate);
+                $balances = calculateBalances($coop, $member['CoopID'], $periodID);
+                $contri = $balances['contri'];
+
+                if (!hasEntryFeePaid($coop, $member['CoopID'])) {
+                    $contri = processEntryFee($coop, $member['CoopID'], $periodID, $contri, $entryFee);
+                }
+                processPendingCommodity($coop, $member['CoopID'], $periodID);
+
                 if ($contri > 0) {
+                    $contri = processDevLevy($coop, $member['CoopID'], $periodID, $contri, $devLevy);
+                    if (hasPendingLoan($coop, $member['CoopID'], $periodID)) {
+                        $contri = processStationery($coop, $member['CoopID'], $periodID, $contri, $stationery);
+                    }
+                }
+
+                // Handle all balance scenarios
+                if ($contri > 0 && $balances['cb'] == 0 && $balances['lb'] == 0) {
                     processSavingsAndShares($coop, $member['CoopID'], $periodID, $contri, $savingsRate, $sharesRate);
                 }
-            }
-            if ($balances['cb'] == 0 && $balances['lb'] > 0) {
-                $contri = processLoanRepayment($coop, $member['CoopID'], $periodID, $contri, $balances['lb'], $interestRate);
-                if ($contri > 0) {
-                    processSavingsAndShares($coop, $member['CoopID'], $periodID, $contri, $savingsRate, $sharesRate);
+                
+                if ($balances['cb'] > 0 && $balances['lb'] > 0) {
+                    $contri = processCommodityRepayment($coop, $member['CoopID'], $periodID, $contri, $balances['cb']);
+                    $contri = processLoanRepayment($coop, $member['CoopID'], $periodID, $contri, $balances['lb'], $interestRate);
+                    if ($contri > 0) {
+                        processSavingsAndShares($coop, $member['CoopID'], $periodID, $contri, $savingsRate, $sharesRate);
+                    }
                 }
-            }
-            if ($contri > 0 && $balances['cb'] > 0) {
-                $contri = processCommodityRepayment($coop, $member['CoopID'], $periodID, $contri, $balances['cb']);
-                if ($contri > 0) {
-                    processSavingsAndShares($coop, $member['CoopID'], $periodID, $contri, $savingsRate, $sharesRate);
+                if ($balances['cb'] == 0 && $balances['lb'] > 0) {
+                    $contri = processLoanRepayment($coop, $member['CoopID'], $periodID, $contri, $balances['lb'], $interestRate);
+                    if ($contri > 0) {
+                        processSavingsAndShares($coop, $member['CoopID'], $periodID, $contri, $savingsRate, $sharesRate);
+                    }
                 }
+                if ($contri > 0 && $balances['cb'] > 0) {
+                    $contri = processCommodityRepayment($coop, $member['CoopID'], $periodID, $contri, $balances['cb']);
+                    if ($contri > 0) {
+                        processSavingsAndShares($coop, $member['CoopID'], $periodID, $contri, $savingsRate, $sharesRate);
+                    }
+                }
+
+                error_log("coop id: {$member['CoopID']} contri: $contri commodity_balance: {$balances['cb']} loan_balance: {$balances['lb']} period: {$periodID}");
+
+                processPendingLoans($coop, $member['CoopID'], $periodID);
+                processLoanSavings($coop, $member['CoopID'], $periodID);
+
+                // Create automatic journal entry for this member's transaction
+                try {
+                    createMemberJournalEntry($accountingEngine, $coop, $member['CoopID'], $periodID);
+                } catch (Exception $e) {
+                    error_log("Failed to create journal entry for {$member['CoopID']}: " . $e->getMessage());
+                }
+
+                try {
+                    $notificationService->sendTransactionNotification($member['CoopID'], $periodID);
+                } catch (Exception $e) {
+                    error_log("Failed to send notification for {$member['CoopID']}: " . $e->getMessage());
+                }
+
+                updateProgress($i, $totalRows, $member['CoopID']);
+                $i++;
             }
-            // if ($contri == 0 && $balances['lb'] > 0) {
-            //     $intCharge = $balances['lb'] * $interestRate;
-            //     insertTransaction($coop, 'tbl_loans', $member['CoopID'], $periodID, 'LoanAmount', $intCharge, 'LoanPeriod');
-            //     insertTransaction($coop, 'tbl_mastertransact', $member['CoopID'], $periodID, 'loan', $intCharge);
-            // }
 
-            error_log("coop id: {$member['CoopID']} contri: $contri commodity_balance: {$balances['cb']} loan_balance: {$balances['lb']} period: {$periodID}");
-
-            processPendingLoans($coop, $member['CoopID'], $periodID);
-            processLoanSavings($coop, $member['CoopID'], $periodID);
-
-            // Create automatic journal entry for this member's transaction
-            try {
-                createMemberJournalEntry($accountingEngine, $coop, $member['CoopID'], $periodID);
-            } catch (Exception $e) {
-                error_log("Failed to create journal entry for {$member['CoopID']}: " . $e->getMessage());
-            }
-
-            try {
-                $notificationService->sendTransactionNotification($member['CoopID'], $periodID);
-            } catch (Exception $e) {
-                error_log("Failed to send notification for {$member['CoopID']}: " . $e->getMessage());
-            }
-
-            updateProgress($i, $totalRows, $member['CoopID']);
-            $i++;
+            $coop->commit();
+            echo "PROGRESS_DATA: Process completed successfully for " . ($i - 1) . " employees - 100%\n";
+            echo "COMPLETION: SUCCESS\n";
+        } else {
+            echo "ERROR: No active employees found for the provided criteria.\n";
+            // If no employees, we might still want to commit or maybe rollback? 
+            // Original code didn't commit if totalRows was 0? Wait, original code commit was inside `if ($totalRows > 0)` block.
+            // But if we rollback here, it's fine as nothing was done.
+            $coop->rollBack();
         }
 
-        mysqli_commit($coop);
-        echo "PROGRESS_DATA: Process completed successfully for " . ($i - 1) . " employees - 100%\n";
-        echo "COMPLETION: SUCCESS\n";
-    } else {
-        echo "ERROR: No active employees found for the provided criteria.\n";
-    }
-
-    mysqli_stmt_close($stmt);
+       // mysqli_stmt_close($stmt); // Not needed
+    // } catch (Exception $e) { // Caught by outer block
 } catch (Exception $e) {
-    mysqli_rollback($coop);
+    if ($coop->inTransaction()) {
+        $coop->rollBack();
+    }
     error_log("Transaction failed: " . $e->getMessage());
-    echo "ERROR: Error during processing. No transactions were applied.\n";
+    echo "ERROR: Error during processing. No transactions were applied. Details: " . $e->getMessage() . "\n";
 }
 
 // Helper Functions
 function isTransactionCompleted($coop, $coopID, $periodID) {
     $query = "SELECT COUNT(*) FROM tbl_mastertransact WHERE CoopID = ? AND TransactionPeriod = ?";
-    $stmt = mysqli_prepare($coop, $query);
-    mysqli_stmt_bind_param($stmt, "si", $coopID, $periodID);
-    mysqli_stmt_execute($stmt);
-    mysqli_stmt_bind_result($stmt, $count);
-    mysqli_stmt_fetch($stmt);
-    mysqli_stmt_close($stmt);
+    $stmt = $coop->prepare($query);
+    $stmt->execute([$coopID, $periodID]);
+    $count = $stmt->fetchColumn();
     return $count > 0; // Consider any transaction as completed
 }
 
@@ -195,17 +191,14 @@ function calculateBalances($coop, $coopID, $period) {
 
     $balances = [];
     foreach ($queries as $key => $query) {
-        $stmt = mysqli_prepare($coop, $query);
+        $stmt = $coop->prepare($query);
         if (!$stmt) {
-            error_log("Prepare failed for $key: " . mysqli_error($coop));
-            return ['loan' => 0, 'loanRepay' => 0, 'commodity' => 0, 'commRepay' => 0, 'contri' => 0, 'lb' => 0, 'cb' => 0];
+             error_log("Prepare failed for $key: " . implode(" ", $coop->errorInfo()));
+             return ['loan' => 0, 'loanRepay' => 0, 'commodity' => 0, 'commRepay' => 0, 'contri' => 0, 'lb' => 0, 'cb' => 0];
         }
-        mysqli_stmt_bind_param($stmt, "si", $coopID, $period);
-        mysqli_stmt_execute($stmt);
-        mysqli_stmt_bind_result($stmt, $sum);
-        mysqli_stmt_fetch($stmt);
+        $stmt->execute([$coopID, $period]);
+        $sum = $stmt->fetchColumn();
         $balances[$key] = floatval($sum);
-        mysqli_stmt_close($stmt);
     }
 
     $loanCents = (int) round($balances['loan'] * 100);
@@ -236,51 +229,42 @@ function calculateBalances($coop, $coopID, $period) {
 
 function hasEntryFeePaid($coop, $coopID) {
     $query = "SELECT COUNT(*) FROM tbl_entryfee WHERE CoopID = ?";
-    $stmt = mysqli_prepare($coop, $query);
-    mysqli_stmt_bind_param($stmt, "s", $coopID);
-    mysqli_stmt_execute($stmt);
-    mysqli_stmt_bind_result($stmt, $count);
-    mysqli_stmt_fetch($stmt);
-    mysqli_stmt_close($stmt);
+    $stmt = $coop->prepare($query);
+    $stmt->execute([$coopID]);
+    $count = $stmt->fetchColumn();
     return $count > 0;
 }
 
 function hasPendingLoan($coop, $coopID, $period) {
     $query = "SELECT COALESCE(SUM(LoanAmount), 0) FROM tbl_loanapproval WHERE CoopID = ? AND period = ?";
-    $stmt = mysqli_prepare($coop, $query);
-    mysqli_stmt_bind_param($stmt, "si", $coopID, $period);
-    mysqli_stmt_execute($stmt);
-    mysqli_stmt_bind_result($stmt, $amount);
-    mysqli_stmt_fetch($stmt);
-    mysqli_stmt_close($stmt);
+    $stmt = $coop->prepare($query);
+    $stmt->execute([$coopID, $period]);
+    $amount = $stmt->fetchColumn();
     return $amount > 0;
 }
 
 function insertTransaction($coop, $table, $coopID, $periodID, $field, $amount, $periodField = 'TransactionPeriod') {
     if ($table === 'tbl_loanapproval') {
         $query = "INSERT INTO tbl_loanapproval (CoopID, approvalDate, $field) VALUES (?, CURRENT_DATE, ?)";
-        $stmt = mysqli_prepare($coop, $query);
-        if (!$stmt) {
-            error_log("Prepare failed for $table: " . mysqli_error($coop));
-            return false;
-        }
-        mysqli_stmt_bind_param($stmt, "sd", $coopID, $amount);
+        $params = [$coopID, $amount];
     } else {
         $query = "INSERT INTO $table (CoopID, $periodField, $field) VALUES (?, ?, ?)";
+        $params = [$coopID, $periodID, $amount];
+    }
     
-        $stmt = mysqli_prepare($coop, $query);
-        if (!$stmt) {
-            error_log("Prepare failed for $table: " . mysqli_error($coop));
-            return false;
-        }
-        mysqli_stmt_bind_param($stmt, "sid", $coopID, $periodID, $amount);
+    $stmt = $coop->prepare($query);
+    if (!$stmt) {
+        error_log("Prepare failed for $table: " . implode(" ", $coop->errorInfo()));
+        return false;
     }
-    $result = mysqli_stmt_execute($stmt);
-    if (!$result) {
-        error_log("Execute failed for $table: " . mysqli_stmt_error($stmt));
+    
+    try {
+        $result = $stmt->execute($params);
+        return $result;
+    } catch (PDOException $e) {
+        error_log("Execute failed for $table: " . $e->getMessage());
+        return false;
     }
-    mysqli_stmt_close($stmt);
-    return $result;
 }
 
 function processEntryFee($coop, $coopID, $periodID, $contri, $entryFee) {
@@ -395,31 +379,23 @@ function processSavingsAndShares($coop, $coopID, $periodID, $contri, $savingsRat
 
 function processPendingLoans($coop, $coopID, $periodID) {
     $query = "SELECT COALESCE(SUM(LoanAmount), 0) FROM tbl_loanapproval WHERE CoopID = ? AND period = ?";
-    $stmt = mysqli_prepare($coop, $query);
-    mysqli_stmt_bind_param($stmt, "si", $coopID, $periodID);
-    mysqli_stmt_execute($stmt);
-    mysqli_stmt_bind_result($stmt, $lapp);
-    mysqli_stmt_fetch($stmt);
-    mysqli_stmt_close($stmt);
+    $stmt = $coop->prepare($query);
+    $stmt->execute([$coopID, $periodID]);
+    $lapp = $stmt->fetchColumn();
 
     if ($lapp > 0) {
         insertTransaction($coop, 'tbl_loans', $coopID, $periodID, 'LoanAmount', $lapp, 'LoanPeriod');
         insertTransaction($coop, 'tbl_mastertransact', $coopID, $periodID, 'loan', $lapp);
-        // $deleteStmt = mysqli_prepare($coop, "DELETE FROM tbl_loanapproval WHERE CoopID = ? AND period = ?");
-        // mysqli_stmt_bind_param($deleteStmt, "si", $coopID, $periodID);
-        // mysqli_stmt_execute($deleteStmt);
-        // mysqli_stmt_close($deleteStmt);
+        // $deleteStmt = $coop->prepare("DELETE FROM tbl_loanapproval WHERE CoopID = ? AND period = ?");
+        // $deleteStmt->execute([$coopID, $periodID]);
     }
 }
 
 function processPendingCommodity($coop, $coopID, $periodID) {
     $query = "SELECT COALESCE(SUM(amount), 0) FROM tbl_commodity WHERE coopID = ? AND Period = ?";
-    $stmt = mysqli_prepare($coop, $query);
-    mysqli_stmt_bind_param($stmt, "si", $coopID, $periodID);
-    mysqli_stmt_execute($stmt);
-    mysqli_stmt_bind_result($stmt, $capp);
-    mysqli_stmt_fetch($stmt);
-    mysqli_stmt_close($stmt);
+    $stmt = $coop->prepare($query);
+    $stmt->execute([$coopID, $periodID]);
+    $capp = $stmt->fetchColumn();
 
     if ($capp > 0) {
         insertTransaction($coop, 'tbl_mastertransact', $coopID, $periodID, 'Commodity', $capp, 'TransactionPeriod');
@@ -430,14 +406,11 @@ function processLoanSavings($coop, $coopID, $periodID) {
     $query = "SELECT Amount FROM tbl_loansavings 
               INNER JOIN tblemployees ON tblemployees.CoopID = tbl_loansavings.COOPID 
               WHERE `Status` = 'Active' AND tbl_loansavings.COOPID = ? and tbl_loansavings.period = ?";
-    $stmt = mysqli_prepare($coop, $query);
-    mysqli_stmt_bind_param($stmt, "si", $coopID, $periodID);
-    mysqli_stmt_execute($stmt);
-    mysqli_stmt_bind_result($stmt, $amount);
-    $hasSavings = mysqli_stmt_fetch($stmt);
-    mysqli_stmt_close($stmt);
+    $stmt = $coop->prepare($query);
+    $stmt->execute([$coopID, $periodID]);
+    $amount = $stmt->fetchColumn(); // Will return false if no row
 
-    if ($hasSavings) {
+    if ($amount !== false) {
         insertTransaction($coop, 'tbl_shares', $coopID, $periodID, 'sharesAmount', $amount, 'SharesPeriod');
         insertTransaction($coop, 'tbl_mastertransact', $coopID, $periodID, 'sharesAmount', $amount);
     }
@@ -453,12 +426,9 @@ function processLoanSavings($coop, $coopID, $periodID) {
 function createMemberJournalEntry($accountingEngine, $coop, $coopID, $periodID) {
     // Get member name for description
     $memberQuery = "SELECT CONCAT(FirstName, ' ', LastName) as name FROM tblemployees WHERE CoopID = ?";
-    $stmt = mysqli_prepare($coop, $memberQuery);
-    mysqli_stmt_bind_param($stmt, "s", $coopID);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-    $memberData = mysqli_fetch_assoc($result);
-    mysqli_stmt_close($stmt);
+    $stmt = $coop->prepare($memberQuery);
+    $stmt->execute([$coopID]);
+    $memberData = $stmt->fetch(PDO::FETCH_ASSOC);
     
     $memberName = $memberData['name'] ?? $coopID;
     
@@ -476,12 +446,9 @@ function createMemberJournalEntry($accountingEngine, $coop, $coopID, $periodID) 
                 FROM tbl_mastertransact 
                 WHERE CoopID = ? AND TransactionPeriod = ?";
     
-    $stmt = mysqli_prepare($coop, $transQuery);
-    mysqli_stmt_bind_param($stmt, "si", $coopID, $periodID);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-    $trans = mysqli_fetch_assoc($result);
-    mysqli_stmt_close($stmt);
+    $stmt = $coop->prepare($transQuery);
+    $stmt->execute([$coopID, $periodID]);
+    $trans = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if (!$trans) {
         error_log("No transaction found for journal entry: $coopID, period: $periodID");
@@ -624,7 +591,11 @@ function createMemberJournalEntry($accountingEngine, $coop, $coopID, $periodID) 
 }
 
 function updateProgress($current, $total, $coopID) {
-    $percent = intval(($current / $total) * 100);
+    if ($total > 0) {
+        $percent = intval(($current / $total) * 100);
+    } else {
+        $percent = 100;
+    }
     $percentDisplay = $percent . "%";
     
     // Debug logging

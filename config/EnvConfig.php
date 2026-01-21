@@ -147,4 +147,25 @@ class EnvConfig {
     public static function getAPISecret() {
         return self::get('API_SECRET', '');
     }
+
+    /**
+     * Get OneSignal Configuration
+     */
+    public static function getOneSignalConfig() {
+        return [
+            'appId' => self::get('ONESIGNAL_APP_ID'),
+            'apiKey' => self::get('ONESIGNAL_API_KEY')
+        ];
+    }
+
+    /**
+     * Get SMS Configuration
+     */
+    public static function getSmsConfig() {
+        return [
+            'sender' => self::get('SMS_SENDER'),
+            'apiKey' => self::get('SMS_API_KEY'),
+            'endpoint' => self::get('SMS_ENDPOINT')
+        ];
+    }
 } 
