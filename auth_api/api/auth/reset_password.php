@@ -51,7 +51,7 @@ try {
 
     // Get CoopID from employees table
     $sql = "SELECT CoopID FROM tblemployees 
-            WHERE EmailAddress = :email 
+            WHERE EmailAddress = :email AND STATUS = 'Active'
             LIMIT 1";
 
     $stmt = $db->prepare($sql);

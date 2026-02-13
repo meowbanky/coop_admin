@@ -66,7 +66,7 @@ try {
     (COALESCE(SUM(t.sharesAmount), 0) + COALESCE(SUM(t.savingsAmount), 0)) as total_balance
 FROM tblemployees e
 LEFT JOIN tbl_mastertransact t ON e.CoopID = t.COOPID
-WHERE e.CoopID = :coop_id
+WHERE e.CoopID = :coop_id AND e.status = 'Active'
 GROUP BY e.CoopID, e.Picture, e.FirstName, e.LastName, e.EmailAddress, e.MobileNumber, e.StreetAddress, e.Town, e.State";
 
         $stmt = $db->prepare($query);

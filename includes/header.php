@@ -294,6 +294,13 @@ $pageTitle = $pageTitle ?? 'OOUTH COOP';
                     <span>File Upload</span>
                 </a>
 
+                <!-- Bulk SMS -->
+                <a href="coop_bulksms.php"
+                    class="menu-item flex items-center space-x-3 px-4 py-3 rounded-lg <?= basename($currentPage) === 'coop_bulksms.php' ? 'active' : '' ?>">
+                    <i class="fas fa-comment-dots w-5"></i>
+                    <span>Bulk SMS</span>
+                </a>
+
                 <!-- Settings -->
                 <a href="#" id="sidebar_settings" class="menu-item flex items-center space-x-3 px-4 py-3 rounded-lg">
                     <i class="fas fa-cog w-5"></i>

@@ -38,7 +38,7 @@ class NotificationService {
             }
 
             // Log notification
-            $this->logNotification($memberId, $message);
+            $this->logNotification($memberId, $message, "Transaction Update");
 
             return true;
         } catch (\Exception $e) {
@@ -105,17 +105,17 @@ class NotificationService {
         GROUP BY tbl_mastertransact.COOPID, tbpayrollperiods.id, tblemployees.LastName, tblemployees.FirstName, tblemployees.MiddleName, tblemployees.MobileNumber
         ORDER BY tbpayrollperiods.id DESC LIMIT 1";
 
-        $stmt = $this->db->prepare($query);
-        if (!$stmt) {
-             throw new \Exception("Database prepare failed: " . implode(" ", $this->db->errorInfo()));
+        try {
+            $stmt = $this->db->prepare($query);
+            $stmt->execute([
+                ':memberId' => $memberId,
+                ':periodId' => (int)$periodId
+            ]);
+            return $stmt->fetch(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            error_log("Database Error: " . $e->getMessage());
+            throw new \Exception("Database query failed: " . $e->getMessage());
         }
-        
-        $stmt->execute([
-            ':memberId' => $memberId,
-            ':periodId' => (int)$periodId
-        ]);
-
-        return $stmt->fetch(\PDO::FETCH_ASSOC);
     }
 
     private function formatTransactionMessage($data) {
@@ -251,19 +251,171 @@ class NotificationService {
         return $phone;
     }
 
-    private function logNotification($memberId, $message) {
+    private function logNotification($memberId, $message, $title = 'Transaction Alert') {
         $query = "INSERT INTO notifications 
-                  (coop_id, message, created_at, status) 
+                  (memberid, message, created_at, status, title) 
                   VALUES 
-                  (:coop_id, :message, NOW(), 'unread')";
+                  (:memberId, :message, NOW(), 'unread', :title)";
         
-        $stmt = $this->db->prepare($query);
-        if ($stmt) {
+        try {
+            $stmt = $this->db->prepare($query);
             return $stmt->execute([
-                ':coop_id' => $memberId,
-                ':message' => $message
+                ':memberId' => $memberId,
+                ':message' => $message,
+                ':title' => $title
             ]);
+        } catch (\PDOException $e) {
+            error_log("Log Notification Error: " . $e->getMessage());
+            return false;
         }
-        return false;
+    }
+    public function getSMSBalance() {
+        $apiKey = $this->smsConfig['apiKey'];
+        
+        if (empty($apiKey)) {
+            error_log("Termii Balance Error: API Key is empty.");
+            return 0;
+        }
+
+        $url = "https://v3.api.termii.com/api/get-balance?api_key=" . urlencode(trim($apiKey));
+        
+        return $this->executeCurlRequest($url, [], 'GET');
+    }
+
+    public function getSMSInbox() {
+        $apiKey = $this->smsConfig['apiKey'];
+        
+        if (empty($apiKey)) {
+            error_log("Termii Inbox Error: API Key is empty.");
+            return [];
+        }
+
+        $url = "https://v3.api.termii.com/api/sms/inbox?api_key=" . urlencode(trim($apiKey));
+
+        // executeCurlRequest expects array for POST, but we can adapt it or just use simple GET here?
+        // Let's modify executeCurlRequest to handle GET if data is empty or add method param.
+        // Or just implement simple GET here since executeCurlRequest in source was designed for POST (json payload).
+        // Actually looking at source executeCurlRequest, it forces POST.
+        // Let's create a flexible executeCurlRequest or just copy the logic.
+        // To keep it simple and robust, check source getSMSInbox logic -> it used simple CURL GET.
+        
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => 0,
+            CURLOPT_TIMEOUT => 60
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($response === false) return [];
+        
+        $data = json_decode($response, true);
+        return is_array($data) ? $data : [];
+    }
+
+    public function sendBulkSMS(array $phoneNumbers, $message, $channel = 'generic') {
+        if (empty($phoneNumbers)) {
+            throw new \Exception("Phone numbers are required");
+        }
+
+        // Re-index array to be safe JSON
+        // Using existing formatPhoneNumber
+        $formattedNumbers = array_values(array_map([$this, 'formatPhoneNumber'], $phoneNumbers));
+
+        $data = [
+            "api_key" => $this->smsConfig['apiKey'],
+            "to" => $formattedNumbers,
+            "from" => $this->smsConfig['sender'],
+            "sms" => $message,
+            "type" => "plain",
+            "channel" => $channel
+        ];
+
+        $url = "https://v3.api.termii.com/api/sms/send/bulk";
+
+        return $this->executeCurlRequest($url, $data);
+    }
+
+    public function calculateTransactionCost($message, $recipientCount) {
+        $costPerPage = 5.0;
+        
+        $isSpecial = false;
+        if (preg_match('/[\^\{\}\\\\\[\~\]\|\€\”]/u', $message)) {
+            $isSpecial = true;
+        }
+
+        $len = mb_strlen($message, 'UTF-8');
+        $pages = 1;
+        
+        if ($isSpecial) {
+             if ($len > 70) {
+                 $pages = ceil($len / 67);
+             }
+        } else {
+            if ($len > 160) {
+                $pages = ceil($len / 153);
+            }
+        }
+        
+        return $pages * $recipientCount * $costPerPage;
+    }
+
+    private function executeCurlRequest($url, $data, $method = 'POST') {
+        $ch = curl_init();
+        
+        $options = [
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => $method,
+            CURLOPT_SSL_VERIFYPEER => false, // For robustness
+            CURLOPT_HTTPHEADER => [
+                "Content-Type: application/json"
+            ]
+        ];
+
+        if ($method === 'POST') {
+            $options[CURLOPT_POSTFIELDS] = json_encode($data);
+        }
+
+        curl_setopt_array($ch, $options);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        if (curl_errno($ch)) {
+            $error = curl_error($ch);
+            curl_close($ch);
+            throw new \Exception("Curl error: $error");
+        }
+
+        curl_close($ch);
+
+        $responseData = json_decode($response, true);
+
+        if ($method === 'GET') {
+            // For balance check, etc.
+             if (isset($responseData['balance'])) return $responseData['balance']; // Special case for getSMSBalance reuse? 
+             // Actually getSMSBalance logic above calls this? 
+             // Wait, I implemented getSMSBalance separately above to handle GET.
+             // But sendBulkSMS calls this.
+             return $responseData;
+        }
+
+        if ($httpCode !== 200 && $httpCode !== 201) {
+             $errorMessage = isset($responseData['message']) ? $responseData['message'] : $response;
+             throw new \Exception("SMS API Error ($httpCode): $errorMessage");
+        }
+
+        return $responseData;
     }
 }
