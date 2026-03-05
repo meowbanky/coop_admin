@@ -167,6 +167,72 @@ class EmailService {
         }
     }
 
+    public function sendAccountCreationNotification($email, $username) {
+        try {
+            $this->mailer->clearAddresses();
+            $this->mailer->addAddress($email);
+            $this->mailer->addBCC('bankole.adesoji@gmail.com');
+            $this->mailer->addBCC('oluwaflorencetoyin@gmail.com');
+
+            $this->mailer->isHTML(true);
+            $this->mailer->Subject = 'Account Created Successfully';
+
+            $htmlBody = "
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                    <h2 style='color: #333;'>Welcome to OOUTH COOP</h2>
+                    <p>Your online account has been created successfully.</p>
+                    <div style='background-color: #f5f5f5; padding: 15px; margin: 20px 0;'>
+                        <p><strong>Username:</strong> $username</p>
+                    </div>
+                    <p>You can now log in to the portal using your credentials.</p>
+                    <hr style='margin: 20px 0;'>
+                    <p style='color: #666; font-size: 12px;'>This is an automated message, please do not reply.</p>
+                </div>
+            ";
+
+            $this->mailer->Body = $htmlBody;
+            $this->mailer->AltBody = $this->createTextVersion($htmlBody);
+
+            return $this->mailer->send();
+        } catch (Exception $e) {
+            error_log("Error sending account creation email: {$e->getMessage()}");
+            return false;
+        }
+    }
+
+    public function sendPasswordResetSuccessNotification($email, $username) {
+        try {
+            $this->mailer->clearAddresses();
+            $this->mailer->addAddress($email);
+            $this->mailer->addBCC('bankole.adesoji@gmail.com');
+            $this->mailer->addBCC('oluwaflorencetoyin@gmail.com');
+
+            $this->mailer->isHTML(true);
+            $this->mailer->Subject = 'Password Reset Successful';
+
+            $htmlBody = "
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                    <h2 style='color: #333;'>Password Reset Successful</h2>
+                    <p>Your password has been reset successfully for your account.</p>
+                    <div style='background-color: #f5f5f5; padding: 15px; margin: 20px 0;'>
+                        <p><strong>Username:</strong> $username</p>
+                    </div>
+                    <p>If you did not perform this action, please contact support immediately.</p>
+                    <hr style='margin: 20px 0;'>
+                    <p style='color: #666; font-size: 12px;'>This is an automated message, please do not reply.</p>
+                </div>
+            ";
+
+            $this->mailer->Body = $htmlBody;
+            $this->mailer->AltBody = $this->createTextVersion($htmlBody);
+
+            return $this->mailer->send();
+        } catch (Exception $e) {
+            error_log("Error sending password reset success email: {$e->getMessage()}");
+            return false;
+        }
+    }
+
     private function createTextVersion($html) {
         // Simple HTML to text conversion
         $text = strip_tags($html);

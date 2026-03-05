@@ -20,6 +20,7 @@ try {
     $status = isset($_POST['status']) ? trim($_POST['status']) : '';
     $page = isset($_POST['page']) ? (int)$_POST['page'] : 1;
     $recordsPerPage = isset($_POST['records_per_page']) ? (int)$_POST['records_per_page'] : 50;
+    $includeZero = isset($_POST['include_zero']) ? (int)$_POST['include_zero'] : 0;
     
     // Validate parameters
     if ($page < 1) $page = 1;
@@ -28,7 +29,7 @@ try {
     $offset = ($page - 1) * $recordsPerPage;
     
     // Debug logging
-    error_log("Member Contributions API - Period: $period, Status: $status, Page: $page, RecordsPerPage: $recordsPerPage");
+    error_log("Member Contributions API - Period: $period, Status: $status, Page: $page, RecordsPerPage: $recordsPerPage, IncludeZero: $includeZero");
     
     // Build the base query - use subqueries to get period-specific contributions
     $baseQuery = "
@@ -78,8 +79,10 @@ try {
         $baseQuery .= " AND tblemployees.Status = 'Active'";
     }
     
-    // Add HAVING clause to filter out zero contributions
-    $baseQuery .= " HAVING total_contribution > 0";
+    // Add HAVING clause to filter out zero contributions if specified
+    if ($includeZero !== 1) {
+        $baseQuery .= " HAVING total_contribution > 0";
+    }
     
     // Count query
     $countQuery = "SELECT COUNT(*) as total FROM (" . $baseQuery . ") as count_table";
@@ -159,6 +162,9 @@ try {
     
     // Debug: Log the generated SQL query
     error_log("Total Contributions Query: " . $totalContributionsQuery);
+    
+    // Use a subquery for total contributions to correctly handle the HAVING clause
+    $totalContributionsQuery = "SELECT SUM(total_contribution) as total FROM (" . $baseQuery . ") as totals_table";
     
     $totalContribStmt = $conn->prepare($totalContributionsQuery);
     

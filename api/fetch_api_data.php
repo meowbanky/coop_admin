@@ -74,9 +74,28 @@ try {
             $result = $apiClient->getResourceData($periodId);
             
             if ($result && isset($result['success']) && $result['success']) {
+                $data = $result['data'];
+                
+                // Match with local CoopIDs
+                require_once(__DIR__ . '/../Connections/coop.php');
+                $staffIds = array_column($data, 'staff_id');
+                
+                if (!empty($staffIds)) {
+                    $placeholders = implode(',', array_fill(0, count($staffIds), '?'));
+                    $sql = "SELECT StaffID, CoopID FROM tblemployees WHERE StaffID IN ($placeholders)";
+                    $stmt = $coop->prepare($sql);
+                    $stmt->execute($staffIds);
+                    $coopMap = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+                    
+                    // Add CoopID to each record
+                    foreach ($data as &$record) {
+                        $record['coop_id'] = $coopMap[$record['staff_id']] ?? 'N/A';
+                    }
+                }
+                
                 echo json_encode([
                     'success' => true,
-                    'data' => $result['data'],
+                    'data' => $data,
                     'metadata' => $result['metadata'],
                     'message' => 'Data retrieved successfully'
                 ]);

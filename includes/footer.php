@@ -43,11 +43,11 @@
                     <div class="space-y-2 text-sm text-gray-400">
                         <div class="flex items-center">
                             <i class="fas fa-map-marker-alt mr-2"></i>
-                            <span>Olabisi Onabanjo University, Ago-Iwoye</span>
+                            <span>Olabisi Onabanjo University Teaching Hospital, Sagamu</span>
                         </div>
                         <div class="flex items-center">
                             <i class="fas fa-phone mr-2"></i>
-                            <span>+234 (0) 123 456 7890</span>
+                            <span>+234 (0) 803 351 8254</span>
                         </div>
                         <div class="flex items-center">
                             <i class="fas fa-envelope mr-2"></i>

@@ -173,6 +173,10 @@ require_once('classes/OOUTHSalaryAPIClient.php');
                                     </th>
                                     <th
                                         class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Coop ID
+                                    </th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Staff ID
                                     </th>
                                     <th
@@ -563,6 +567,7 @@ function displayData() {
         row.className = 'hover:bg-gray-50 fade-in';
         row.innerHTML = `
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${start + index + 1}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-indigo-600">${item.coop_id || 'N/A'}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${item.staff_id}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.name}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 font-semibold">₦${parseFloat(item.amount).toLocaleString('en-NG', {minimumFractionDigits: 2})}</td>
@@ -838,8 +843,9 @@ function exportToCSV() {
         return;
     }
 
-    const headers = ['Staff ID', 'Name', 'Amount'];
+    const headers = ['Coop ID', 'Staff ID', 'Name', 'Amount'];
     const rows = filteredData.map(item => [
+        item.coop_id || 'N/A',
         item.staff_id,
         item.name,
         item.amount
@@ -856,7 +862,7 @@ function exportToCSV() {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${selectedPeriodInfo.description}_${selectedPeriodInfo.year}_${Date.now()}.csv`;
+    a.download = `${selectedApiPeriodInfo.description}_${selectedApiPeriodInfo.year}_${Date.now()}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
 

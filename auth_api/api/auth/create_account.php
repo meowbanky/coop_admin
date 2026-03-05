@@ -73,6 +73,10 @@ try {
 
         $db->commit();
 
+        // Send account creation email
+        $emailService = new EmailService();
+        $emailService->sendAccountCreationNotification($data->email, $data->coopId);
+
         echo json_encode([
             'success' => true,
             'message' => 'Account created successfully'

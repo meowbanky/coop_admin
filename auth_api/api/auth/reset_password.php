@@ -20,6 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 
 require_once '../../config/Database.php';
+require_once '../../utils/EmailService.php';
 header('Content-Type: application/json');
 
 try {
@@ -80,7 +81,19 @@ try {
     $stmt->execute();
 
     if ($stmt->rowCount() === 0) {
-        throw new Exception('Failed to update password');
+        // If update failed, user might not exist in tblusers_online, so insert
+        $sql = "INSERT INTO tblusers_online 
+                (Username, UPassword, PlainPassword, CPassword, first_login, roleid, dateofRegistration) 
+                VALUES (:coop_id, :hashed_password, :plain_password, :hashed_password, 1, 2, CURDATE())";
+        
+        $stmt = $db->prepare($sql);
+        $stmt->bindParam(':coop_id', $employee['CoopID']);
+        $stmt->bindParam(':hashed_password', $hashedPassword);
+        $stmt->bindParam(':plain_password', $plainPassword);
+        
+        if (!$stmt->execute()) {
+            throw new Exception('Failed to update or create user account');
+        }
     }
 
     // Mark OTP as used
@@ -92,6 +105,10 @@ try {
     $stmt->bindParam(':email', $data->email);
     $stmt->bindParam(':otp', $data->otp);
     $stmt->execute();
+
+    // Send password reset success email
+    $emailService = new EmailService();
+    $emailService->sendPasswordResetSuccessNotification($data->email, $employee['CoopID']);
 
     echo json_encode([
         'success' => true,

@@ -12,9 +12,15 @@ if (!isset($_SESSION['SESS_MEMBER_ID']) || (trim($_SESSION['SESS_MEMBER_ID']) ==
 }
 
 try {
+    // Start output buffering and clear any existing content
+    ob_start();
+    if (ob_get_level()) ob_end_clean();
+    ob_start();
+    
     // Get parameters
     $period = isset($_POST['period']) ? (int)$_POST['period'] : '';
     $status = isset($_POST['status']) ? trim($_POST['status']) : '';
+    $includeZero = isset($_POST['include_zero']) ? (int)$_POST['include_zero'] : 0;
     
     // Build the query (same as getMemberContributions.php but without pagination)
     $query = "
@@ -64,8 +70,12 @@ try {
         $query .= " AND tblemployees.Status = 'Active'";
     }
     
-    // Add HAVING clause to filter out zero contributions
-    $query .= " HAVING total_contribution > 0 ORDER BY tblemployees.CoopID ASC";
+    // Add HAVING clause to filter out zero contributions if specified
+    if ($includeZero !== 1) {
+        $query .= " HAVING total_contribution > 0";
+    }
+    
+    $query .= " ORDER BY tblemployees.CoopID ASC";
     
     // Prepare statement
     $stmt = $conn->prepare($query);
@@ -94,8 +104,8 @@ try {
     }
     
     // Set headers for Excel download
-    $filename = "Member_Contributions_{$periodName}_" . date('Y-m-d') . ".xlsx";
-    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    $filename = "Member_Contributions_{$periodName}_" . date('Y-m-d') . ".xls";
+    header('Content-Type: application/vnd.ms-excel');
     header('Content-Disposition: attachment; filename="' . $filename . '"');
     header('Cache-Control: max-age=0');
     
@@ -195,9 +205,9 @@ try {
         echo '<Cell><Data ss:Type="String">' . htmlspecialchars($member['CoopID']) . '</Data></Cell>';
         echo '<Cell><Data ss:Type="String">' . htmlspecialchars($fullName) . '</Data></Cell>';
         echo '<Cell><Data ss:Type="String">' . htmlspecialchars($member['Department'] ?? 'N/A') . '</Data></Cell>';
-        echo '<Cell><Data ss:Type="Number">' . number_format($monthlyContribution, 2) . '</Data></Cell>';
-        echo '<Cell><Data ss:Type="Number">' . number_format($savingsAmount, 2) . '</Data></Cell>';
-        echo '<Cell><Data ss:Type="Number">' . number_format($totalContribution, 2) . '</Data></Cell>';
+        echo '<Cell><Data ss:Type="Number">' . $monthlyContribution . '</Data></Cell>';
+        echo '<Cell><Data ss:Type="Number">' . $savingsAmount . '</Data></Cell>';
+        echo '<Cell><Data ss:Type="Number">' . $totalContribution . '</Data></Cell>';
         echo '<Cell><Data ss:Type="String"></Data></Cell>';
         echo '<Cell><Data ss:Type="String">' . date('Y-m-d') . '</Data></Cell>';
         echo '</Row>';
@@ -211,9 +221,9 @@ try {
     echo '<Cell><Data ss:Type="String"></Data></Cell>';
     echo '<Cell><Data ss:Type="String"></Data></Cell>';
     echo '<Cell><Data ss:Type="String"></Data></Cell>';
-    echo '<Cell><Data ss:Type="Number">' . number_format($totalMonthlyContribution, 2) . '</Data></Cell>';
-    echo '<Cell><Data ss:Type="Number">' . number_format($totalSavingsAmount, 2) . '</Data></Cell>';
-    echo '<Cell><Data ss:Type="Number">' . number_format($grandTotal, 2) . '</Data></Cell>';
+    echo '<Cell><Data ss:Type="Number">' . $totalMonthlyContribution . '</Data></Cell>';
+    echo '<Cell><Data ss:Type="Number">' . $totalSavingsAmount . '</Data></Cell>';
+    echo '<Cell><Data ss:Type="Number">' . $grandTotal . '</Data></Cell>';
     echo '<Cell><Data ss:Type="String"></Data></Cell>';
     echo '<Cell><Data ss:Type="String"></Data></Cell>';
     echo '</Row>';
@@ -221,6 +231,10 @@ try {
     echo '</Table>';
     echo '</Worksheet>';
     echo '</Workbook>';
+    
+    // End buffering and flush
+    ob_end_flush();
+    exit();
     
 } catch (Exception $e) {
     error_log("Error in exportMemberContributions.php: " . $e->getMessage());

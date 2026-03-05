@@ -164,6 +164,15 @@ $userRole = $_SESSION['SESS_ROLE'] ?? 'Administrator';
                     </select>
                 </div>
 
+                <!-- Include Zero Contributions -->
+                <div class="flex items-center space-x-2 pb-2">
+                    <input type="checkbox" id="includeZero" name="includeZero"
+                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                    <label for="includeZero" class="text-sm font-medium text-gray-700">
+                        Include Zero Contributions
+                    </label>
+                </div>
+
                 <!-- Action Buttons -->
                 <div class="flex items-end space-x-3">
                     <button onclick="filterMembers()" id="filterBtn"
@@ -243,6 +252,7 @@ class MemberContributionManager {
         this.recordsPerPage = parseInt($('#rowsPerPage').val()) || 250;
         this.currentPeriod = '';
         this.currentStatus = '';
+        this.includeZero = false;
         this.membersData = [];
         this.totalRecords = 0;
         this.totalPages = 0;
@@ -276,6 +286,14 @@ class MemberContributionManager {
 
         $('#rowsPerPage').on('change', () => {
             this.recordsPerPage = parseInt($('#rowsPerPage').val()) || 250;
+            this.currentPage = 1;
+            if (this.currentPeriod) {
+                this.loadMembers();
+            }
+        });
+
+        $('#includeZero').on('change', () => {
+            this.includeZero = $('#includeZero').is(':checked');
             this.currentPage = 1;
             if (this.currentPeriod) {
                 this.loadMembers();
@@ -329,7 +347,8 @@ class MemberContributionManager {
                     period: this.currentPeriod,
                     status: this.currentStatus,
                     page: this.currentPage,
-                    records_per_page: this.recordsPerPage
+                    records_per_page: this.recordsPerPage,
+                    include_zero: this.includeZero ? 1 : 0
                 })
             });
 
@@ -485,6 +504,7 @@ class MemberContributionManager {
             return;
         }
         this.currentStatus = $('#statusFilter').val();
+        this.includeZero = $('#includeZero').is(':checked');
         this.currentPage = 1;
         this.loadMembers();
     }
@@ -493,8 +513,10 @@ class MemberContributionManager {
         $('#periodSelect').val('');
         $('#statusFilter').val('');
         $('#rowsPerPage').val('250');
+        $('#includeZero').prop('checked', false);
         this.currentPeriod = '';
         this.currentStatus = '';
+        this.includeZero = false;
         this.recordsPerPage = 250;
         this.currentPage = 1;
         this.showEmptyState();
@@ -503,11 +525,6 @@ class MemberContributionManager {
     async exportToExcel() {
         if (!this.currentPeriod) {
             this.showError('Please select a period first before exporting');
-            return;
-        }
-
-        if (this.membersData.length === 0) {
-            this.showError('No data to export. Please load members first.');
             return;
         }
 
@@ -522,7 +539,8 @@ class MemberContributionManager {
                 body: new URLSearchParams({
                     period: this.currentPeriod,
                     status: this.currentStatus,
-                    export: 'excel'
+                    export: 'excel',
+                    include_zero: this.includeZero ? 1 : 0
                 })
             });
 
@@ -531,7 +549,7 @@ class MemberContributionManager {
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `member_contributions_${new Date().toISOString().split('T')[0]}.xlsx`;
+                a.download = `member_contributions_${new Date().toISOString().split('T')[0]}.xls`;
                 document.body.appendChild(a);
                 a.click();
                 window.URL.revokeObjectURL(url);
