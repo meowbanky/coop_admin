@@ -772,8 +772,7 @@ async function uploadData() {
                 // Show SweetAlert with summary
                 let alertMessage = result.message;
                 if (result.data && result.data.not_found_count > 0) {
-                    alertMessage +=
-                        `\n\n⚠️ ${result.data.not_found_count} staff not found in database (see details below)`;
+                    alertMessage += `\n\n⚠️ ${result.not_found}`;
                 }
                 Swal.fire('Success!', alertMessage, 'success');
             } else {
