@@ -151,6 +151,48 @@ try {
             }
 
             $coop->commit();
+            
+            // --- Validation Checks ---
+            // 1. Grand Total Deductions Validation
+            $grandTotalSql = "SELECT SUM(sharesAmount + savingsAmount + InterestPaid + DevLevy + Stationery + EntryFee + loanRepayment + CommodityRepayment) 
+                             FROM tbl_mastertransact WHERE TransactionPeriod = ?";
+            $stmtGT = $coop->prepare($grandTotalSql);
+            $stmtGT->execute([$periodID]);
+            $processedTotal = floatval($stmtGT->fetchColumn());
+
+            $expectedTotalSql = "SELECT (
+                (SELECT COALESCE(SUM(mc.MonthlyContribution), 0) FROM tbl_monthlycontribution mc INNER JOIN tblemployees e ON mc.coopID = e.CoopID WHERE mc.period = ? AND e.Status = 'Active') +
+                (SELECT COALESCE(SUM(ls.Amount), 0) FROM tbl_loansavings ls INNER JOIN tblemployees e ON ls.COOPID = e.CoopID WHERE ls.period = ? AND e.Status = 'Active')
+            ) as total_expected";
+            $stmtET = $coop->prepare($expectedTotalSql);
+            $stmtET->execute([$periodID, $periodID]);
+            $expectedTotal = floatval($stmtET->fetchColumn());
+
+            // 2. Loan Additions Validation
+            $loanProcessedSql = "SELECT COALESCE(SUM(loan + capitalized_interest), 0) FROM tbl_mastertransact WHERE TransactionPeriod = ?";
+            $stmtLP = $coop->prepare($loanProcessedSql);
+            $stmtLP->execute([$periodID]);
+            $loanProcessed = floatval($stmtLP->fetchColumn());
+
+            $loanExpectedSql = "SELECT COALESCE(SUM(LoanAmount), 0) FROM tbl_loans WHERE LoanPeriod = ?";
+            $stmtLE = $coop->prepare($loanExpectedSql);
+            $stmtLE->execute([$periodID]);
+            $loanExpected = floatval($stmtLE->fetchColumn());
+
+            $diff = abs($processedTotal - $expectedTotal);
+            $loanDiff = abs($loanProcessed - $loanExpected);
+            
+            error_log("Validation Results for Period $periodID: Deductions Diff: $diff, Loan Diff: $loanDiff");
+            
+            $validationStatus = ($diff < 0.01 && $loanDiff < 0.01) ? "SUCCESS" : "WARNING (Discrepancy detected)";
+            echo "PROGRESS_DATA: Validation: $validationStatus - 100%\n";
+            
+            echo "VALIDATION_RESULTS:\n";
+            echo "Deductions: Processed = N" . number_format($processedTotal, 2) . ", Expected = N" . number_format($expectedTotal, 2) . "\n";
+            echo "Loans: Processed = N" . number_format($loanProcessed, 2) . ", Expected = N" . number_format($loanExpected, 2) . "\n";
+            echo "VALIDATION_STATUS: $validationStatus\n";
+            // -------------------------
+
             echo "PROGRESS_DATA: Process completed successfully for " . ($i - 1) . " employees - 100%\n";
             echo "COMPLETION: SUCCESS\n";
         } else {
@@ -247,6 +289,10 @@ function insertTransaction($coop, $table, $coopID, $periodID, $field, $amount, $
     if ($table === 'tbl_loanapproval') {
         $query = "INSERT INTO tbl_loanapproval (CoopID, approvalDate, $field) VALUES (?, CURRENT_DATE, ?)";
         $params = [$coopID, $amount];
+    } elseif ($table === 'tbl_loans' && func_num_args() > 7) {
+        $remarks = func_get_arg(7);
+        $query = "INSERT INTO tbl_loans (CoopID, LoanPeriod, LoanAmount, remarks) VALUES (?, ?, ?, ?)";
+        $params = [$coopID, $periodID, $amount, $remarks];
     } else {
         $query = "INSERT INTO $table (CoopID, $periodField, $field) VALUES (?, ?, ?)";
         $params = [$coopID, $periodID, $amount];
@@ -322,9 +368,9 @@ function processLoanRepayment($coop, $coopID, $periodID, $contri, $lb, $interest
 
     if ($contri == 0) {
         if ($intCharge > 0) {
-            insertTransaction($coop, 'tbl_loans', $coopID, $periodID, 'LoanAmount', $intCharge, 'LoanPeriod');
-            insertTransaction($coop, 'tbl_mastertransact', $coopID, $periodID, 'loan', $intCharge);
-            error_log("Zero contribution for CoopID: $coopID, period: $periodID; interest $intCharge added to loan balance");
+            insertTransaction($coop, 'tbl_loans', $coopID, $periodID, 'LoanAmount', $intCharge, 'LoanPeriod', 'Capitalized Interest');
+            insertTransaction($coop, 'tbl_mastertransact', $coopID, $periodID, 'capitalized_interest', $intCharge);
+            error_log("Zero contribution for CoopID: $coopID, period: $periodID; interest $intCharge capitalized to loan balance");
         }
         return 0;
     }
@@ -355,8 +401,8 @@ function processLoanRepayment($coop, $coopID, $periodID, $contri, $lb, $interest
     // Partial interest payment
     $balanceAfterInterestCents = (int) round(($intCharge - $contri) * 100);
     $balanceAfterInterest = $balanceAfterInterestCents / 100;
-    insertTransaction($coop, 'tbl_loans', $coopID, $periodID, 'LoanAmount', $balanceAfterInterest, 'LoanPeriod');
-    insertTransaction($coop, 'tbl_mastertransact', $coopID, $periodID, 'loan', $balanceAfterInterest);
+    insertTransaction($coop, 'tbl_loans', $coopID, $periodID, 'LoanAmount', $balanceAfterInterest, 'LoanPeriod', 'Capitalized Interest');
+    insertTransaction($coop, 'tbl_mastertransact', $coopID, $periodID, 'capitalized_interest', $balanceAfterInterest);
     insertTransaction($coop, 'tbl_mastertransact', $coopID, $periodID, 'InterestPaid', $contri);
     insertTransaction($coop, 'tbl_interest', $coopID, $periodID, 'IntAmount', $contri, 'InterestPeriod');
     error_log("Partial interest payment ($contri) for CoopID: $coopID, period: $periodID; remaining interest $balanceAfterInterest added to loan");
@@ -442,7 +488,8 @@ function createMemberJournalEntry($accountingEngine, $coop, $coopID, $periodID) 
                     COALESCE(InterestPaid, 0) as interest_paid,
                     COALESCE(loanRepayment, 0) as loan_repayment,
                     COALESCE(CommodityRepayment, 0) as commodity_repayment,
-                    COALESCE(Commodity, 0) as commodity
+                    COALESCE(Commodity, 0) as commodity,
+                    COALESCE(capitalized_interest, 0) as capitalized_interest
                 FROM tbl_mastertransact 
                 WHERE CoopID = ? AND TransactionPeriod = ?";
     
@@ -460,8 +507,11 @@ function createMemberJournalEntry($accountingEngine, $coop, $coopID, $periodID) 
                      $trans['dev_levy'] + $trans['stationery'] + $trans['interest_paid'] + 
                      $trans['loan_repayment'] + $trans['commodity_repayment'];
     
+    // Total for non-cash income (Accrued but capitalized)
+    $totalNonCash = $trans['capitalized_interest'];
+    
     // Skip if no transaction amount
-    if ($totalReceived <= 0) {
+    if ($totalReceived <= 0 && $totalNonCash <= 0) {
         return;
     }
     
@@ -563,6 +613,27 @@ function createMemberJournalEntry($accountingEngine, $coop, $coopID, $periodID) 
             'debit_amount' => 0,
             'credit_amount' => $trans['commodity_repayment'],
             'description' => "Commodity repayment from $memberName"
+        ];
+    }
+    
+    // 9. Capitalized Interest (Non-cash Income)
+    if ($trans['capitalized_interest'] > 0) {
+        // DEBIT: Member Loans (Asset increase)
+        $lines[] = [
+            'account_id' => 6,  // Member Loans (1110)
+            'debit_amount' => $trans['capitalized_interest'],
+            'credit_amount' => 0,
+            'description' => "Capitalized interest added to loan for $memberName",
+            'reference_type' => 'member',
+            'reference_id' => $coopID
+        ];
+        
+        // CREDIT: Interest on Loans (Income)
+        $lines[] = [
+            'account_id' => 50,  // Interest on Loans (4102)
+            'debit_amount' => 0,
+            'credit_amount' => $trans['capitalized_interest'],
+            'description' => "Interest income (capitalized) from $memberName"
         ];
     }
     

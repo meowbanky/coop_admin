@@ -83,7 +83,7 @@ try {
                      IFNULL(tbl_extra.Amount, 0) AS savings 
                      FROM tblemployees 
                      LEFT JOIN tbl_extra ON tblemployees.CoopID = tbl_extra.COOPID 
-                     WHERE StaffID = ?";
+                     WHERE StaffID = ? AND Status = 'Active'";
         $stmt = $coop->prepare($sqlStaff);
         $stmt->execute([$staffId]);
         $staffRow = $stmt->fetch(PDO::FETCH_ASSOC);

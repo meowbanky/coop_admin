@@ -253,7 +253,7 @@ class NotificationService {
 
     private function logNotification($memberId, $message, $title = 'Transaction Alert') {
         $query = "INSERT INTO notifications 
-                  (memberid, message, created_at, status, title) 
+                  (coop_id, message, created_at, status, title) 
                   VALUES 
                   (:memberId, :message, NOW(), 'unread', :title)";
         

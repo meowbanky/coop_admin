@@ -74,6 +74,16 @@ require_once 'db_connection.php';
                 </select>
             </div>
         </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div>
+                <label for="shares_savings_perc" class="block text-sm font-medium text-gray-700">Shares & Savings Percentage</label>
+                <input type="number" id="shares_savings_perc" name="shares_savings_perc" step="0.001" value="0.017" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+            </div>
+            <div>
+                <label for="interest_perc" class="block text-sm font-medium text-gray-700">Interest Percentage</label>
+                <input type="number" id="interest_perc" name="interest_perc" step="0.001" value="0.245" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+            </div>
+        </div>
         <button id="calculate" class="mt-4 w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">Calculate Dividends</button>
     </div>
 
@@ -178,10 +188,14 @@ require_once 'db_connection.php';
                     if (response.success) {
                         let html = '';
                         $.each(response.data, function(index, row) {
-                            const savings = parseFloat(row.Savings);
-                            const shares = parseFloat(row.Shares);
-                            const interest = parseFloat(row.Interest);
-                            const dividend = savings + shares + interest;
+                            const savings = parseFloat(row.Savings) || 0;
+                            const shares = parseFloat(row.Shares) || 0;
+                            const interest = parseFloat(row.Interest) || 0;
+                            
+                            const sharesSavingsPerc = parseFloat($('#shares_savings_perc').val()) || 0;
+                            const interestPerc = parseFloat($('#interest_perc').val()) || 0;
+
+                            const dividend = ((savings + shares) * sharesSavingsPerc) + (interest * interestPerc);
 
                             html += `
                                 <tr>

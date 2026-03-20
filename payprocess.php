@@ -679,14 +679,28 @@ class PayrollProcessor {
                 'bg-red-50 border-red-200 text-red-700';
             const statusIcon = result.success ? 'fa-check-circle' : 'fa-exclamation-triangle';
 
+            const validationMatch = result.response.match(/VALIDATION_STATUS:\s*(.+)/);
+            const validationStatus = validationMatch ? validationMatch[1] : 'N/A';
+            const isValidationWarning = validationStatus.includes('WARNING');
+            const validationClass = isValidationWarning ? 'text-orange-600 font-extrabold' : 'text-green-600';
+
             html += `
                     <div class="border ${statusClass} rounded-lg p-3">
                         <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-2">
+                            <div class="flex items-center space-x-4">
                                 <i class="fas ${statusIcon}"></i>
-                                <span class="font-medium">Period ${index + 1} (ID: ${result.period})</span>
+                                <div>
+                                    <span class="font-medium block">Period (ID: ${result.period})</span>
+                                    <span class="text-xs text-gray-500">${result.success ? 'Workflow executed successfully' : 'Workflow encountered errors'}</span>
+                                </div>
                             </div>
-                            <span class="text-xs">${result.success ? 'Success' : 'Failed'}</span>
+                            <div class="text-right">
+                                <span class="text-xs font-semibold block ${validationClass}">Validation: ${validationStatus}</span>
+                                <button onclick="$(this).parent().parent().next().toggleClass('hidden')" class="text-[10px] text-blue-600 hover:underline">View Details</button>
+                            </div>
+                        </div>
+                        <div class="hidden mt-3 pt-3 border-t border-gray-200">
+                             <pre class="text-[10px] text-gray-600 whitespace-pre-wrap bg-gray-50 p-2 rounded">${result.response.replace(/PROGRESS_DATA:.*\n/g, '').replace(/COMPLETION:.*\n/g, '').trim()}</pre>
                         </div>
                     </div>
                 `;

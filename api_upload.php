@@ -606,10 +606,15 @@ function filterData(searchTerm) {
     if (!searchTerm) {
         filteredData = [...apiData];
     } else {
-        filteredData = apiData.filter(item =>
-            item.staff_id.toLowerCase().includes(searchTerm) ||
-            item.name.toLowerCase().includes(searchTerm)
-        );
+        filteredData = apiData.filter(item => {
+            const staffId = String(item.staff_id || '').toLowerCase();
+            const name = String(item.name || '').toLowerCase();
+            const coopId = String(item.coop_id || '').toLowerCase();
+            
+            return staffId.includes(searchTerm) || 
+                   name.includes(searchTerm) || 
+                   coopId.includes(searchTerm);
+        });
     }
 
     currentPage = 1;

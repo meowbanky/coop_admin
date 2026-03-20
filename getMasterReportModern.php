@@ -106,6 +106,7 @@ try {
                     SUM(tbl_mastertransact.Commodity) as Commodity,
                     SUM(tbl_mastertransact.CommodityRepayment) as CommodityRepayment,
                     SUM(tbl_mastertransact.loan) as loan,
+                    SUM(tbl_mastertransact.capitalized_interest) as capitalized_interest,
                     SUM(tbl_mastertransact.loanRepayment) as loanRepayment
                 FROM tbl_mastertransact
                 INNER JOIN tblemployees ON tblemployees.CoopID = tbl_mastertransact.COOPID
@@ -148,6 +149,7 @@ try {
                     SUM(tbl_mastertransact.Commodity) as Commodity,
                     SUM(tbl_mastertransact.CommodityRepayment) as CommodityRepayment,
                     SUM(tbl_mastertransact.loan) as loan,
+                    SUM(tbl_mastertransact.capitalized_interest) as capitalized_interest,
                     SUM(tbl_mastertransact.loanRepayment) as loanRepayment
                 FROM tbl_mastertransact
                 INNER JOIN tblemployees ON tblemployees.CoopID = tbl_mastertransact.COOPID
@@ -182,6 +184,7 @@ try {
         'stationery' => 0,
         'entry_fee' => 0,
         'loan' => 0,
+        'capitalized_interest' => 0,
         'loan_repayment' => 0,
         'commodity' => 0,
         'commodity_repayment' => 0,
@@ -214,6 +217,7 @@ try {
             'stationery' => (float)$row['Stationery'],
             'entry_fee' => (float)$row['EntryFee'],
             'loan' => (float)$row['loan'],
+            'capitalized_interest' => (float)$row['capitalized_interest'],
             'loan_repayment' => (float)$row['loanRepayment'],
             'loan_balance' => (float)$loanBalance,
             'commodity' => (float)$row['Commodity'],
@@ -232,6 +236,7 @@ try {
         $totals['stationery'] += $processedRow['stationery'];
         $totals['entry_fee'] += $processedRow['entry_fee'];
         $totals['loan'] += $processedRow['loan'];
+        $totals['capitalized_interest'] += $processedRow['capitalized_interest'];
         $totals['loan_repayment'] += $processedRow['loan_repayment'];
         $totals['commodity'] += $processedRow['commodity'];
         $totals['commodity_repayment'] += $processedRow['commodity_repayment'];
@@ -414,6 +419,7 @@ function exportToExcel($data, $totals, $grandTotals, $periodFrom, $periodTo, $st
     echo "<td>Stationery</td>";
     echo "<td>Entry Fee</td>";
     echo "<td>Loan</td>";
+    echo "<td>Cap. Int</td>";
     echo "<td>Loan Pay</td>";
     echo "<td>Loan Bal</td>";
     echo "<td>Commodity</td>";
@@ -438,6 +444,7 @@ function exportToExcel($data, $totals, $grandTotals, $periodFrom, $periodTo, $st
         echo "<td>" . number_format($row['stationery'], 2) . "</td>";
         echo "<td>" . number_format($row['entry_fee'], 2) . "</td>";
         echo "<td>" . number_format($row['loan'], 2) . "</td>";
+        echo "<td>" . number_format($row['capitalized_interest'], 2) . "</td>";
         echo "<td>" . number_format($row['loan_repayment'], 2) . "</td>";
         echo "<td>" . number_format($row['loan_balance'], 2) . "</td>";
         echo "<td>" . number_format($row['commodity'], 2) . "</td>";
@@ -462,6 +469,7 @@ function exportToExcel($data, $totals, $grandTotals, $periodFrom, $periodTo, $st
     echo "<td>" . number_format($totals['stationery'], 2) . "</td>";
     echo "<td>" . number_format($totals['entry_fee'], 2) . "</td>";
     echo "<td>" . number_format($totals['loan'], 2) . "</td>";
+    echo "<td>" . number_format($totals['capitalized_interest'], 2) . "</td>";
     echo "<td>" . number_format($totals['loan_repayment'], 2) . "</td>";
     echo "<td>-</td>";
     echo "<td>" . number_format($totals['commodity'], 2) . "</td>";
@@ -483,6 +491,7 @@ function exportToExcel($data, $totals, $grandTotals, $periodFrom, $periodTo, $st
         echo "<td>" . number_format($grandTotals['stationery'], 2) . "</td>";
         echo "<td>" . number_format($grandTotals['entry_fee'], 2) . "</td>";
         echo "<td>" . number_format($grandTotals['loan'], 2) . "</td>";
+        echo "<td>" . number_format($grandTotals['capitalized_interest'], 2) . "</td>";
         echo "<td>" . number_format($grandTotals['loan_repayment'], 2) . "</td>";
         echo "<td>-</td>";
         echo "<td>" . number_format($grandTotals['commodity'], 2) . "</td>";
@@ -520,6 +529,7 @@ function calculateGrandTotals($periodFrom, $periodTo, $staffIdArray) {
                         SUM(tbl_mastertransact.Commodity) as Commodity,
                         SUM(tbl_mastertransact.CommodityRepayment) as CommodityRepayment,
                         SUM(tbl_mastertransact.loan) as loan,
+                        SUM(tbl_mastertransact.capitalized_interest) as capitalized_interest,
                         SUM(tbl_mastertransact.loanRepayment) as loanRepayment
                     FROM tbl_mastertransact
                     INNER JOIN tblemployees ON tblemployees.CoopID = tbl_mastertransact.COOPID
@@ -542,6 +552,7 @@ function calculateGrandTotals($periodFrom, $periodTo, $staffIdArray) {
                         SUM(tbl_mastertransact.Commodity) as Commodity,
                         SUM(tbl_mastertransact.CommodityRepayment) as CommodityRepayment,
                         SUM(tbl_mastertransact.loan) as loan,
+                        SUM(tbl_mastertransact.capitalized_interest) as capitalized_interest,
                         SUM(tbl_mastertransact.loanRepayment) as loanRepayment
                     FROM tbl_mastertransact
                     INNER JOIN tblemployees ON tblemployees.CoopID = tbl_mastertransact.COOPID
@@ -567,6 +578,7 @@ function calculateGrandTotals($periodFrom, $periodTo, $staffIdArray) {
             'stationery' => (float)$result['Stationery'],
             'entry_fee' => (float)$result['EntryFee'],
             'loan' => (float)$result['loan'],
+            'capitalized_interest' => (float)$result['capitalized_interest'],
             'loan_repayment' => (float)$result['loanRepayment'],
             'commodity' => (float)$result['Commodity'],
             'commodity_repayment' => (float)$result['CommodityRepayment'],
