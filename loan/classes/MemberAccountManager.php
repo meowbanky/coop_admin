@@ -51,13 +51,13 @@ class MemberAccountManager {
      */
     public function getBanks() {
         try {
-            $sql = "SELECT bank, bankcode FROM tblbankcode ORDER BY bank";
+            $sql = "SELECT Bank_Name AS bank, bank_code AS bankcode FROM Bank_Sortcodes ORDER BY Bank_Name";
             $stmt = $this->connection->query($sql);
-            
+
             if (!$stmt) {
                  throw new Exception("Query failed");
             }
-            
+
             $banks = $stmt->fetchAll(PDO::FETCH_ASSOC);
             return $banks;
         } catch (Exception $e) {

@@ -660,9 +660,20 @@ class BeneficiaryManager {
       if (result.success && result.data) {
         const bankDetails = result.data;
         console.log("Bank details data:", bankDetails);
-        $("#modal-bank").val(bankDetails.Bank || "");
+
+        // Match by bank_code since stored Bank name may differ from Bank_Sortcodes names
+        const bankCode = bankDetails.bank_code || "";
+        const matchingOption = $("#modal-bank option").filter(function () {
+          return $(this).data("bank-code") == bankCode;
+        });
+        if (matchingOption.length) {
+          $("#modal-bank").val(matchingOption.val());
+        } else {
+          $("#modal-bank").val(bankDetails.Bank || "");
+        }
+
         $("#modal-account-no").val(bankDetails.AccountNo || "");
-        $("#modal-bank-code").val(bankDetails.bank_code || "");
+        $("#modal-bank-code").val(bankCode);
         console.log("Modal fields populated");
       } else {
         console.log("No bank details found or API error:", result.message);
@@ -691,7 +702,7 @@ class BeneficiaryManager {
 
         result.data.forEach((bank) => {
           bankSelect.append(
-            `<option value="${bank.bank}">${bank.bank}</option>`
+            `<option value="${bank.bank}" data-bank-code="${bank.bankcode}">${bank.bank}</option>`
           );
         });
       }
@@ -833,7 +844,7 @@ class BeneficiaryManager {
             <div class="text-sm text-gray-500 mt-1">
               <span class="inline-block mr-4">
                 <i class="fas fa-id-card mr-1 text-green-500"></i>
-                <span class="font-medium">ID:</span> ${item.coopid}
+                <span class="font-medium">ID:</span> ${item.id || item.value}
               </span>
             </div>
           </div>`
@@ -935,31 +946,13 @@ class BeneficiaryManager {
     }
   }
 
-  // Auto-fetch bank code when bank is selected
-  async fetchBankCode(bankName) {
+  fetchBankCode(bankName) {
     if (!bankName) {
       $("#modal-bank-code").val("");
       return;
     }
-
-    try {
-      const response = await fetch(
-        `api/beneficiary.php?action=get_bank_code&bank_name=${encodeURIComponent(
-          bankName
-        )}`
-      );
-      const result = await response.json();
-
-      if (result.success) {
-        $("#modal-bank-code").val(result.data.bank_code || "");
-      } else {
-        $("#modal-bank-code").val("");
-        console.warn("Could not fetch bank code:", result.message);
-      }
-    } catch (error) {
-      console.error("Error fetching bank code:", error);
-      $("#modal-bank-code").val("");
-    }
+    const selectedOption = $("#modal-bank option:selected");
+    $("#modal-bank-code").val(selectedOption.data("bank-code") || "");
   }
 }
 

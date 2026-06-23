@@ -229,14 +229,15 @@
                                 <label for="bank" class="block text-sm font-medium text-gray-700 mb-2">
                                     Bank Name <span class="text-red-500">*</span>
                                 </label>
-                                <select id="bank" name="bank" 
+                                <select id="bank" name="bank"
                                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                         required>
                                     <option value="">Select Bank</option>
                                     <?php if (!empty($banks)): ?>
-                                        <?php foreach ($banks as $bank): ?>
-                                            <option value="<?php echo htmlspecialchars($bank['bank']); ?>">
-                                                <?php echo htmlspecialchars($bank['bank']); ?>
+                                        <?php foreach ($banks as $b): ?>
+                                            <option value="<?php echo htmlspecialchars($b['bank']); ?>"
+                                                    data-bank-code="<?php echo htmlspecialchars($b['bankcode']); ?>">
+                                                <?php echo htmlspecialchars($b['bank']); ?>
                                             </option>
                                         <?php endforeach; ?>
                                     <?php endif; ?>
@@ -258,9 +259,9 @@
                                 <label for="bank_code" class="block text-sm font-medium text-gray-700 mb-2">
                                     Bank Code
                                 </label>
-                                <input type="text" id="bank_code" name="bank_code" 
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                       placeholder="Enter bank code">
+                                <input type="text" id="bank_code" name="bank_code" readonly
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                                       placeholder="Auto-filled when bank is selected">
                             </div>
                         </div>
 

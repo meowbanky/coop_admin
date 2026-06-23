@@ -5,21 +5,16 @@ $searchTerm = $_GET['term'] ?? '';
 
 // Query to get search suggestions
 $query = "SELECT
-	tblemployees.CoopID, 
-	concat(tblemployees.FirstName,' , ',tblemployees.MiddleName,' ',tblemployees.LastName) AS `name`, 
-	IFNULL(tblaccountno.Bank,'') AS Bank, 
-	IFNULL(tblaccountno.AccountNo,'') AS AccountNo, 
-	IFNULL(tblbankcode.BankCode,'') AS BankCode
+	tblemployees.CoopID,
+	concat(tblemployees.FirstName,' , ',tblemployees.MiddleName,' ',tblemployees.LastName) AS `name`,
+	IFNULL(tblaccountno.Bank,'') AS Bank,
+	IFNULL(tblaccountno.AccountNo,'') AS AccountNo,
+	IFNULL(tblaccountno.bank_code,'') AS BankCode
 FROM
 	tblemployees
-	LEFT JOIN
-	tblaccountno
-	ON 
-		tblaccountno.COOPNO = tblemployees.CoopID
-		LEFT JOIN
-	tblbankcode ON tblaccountno.Bank = tblbankcode.bank
-          WHERE CoopID LIKE :term OR lastname LIKE :term OR firstname LIKE :term OR middlename LIKE :term 
-          LIMIT 10";
+	LEFT JOIN tblaccountno ON tblaccountno.COOPNO = tblemployees.CoopID
+WHERE CoopID LIKE :term OR lastname LIKE :term OR firstname LIKE :term OR middlename LIKE :term
+LIMIT 10";
 
 try {
     $stmt = $db->prepare($query);

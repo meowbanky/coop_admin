@@ -198,10 +198,18 @@ class MemberAccountManager {
     $("#department").val(memberData.Department || "");
     $("#position").val(memberData.JobPosition || "");
 
-    // Populate account information form
-    $("#bank").val(memberData.Bank || "");
+    // Populate account information form - match by bank_code since stored name may differ
+    const bankCode = memberData.bank_code || "";
+    const matchingOption = $("#bank option").filter(function () {
+      return $(this).data("bank-code") == bankCode;
+    });
+    if (matchingOption.length) {
+      $("#bank").val(matchingOption.val());
+    } else {
+      $("#bank").val(memberData.Bank || "");
+    }
     $("#account_no").val(memberData.AccountNo || "");
-    $("#bank_code").val(memberData.bank_code || "");
+    $("#bank_code").val(bankCode);
   }
 
   async loadAccountHistory(coopId) {
@@ -431,9 +439,9 @@ class MemberAccountManager {
   }
 
   handleBankChange(e) {
-    // You can add logic here to auto-populate bank code based on selected bank
-    const selectedBank = e.target.value;
-    console.log("Selected bank:", selectedBank);
+    const selectedOption = e.target.options[e.target.selectedIndex];
+    const bankCode = selectedOption ? selectedOption.getAttribute("data-bank-code") : "";
+    $("#bank_code").val(bankCode || "");
   }
 
   clearPersonalForm() {

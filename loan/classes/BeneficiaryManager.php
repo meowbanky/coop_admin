@@ -273,19 +273,18 @@ class BeneficiaryManager {
             $searchTerm = "%$query%";
             
             $sql = "SELECT
-                        tblemployees.CoopID, 
-                        CONCAT(tblemployees.FirstName,' , ',tblemployees.MiddleName,' ',tblemployees.LastName) AS name, 
-                        IFNULL(tblaccountno.Bank,'') AS Bank, 
-                        IFNULL(tblaccountno.AccountNo,'') AS AccountNo, 
-                        IFNULL(tblbankcode.BankCode,'') AS BankCode
+                        tblemployees.CoopID,
+                        CONCAT(tblemployees.FirstName,' , ',tblemployees.MiddleName,' ',tblemployees.LastName) AS name,
+                        IFNULL(tblaccountno.Bank,'') AS Bank,
+                        IFNULL(tblaccountno.AccountNo,'') AS AccountNo,
+                        IFNULL(tblaccountno.bank_code,'') AS BankCode
                     FROM
                         tblemployees
                         LEFT JOIN tblaccountno ON tblaccountno.COOPNO = tblemployees.CoopID
-                        LEFT JOIN tblbankcode ON tblaccountno.Bank = tblbankcode.bank
-                    WHERE CoopID LIKE :term 
-                    OR lastname LIKE :term 
-                    OR firstname LIKE :term 
-                    OR middlename LIKE :term 
+                    WHERE CoopID LIKE :term
+                    OR lastname LIKE :term
+                    OR firstname LIKE :term
+                    OR middlename LIKE :term
                     LIMIT 10";
             
             $stmt = $this->connection->prepare($sql);
@@ -316,32 +315,32 @@ class BeneficiaryManager {
      */
     public function getBanks() {
         try {
-            $sql = "SELECT bank, bankcode FROM tblbankcode ORDER BY bank";
+            $sql = "SELECT Bank_Name AS bank, bank_code AS bankcode FROM Bank_Sortcodes ORDER BY Bank_Name";
             $stmt = $this->connection->query($sql);
-            
+
             if (!$stmt) {
                 throw new Exception("Query failed");
             }
-            
+
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             error_log("Error fetching banks: " . $e->getMessage());
             return [];
         }
     }
-    
+
     /**
      * Get bank code by bank name
      */
     public function getBankCode($bankName) {
         try {
-            $sql = "SELECT bankcode FROM tblbankcode WHERE bank = :bank LIMIT 1";
+            $sql = "SELECT bank_code FROM Bank_Sortcodes WHERE Bank_Name = :bank LIMIT 1";
             $stmt = $this->connection->prepare($sql);
             $stmt->execute(['bank' => $bankName]);
-            
+
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            return $row ? $row['bankcode'] : '';
+
+            return $row ? $row['bank_code'] : '';
         } catch (Exception $e) {
             error_log("Error fetching bank code: " . $e->getMessage());
             return '';
