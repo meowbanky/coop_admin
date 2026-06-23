@@ -192,9 +192,8 @@ class BankReconciliationService {
             $params[] = $bank_account_id;
         }
         
-        $sql .= " ORDER BY br.reconciliation_date DESC, br.id DESC LIMIT ?";
-        $params[] = $limit;
-        
+        $sql .= " ORDER BY br.reconciliation_date DESC, br.id DESC LIMIT " . intval($limit);
+
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
         

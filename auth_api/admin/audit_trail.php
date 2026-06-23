@@ -70,9 +70,7 @@ $total_records = $count_stmt->fetch(PDO::FETCH_ASSOC)['total'];
 $total_pages = ceil($total_records / $per_page);
 
 // Add pagination to main query
-$query .= " ORDER BY l.changed_at DESC LIMIT ?, ?";
-$params[] = $offset;
-$params[] = $per_page;
+$query .= " ORDER BY l.changed_at DESC LIMIT " . intval($offset) . ", " . intval($per_page);
 
 $stmt = $db->prepare($query);
 $stmt->execute($params);

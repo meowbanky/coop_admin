@@ -49,10 +49,10 @@ class PeriodClosingProcessor {
         }
         
         // Check trial balance
-        require_once('AccountBalanceCalculator.php');
-        $calculator = new AccountBalanceCalculator($this->db, $this->database_name);
+        require_once __DIR__ . '/AccountBalanceCalculator.php';
+        $calculator   = new AccountBalanceCalculator($this->db);
         $trialBalance = $calculator->getTrialBalance($periodid);
-        
+
         if (!$trialBalance['is_balanced']) {
             $issues[] = "Trial balance is out of balance by ₦" . number_format(abs($trialBalance['totals']['difference']), 2);
         }
@@ -141,11 +141,11 @@ class PeriodClosingProcessor {
      * Close revenue and expense accounts to retained earnings
      */
     private function closeRevenueExpenseAccounts($periodid, $user_id) {
-        require_once('AccountingEngine.php');
-        require_once('AccountBalanceCalculator.php');
-        
-        $engine = new AccountingEngine($this->db, $this->database_name);
-        $calculator = new AccountBalanceCalculator($this->db, $this->database_name);
+        require_once __DIR__ . '/AccountingEngine.php';
+        require_once __DIR__ . '/AccountBalanceCalculator.php';
+
+        $engine     = new AccountingEngine($this->db);
+        $calculator = new AccountBalanceCalculator($this->db);
         
         // Get total revenue
         $revenue_total = $calculator->getTotalByType($periodid, 'revenue');
@@ -226,8 +226,8 @@ class PeriodClosingProcessor {
      * Process appropriation
      */
     private function processAppropriation($periodid, $user_id, $appropriation_data) {
-        require_once('AccountingEngine.php');
-        $engine = new AccountingEngine($this->db, $this->database_name);
+        require_once __DIR__ . '/AccountingEngine.php';
+        $engine = new AccountingEngine($this->db);
         
         // Save appropriation record
         $sql = "INSERT INTO coop_appropriation 
@@ -357,8 +357,8 @@ class PeriodClosingProcessor {
         $stmt->execute([$next_periodid, $periodid]);
         
         // Also initialize member accounts for next period
-        require_once('MemberAccountManager.php');
-        $memberManager = new MemberAccountManager($this->db, $this->database_name);
+        require_once __DIR__ . '/MemberAccountManager.php';
+        $memberManager = new MemberAccountManager($this->db);
         $memberManager->initializeNewPeriodBalances($next_periodid, $periodid);
     }
     
@@ -372,40 +372,41 @@ class PeriodClosingProcessor {
      */
     public function reopenPeriod($periodid, $user_id, $reason) {
         try {
-            mysqli_begin_transaction($this->db);
-            
+            $this->db->beginTransaction();
+
             try {
-                // Mark as not closed
-                $sql = "UPDATE coop_period_balances 
-                        SET is_closed = FALSE, closed_at = NULL, closed_by = NULL
-                        WHERE periodid = ?";
-                
-                $stmt = $this->db->prepare($sql);
+                $stmt = $this->db->prepare(
+                    "UPDATE coop_period_balances
+                     SET is_closed = FALSE, closed_at = NULL, closed_by = NULL
+                     WHERE periodid = ?"
+                );
                 $stmt->execute([$periodid]);
-                
-                // Log action
-                $log_sql = "INSERT INTO coop_audit_trail 
-                           (user_id, action_type, table_name, record_id, notes)
-                           VALUES (?, 'reopen_period', 'coop_period_balances', ?, ?)";
-                
-                $stmt = $this->db->prepare($log_sql);
-                $stmt->execute([$user_id, $periodid, $reason]);
-                
+
+                // Log action (silently ignore if audit trail table doesn't exist)
+                try {
+                    $log_stmt = $this->db->prepare(
+                        "INSERT INTO coop_audit_trail
+                         (user_id, action_type, table_name, record_id, notes)
+                         VALUES (?, 'reopen_period', 'coop_period_balances', ?, ?)"
+                    );
+                    $log_stmt->execute([$user_id, $periodid, $reason]);
+                } catch (Exception $logEx) {
+                    error_log("PeriodClosingProcessor::reopenPeriod audit log failed: " . $logEx->getMessage());
+                }
+
                 $this->db->commit();
-                
                 return ['success' => true];
-                
+
             } catch (Exception $e) {
-                $this->db->rollBack();
+                if ($this->db->inTransaction()) {
+                    $this->db->rollBack();
+                }
                 throw $e;
             }
-            
+
         } catch (Exception $e) {
             error_log("PeriodClosingProcessor::reopenPeriod - Error: " . $e->getMessage());
-            return [
-                'success' => false,
-                'error' => $e->getMessage()
-            ];
+            return ['success' => false, 'error' => $e->getMessage()];
         }
     }
     

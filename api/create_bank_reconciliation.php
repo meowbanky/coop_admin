@@ -1,7 +1,7 @@
 <?php
 session_start();
 header('Content-Type: application/json');
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['SESS_MEMBER_ID']) || trim($_SESSION['SESS_MEMBER_ID']) === '') {
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit;
 }
@@ -18,7 +18,7 @@ try {
         'outstanding_withdrawals' => floatval($_POST['outstanding_withdrawals'] ?? 0),
         'bank_charges' => floatval($_POST['bank_charges'] ?? 0),
         'bank_interest' => floatval($_POST['bank_interest'] ?? 0),
-        'reconciled_by' => intval($_POST['reconciled_by'] ?? $_SESSION['user_id']),
+        'reconciled_by' => intval($_POST['reconciled_by'] ?? $_SESSION['SESS_MEMBER_ID']),
         'notes' => trim($_POST['notes'] ?? '')
     ];
     

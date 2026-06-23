@@ -1,7 +1,7 @@
 <?php
 session_start();
 header('Content-Type: application/json');
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['SESS_MEMBER_ID'])) {
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit;
 }
@@ -49,7 +49,7 @@ try {
     $errors = [];
     
     foreach ($entries_to_reverse as $entry) {
-        $result = $engine->reverseEntry($entry['id'], $_SESSION['user_id'], "Reversal for transaction correction");
+        $result = $engine->reverseEntry($entry['id'], $_SESSION['SESS_MEMBER_ID'], "Reversal for transaction correction");
         
         if ($result['success']) {
             $reversed_count++;

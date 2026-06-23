@@ -3,6 +3,7 @@
 require_once('Connections/coop.php');
 require_once('libs/services/AccountingEngine.php');
 require_once('includes/header.php');
+require_once('includes/accounting_nav.php');
 
 // Initialize engine
 $accountingEngine = new AccountingEngine($coop, $database);
@@ -92,9 +93,15 @@ try {
                 <h1 class="text-3xl font-bold text-blue-900">📒 Journal Entries</h1>
                 <p class="text-gray-600 mt-1">View and manage accounting transactions</p>
             </div>
-            <div class="text-right">
-                <p class="text-sm text-gray-500">Total Entries</p>
-                <p class="text-3xl font-bold text-blue-900"><?php echo number_format($stats['total']); ?></p>
+            <div class="flex items-center gap-4">
+                <div class="text-right">
+                    <p class="text-sm text-gray-500">Total Entries</p>
+                    <p class="text-3xl font-bold text-blue-900"><?php echo number_format($stats['total']); ?></p>
+                </div>
+                <a href="coop_journal_entry_form.php"
+                   class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg flex items-center gap-2">
+                    <i class="fa fa-plus"></i> New Entry
+                </a>
             </div>
         </div>
     </div>

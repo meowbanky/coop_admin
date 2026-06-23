@@ -1,242 +1,226 @@
 <?php
 /**
- * NotesGenerator - Generate Notes to the Account
- * 
- * Generates detailed supporting notes for financial statements
- * 
- * @version 1.0
- * @author Cooperative Management System
+ * NotesGenerator - Generate Notes to the Accounts
+ *
+ * Generates supporting notes for financial statements per Nigerian cooperative standards.
+ *
+ * @version 2.0 - PDO port
  */
-class NotesGenerator {
-    private $db;
-    private $database_name;
-    
-    public function __construct($database_connection, $database_name = null) {
+class NotesGenerator
+{
+    private PDO $db;
+
+    public function __construct($database_connection, $database_name = null)
+    {
         $this->db = $database_connection;
-        $this->database_name = $database_name;
-        
-        if ($database_name) {
-            mysqli_select_db($this->db, $database_name);
-        }
     }
-    
-    /**
-     * Generate Note 1: Member Loan Account
-     */
-    public function generateNote1($periodid) {
-        $opening = $this->getPreviousPeriodBalance(6, $periodid); // Member Loans
-        
-        // Loans disbursed = debits to member loan account
-        $sql = "SELECT SUM(jel.debit_amount) as total
-                FROM coop_journal_entry_lines jel
-                JOIN coop_journal_entries je ON jel.journal_entry_id = je.id
-                WHERE je.periodid = ? AND je.status = 'posted' AND jel.account_id = 6";
-        
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "i", $periodid);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $row = mysqli_fetch_assoc($result);
-        $loans_disbursed = floatval($row['total'] ?? 0);
-        mysqli_stmt_close($stmt);
-        
-        // Loans recovered = credits to member loan account
-        $sql = "SELECT SUM(jel.credit_amount) as total
-                FROM coop_journal_entry_lines jel
-                JOIN coop_journal_entries je ON jel.journal_entry_id = je.id
-                WHERE je.periodid = ? AND je.status = 'posted' AND jel.account_id = 6";
-        
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "i", $periodid);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $row = mysqli_fetch_assoc($result);
-        $loans_recovered = floatval($row['total'] ?? 0);
-        mysqli_stmt_close($stmt);
-        
+
+    /* -------- NOTE 1: Member Loan Account -------- */
+
+    public function generateNote1(int $periodid): array
+    {
+        $opening = $this->getPreviousPeriodBalance(6, $periodid);
+
+        $stmt = $this->db->prepare("
+            SELECT SUM(jel.debit_amount) as total
+            FROM coop_journal_entry_lines jel
+            JOIN coop_journal_entries je ON jel.journal_entry_id = je.id
+            WHERE je.periodid = ? AND je.status = 'posted' AND jel.account_id = 6
+        ");
+        $stmt->execute([$periodid]);
+        $loans_disbursed = (float)($stmt->fetchColumn() ?? 0);
+
+        $stmt = $this->db->prepare("
+            SELECT SUM(jel.credit_amount) as total
+            FROM coop_journal_entry_lines jel
+            JOIN coop_journal_entries je ON jel.journal_entry_id = je.id
+            WHERE je.periodid = ? AND je.status = 'posted' AND jel.account_id = 6
+        ");
+        $stmt->execute([$periodid]);
+        $loans_recovered = (float)($stmt->fetchColumn() ?? 0);
+
         $closing = $opening + $loans_disbursed - $loans_recovered;
-        
+
         return [
-            'opening_balance' => $opening,
-            'loans_disbursed' => $loans_disbursed,
-            'loans_recovered' => $loans_recovered,
-            'closing_balance' => $closing
+            'opening_balance'  => $opening,
+            'loans_disbursed'  => $loans_disbursed,
+            'loans_recovered'  => $loans_recovered,
+            'closing_balance'  => $closing,
         ];
     }
-    
-    /**
-     * Generate Note 2: Members Fund (Shares & Savings)
-     */
-    public function generateNote2($periodid) {
-        // Shares
-        $shares = [
-            'opening' => $this->getPreviousPeriodBalance(33, $periodid), // Ordinary Shares
-            'contributions' => $this->getPeriodCredits(33, $periodid),
-            'withdrawals' => $this->getPeriodDebits(33, $periodid)
-        ];
-        $shares['closing'] = $shares['opening'] + $shares['contributions'] - $shares['withdrawals'];
-        
-        // Ordinary Savings
-        $savings = [
-            'opening' => $this->getPreviousPeriodBalance(37, $periodid), // Ordinary Savings
-            'contributions' => $this->getPeriodCredits(37, $periodid),
-            'withdrawals' => $this->getPeriodDebits(37, $periodid)
-        ];
-        $savings['closing'] = $savings['opening'] + $savings['contributions'] - $savings['withdrawals'];
-        
-        // Special Savings
-        $special = [
-            'opening' => $this->getPreviousPeriodBalance(38, $periodid), // Special Savings
-            'contributions' => $this->getPeriodCredits(38, $periodid),
-            'withdrawals' => $this->getPeriodDebits(38, $periodid)
-        ];
-        $special['closing'] = $special['opening'] + $special['contributions'] - $special['withdrawals'];
-        
+
+    /* -------- NOTE 2: Members Fund (Shares & Savings) -------- */
+
+    public function generateNote2(int $periodid): array
+    {
+        $shares  = $this->buildMovementNote(33, $periodid);
+        $savings = $this->buildMovementNote(37, $periodid);
+        $special = $this->buildMovementNote(38, $periodid);
+
         return [
-            'shares' => $shares,
-            'savings' => $savings,
-            'special_savings' => $special,
-            'total_members_fund' => $shares['closing'] + $savings['closing'] + $special['closing']
+            'shares'             => $shares,
+            'savings'            => $savings,
+            'special_savings'    => $special,
+            'total_members_fund' => $shares['closing'] + $savings['closing'] + $special['closing'],
         ];
     }
-    
-    /**
-     * Generate Note 3-5: Reserve Funds
-     */
-    public function generateReserveNotes($periodid) {
-        $reserves = [];
-        
+
+    /* -------- NOTE 3-6: Reserve Funds -------- */
+
+    public function generateReserveNotes(int $periodid): array
+    {
         $reserve_accounts = [
-            'statutory_reserve' => 40, // 3301
-            'general_reserve' => 41, // 3302
-            'education_fund' => 42, // 3303
-            'welfare_fund' => 43, // 3304
-            'building_fund' => 44 // 3305
+            'statutory_reserve' => 40,
+            'general_reserve'   => 41,
+            'education_fund'    => 42,
+            'welfare_fund'      => 43,
+            'building_fund'     => 44,
         ];
-        
+
+        $reserves = [];
         foreach ($reserve_accounts as $name => $account_id) {
-            $reserves[$name] = [
-                'opening' => $this->getPreviousPeriodBalance($account_id, $periodid),
-                'transfers_in' => $this->getPeriodCredits($account_id, $periodid),
-                'expenses_paid' => $this->getPeriodDebits($account_id, $periodid)
-            ];
-            $reserves[$name]['closing'] = $reserves[$name]['opening'] + 
-                                         $reserves[$name]['transfers_in'] - 
-                                         $reserves[$name]['expenses_paid'];
+            $note = $this->buildMovementNote($account_id, $periodid);
+            $note['expenses_paid'] = $note['withdrawals'];
+            $note['transfers_in']  = $note['contributions'];
+            $reserves[$name]       = $note;
         }
-        
+
         return $reserves;
     }
-    
-    /**
-     * Generate Note 7: Membership Strength
-     */
-    public function generateNote7($periodid) {
-        // Get period date range
-        $periodQuery = "SELECT PayrollPeriod FROM tbpayrollperiods WHERE id = ?";
-        $stmt = mysqli_prepare($this->db, $periodQuery);
-        mysqli_stmt_bind_param($stmt, "i", $periodid);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $period = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
-        
-        // Count members at start of period
+
+    /* -------- NOTE 7: Membership Strength -------- */
+
+    public function generateNote7(int $periodid): array
+    {
         $prevPeriod = $periodid - 1;
-        $sql = "SELECT COUNT(DISTINCT memberid) as count
-                FROM tlb_mastertransaction
-                WHERE periodid <= ?";
-        
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "i", $prevPeriod);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $row = mysqli_fetch_assoc($result);
-        $opening_members = intval($row['count'] ?? 0);
-        mysqli_stmt_close($stmt);
-        
-        // Count members at end of period
-        $sql = "SELECT COUNT(DISTINCT memberid) as count
-                FROM tlb_mastertransaction
-                WHERE periodid <= ?";
-        
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "i", $periodid);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $row = mysqli_fetch_assoc($result);
-        $closing_members = intval($row['count'] ?? 0);
-        mysqli_stmt_close($stmt);
-        
-        $new_members = $closing_members - $opening_members;
-        
+
+        $stmt = $this->db->prepare(
+            "SELECT COUNT(DISTINCT memberid) FROM tlb_mastertransaction WHERE periodid <= ?"
+        );
+        $stmt->execute([$prevPeriod]);
+        $opening_members = (int)($stmt->fetchColumn() ?? 0);
+
+        $stmt->execute([$periodid]);
+        $closing_members = (int)($stmt->fetchColumn() ?? 0);
+
+        $diff = $closing_members - $opening_members;
+
         return [
             'opening_members' => $opening_members,
-            'new_members' => max(0, $new_members),
-            'exited_members' => max(0, -$new_members),
-            'closing_members' => $closing_members
+            'new_members'     => max(0,  $diff),
+            'exited_members'  => max(0, -$diff),
+            'closing_members' => $closing_members,
         ];
     }
-    
-    /**
-     * Get previous period closing balance
-     */
-    private function getPreviousPeriodBalance($account_id, $current_periodid) {
-        $sql = "SELECT closing_debit, closing_credit, normal_balance
-                FROM coop_period_balances pb
-                JOIN coop_accounts a ON pb.account_id = a.id
-                WHERE pb.account_id = ? AND pb.periodid < ?
-                ORDER BY pb.periodid DESC
-                LIMIT 1";
-        
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "ii", $account_id, $current_periodid);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $row = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
-        
-        if (!$row) return 0;
-        
-        $debit = floatval($row['closing_debit']);
-        $credit = floatval($row['closing_credit']);
-        
-        return ($row['normal_balance'] == 'debit') ? $debit - $credit : $credit - $debit;
+
+    /* -------- NOTE 8: Fixed Assets Register -------- */
+
+    public function generateFixedAssetsNote(int $periodid): array
+    {
+        $asset_pairs = [
+            'Land & Buildings' => [11, 15],
+            'Furniture & Fittings' => [12, 16],
+            'Office Equipment' => [13, 17],
+            'Computers & IT' => [14, 18],
+            'Motor Vehicles' => [15, 19],
+        ];
+
+        $rows = [];
+        $total_cost = 0;
+        $total_depn = 0;
+
+        foreach ($asset_pairs as $label => [$cost_id, $depn_id]) {
+            $cost = $this->getClosingBalance($cost_id, $periodid);
+            $depn = $this->getClosingBalance($depn_id, $periodid);
+            $nbv  = $cost - $depn;
+
+            if ($cost == 0 && $depn == 0) continue;
+
+            $rows[]      = compact('label', 'cost', 'depn', 'nbv');
+            $total_cost += $cost;
+            $total_depn += $depn;
+        }
+
+        return [
+            'rows'       => $rows,
+            'total_cost' => $total_cost,
+            'total_depn' => $total_depn,
+            'total_nbv'  => $total_cost - $total_depn,
+        ];
     }
-    
-    /**
-     * Get period credits for account
-     */
-    private function getPeriodCredits($account_id, $periodid) {
-        $sql = "SELECT COALESCE(period_credit, 0) as total
-                FROM coop_period_balances
-                WHERE account_id = ? AND periodid = ?";
-        
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "ii", $account_id, $periodid);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $row = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
-        
-        return floatval($row['total'] ?? 0);
+
+    /* -------- Helpers -------- */
+
+    private function buildMovementNote(int $account_id, int $periodid): array
+    {
+        $opening       = $this->getPreviousPeriodBalance($account_id, $periodid);
+        $contributions = $this->getPeriodCredits($account_id, $periodid);
+        $withdrawals   = $this->getPeriodDebits($account_id, $periodid);
+
+        return [
+            'opening'       => $opening,
+            'contributions' => $contributions,
+            'withdrawals'   => $withdrawals,
+            'closing'       => $opening + $contributions - $withdrawals,
+        ];
     }
-    
-    /**
-     * Get period debits for account
-     */
-    private function getPeriodDebits($account_id, $periodid) {
-        $sql = "SELECT COALESCE(period_debit, 0) as total
-                FROM coop_period_balances
-                WHERE account_id = ? AND periodid = ?";
-        
-        $stmt = mysqli_prepare($this->db, $sql);
-        mysqli_stmt_bind_param($stmt, "ii", $account_id, $periodid);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $row = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
-        
-        return floatval($row['total'] ?? 0);
+
+    private function getPreviousPeriodBalance(int $account_id, int $current_periodid): float
+    {
+        $stmt = $this->db->prepare("
+            SELECT pb.closing_debit, pb.closing_credit, a.normal_balance
+            FROM coop_period_balances pb
+            JOIN coop_accounts a ON pb.account_id = a.id
+            WHERE pb.account_id = ? AND pb.periodid < ?
+            ORDER BY pb.periodid DESC
+            LIMIT 1
+        ");
+        $stmt->execute([$account_id, $current_periodid]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$row) return 0.0;
+
+        $dr = (float)$row['closing_debit'];
+        $cr = (float)$row['closing_credit'];
+
+        return ($row['normal_balance'] === 'debit') ? $dr - $cr : $cr - $dr;
+    }
+
+    private function getClosingBalance(int $account_id, int $periodid): float
+    {
+        $stmt = $this->db->prepare("
+            SELECT a.normal_balance,
+                   COALESCE(pb.opening_debit,0)  + COALESCE(pb.period_debit,0)  AS total_dr,
+                   COALESCE(pb.opening_credit,0) + COALESCE(pb.period_credit,0) AS total_cr
+            FROM coop_accounts a
+            LEFT JOIN coop_period_balances pb ON a.id = pb.account_id AND pb.periodid = ?
+            WHERE a.id = ?
+        ");
+        $stmt->execute([$periodid, $account_id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$row) return 0.0;
+
+        return ($row['normal_balance'] === 'debit')
+            ? (float)$row['total_dr'] - (float)$row['total_cr']
+            : (float)$row['total_cr'] - (float)$row['total_dr'];
+    }
+
+    private function getPeriodCredits(int $account_id, int $periodid): float
+    {
+        $stmt = $this->db->prepare(
+            "SELECT COALESCE(period_credit, 0) FROM coop_period_balances WHERE account_id = ? AND periodid = ?"
+        );
+        $stmt->execute([$account_id, $periodid]);
+        return (float)($stmt->fetchColumn() ?? 0);
+    }
+
+    private function getPeriodDebits(int $account_id, int $periodid): float
+    {
+        $stmt = $this->db->prepare(
+            "SELECT COALESCE(period_debit, 0) FROM coop_period_balances WHERE account_id = ? AND periodid = ?"
+        );
+        $stmt->execute([$account_id, $periodid]);
+        return (float)($stmt->fetchColumn() ?? 0);
     }
 }

@@ -42,6 +42,12 @@ require_once 'db_connection.php';
 <body class="bg-gray-100 font-sans">
 <div class="container mx-auto p-6">
     <h1 class="text-3xl font-bold mb-6 text-center text-gray-800">Dividend Calculator</h1>
+    
+    <div class="flex justify-end mb-4">
+        <a href="pro_rated_dividends.php" class="bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition duration-300 font-medium shadow-sm">
+            Go to Pro-rated Dividend Calculator (For Ex-Members) →
+        </a>
+    </div>
 
     <!-- Loading Overlay -->
     <div id="loading" class="loading-overlay hidden">
@@ -84,7 +90,24 @@ require_once 'db_connection.php';
                 <input type="number" id="interest_perc" name="interest_perc" step="0.001" value="0.245" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
             </div>
         </div>
-        <button id="calculate" class="mt-4 w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">Calculate Dividends</button>
+        <div class="mt-6 border-t pt-4">
+            <h3 class="text-lg font-medium text-gray-800 mb-2">Member Exclusions</h3>
+            <p class="text-sm text-gray-600 mb-2">Paste COOP IDs (comma separated) or upload a CSV file to exclude members from the calculation.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="excluded_ids" class="block text-sm font-medium text-gray-700">Excluded COOP IDs</label>
+                    <textarea id="excluded_ids" name="excluded_ids" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="e.g. 1001, 1002, 1003"></textarea>
+                </div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label for="exclusion_csv" class="block text-sm font-medium text-gray-700">Upload Exclusion CSV</label>
+                        <button type="button" id="clear_exclusions" class="text-xs text-red-600 hover:text-red-800 font-medium">Clear All</button>
+                    </div>
+                    <input type="file" id="exclusion_csv" accept=".csv" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                    <p class="mt-1 text-xs text-gray-500">CSV should contain COOP IDs in the first column. (Headers are automatically skipped)</p>
+                </div>
+            </div>
+        </div>
+        <button id="calculate" class="mt-6 w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 text-lg font-semibold">Calculate Dividends</button>
     </div>
 
     <div id="results" class="bg-white p-6 rounded-lg shadow-md hidden">
@@ -159,9 +182,61 @@ require_once 'db_connection.php';
             document.body.removeChild(link);
         }
 
+        // Handle CSV file upload for exclusions
+        $('#exclusion_csv').change(function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const text = event.target.result;
+                const rows = text.split(/\r?\n/).filter(line => line.trim() !== '');
+                const ids = [];
+                
+                rows.forEach((row, index) => {
+                    const columns = row.split(',');
+                    let id = columns[0].trim().replace(/"/g, '');
+                    
+                    // Skip header if it's the first row and looks like text rather than an ID
+                    // (Assuming IDs are usually numeric or have a specific format)
+                    if (index === 0 && (id.toLowerCase().includes('id') || id.toLowerCase().includes('name') || isNaN(id.replace(/\D/g, '')))) {
+                        console.log('Skipping header row:', id);
+                        return;
+                    }
+
+                    if (id) {
+                        ids.push(id);
+                    }
+                });
+
+                if (ids.length > 0) {
+                    const currentVal = $('#excluded_ids').val().trim();
+                    const currentArray = currentVal ? currentVal.split(',').map(s => s.trim()) : [];
+                    const combinedArray = [...currentArray, ...ids];
+                    
+                    // Remove duplicates and empty strings
+                    const uniqueIds = [...new Set(combinedArray)].filter(s => s !== '');
+                    $('#excluded_ids').val(uniqueIds.join(', '));
+                    alert(ids.length + ' IDs added/merged from CSV');
+                } else {
+                    alert('No valid IDs found in the first column of the CSV');
+                }
+                // Clear the file input so the same file can be uploaded again if needed
+                $('#exclusion_csv').val('');
+            };
+            reader.readAsText(file);
+        });
+
+        $('#clear_exclusions').click(function() {
+            if (confirm('Are you sure you want to clear all exclusions?')) {
+                $('#excluded_ids').val('');
+            }
+        });
+
         $('#calculate').click(function() {
             const periodFrom = $('#payroll_period_from').val();
             const periodTo = $('#payroll_period_to').val();
+            const excludedIds = $('#excluded_ids').val();
 
             if (!periodFrom || !periodTo) {
                 alert('Please select both payroll periods');
@@ -180,7 +255,8 @@ require_once 'db_connection.php';
                 method: 'POST',
                 data: {
                     period_from: periodFrom,
-                    period_to: periodTo
+                    period_to: periodTo,
+                    excluded_ids: excludedIds
                 },
                 dataType: 'json',
                 success: function(response) {

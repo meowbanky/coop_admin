@@ -72,45 +72,49 @@ function createEmployee() {
     $email = $_POST['email'] ?? '';
     $phone = $_POST['phone'] ?? '';
     $address = $_POST['address'] ?? '';
-    
+    $nok_first_name = $_POST['nok_first_name'] ?? '';
+    $nok_middle_name = $_POST['nok_middle_name'] ?? '';
+    $nok_last_name = $_POST['nok_last_name'] ?? '';
+    $nok_tel = $_POST['nok_tel'] ?? '';
+
     // Validate required fields
     if (empty($coop_id) || empty($staff_id) || empty($first_name) || empty($last_name) || empty($department)) {
         echo json_encode(['success' => false, 'message' => 'Required fields are missing']);
         return;
     }
-    
+
     // Validate StaffID is numeric
     if (!is_numeric($staff_id)) {
         echo json_encode(['success' => false, 'message' => 'Staff ID must be a number']);
         return;
     }
-    
+
     // Check if CoopID already exists
     $check_sql = "SELECT COUNT(*) as count FROM tblemployees WHERE CoopID = ?";
     $check_stmt = $conn->prepare($check_sql);
     $check_stmt->execute([$coop_id]);
     $result = $check_stmt->fetch(PDO::FETCH_ASSOC);
-    
+
     if ($result['count'] > 0) {
         echo json_encode(['success' => false, 'message' => 'Cooperative ID already exists']);
         return;
     }
-    
+
     // Check if StaffID already exists
     $check_staff_sql = "SELECT COUNT(*) as count FROM tblemployees WHERE StaffID = ?";
     $check_staff_stmt = $conn->prepare($check_staff_sql);
     $check_staff_stmt->execute([$staff_id]);
     $staff_result = $check_staff_stmt->fetch(PDO::FETCH_ASSOC);
-    
+
     if ($staff_result['count'] > 0) {
         echo json_encode(['success' => false, 'message' => 'Staff ID already exists']);
         return;
     }
-    
+
     // Insert new employee
-    $sql = "INSERT INTO tblemployees (CoopID, StaffID, FirstName, LastName, Department, JobPosition, Status, EmailAddress, MobileNumber, StreetAddress, DateInserted, InsertedBy) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE(), ?)";
-    
+    $sql = "INSERT INTO tblemployees (CoopID, StaffID, FirstName, LastName, Department, JobPosition, Status, EmailAddress, MobileNumber, StreetAddress, NOKFirstName, NOKMiddleName, NOKLastName, NOKTel, DateInserted, InsertedBy)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE(), ?)";
+
     $stmt = $conn->prepare($sql);
     $result = $stmt->execute([
         $coop_id,
@@ -123,6 +127,10 @@ function createEmployee() {
         $email,
         $phone,
         $address,
+        $nok_first_name,
+        $nok_middle_name,
+        $nok_last_name,
+        $nok_tel,
         $_SESSION['SESS_MEMBER_ID']
     ]);
     
@@ -169,56 +177,64 @@ function updateEmployee() {
     $email = $_POST['email'] ?? '';
     $phone = $_POST['phone'] ?? '';
     $address = $_POST['address'] ?? '';
-    
+    $nok_first_name = $_POST['nok_first_name'] ?? '';
+    $nok_middle_name = $_POST['nok_middle_name'] ?? '';
+    $nok_last_name = $_POST['nok_last_name'] ?? '';
+    $nok_tel = $_POST['nok_tel'] ?? '';
+
     // Validate required fields
     if (empty($coop_id) || empty($staff_id) || empty($first_name) || empty($last_name) || empty($department)) {
         echo json_encode(['success' => false, 'message' => 'Required fields are missing']);
         return;
     }
-    
+
     // Validate StaffID is numeric
     if (!is_numeric($staff_id)) {
         echo json_encode(['success' => false, 'message' => 'Staff ID must be a number']);
         return;
     }
-    
+
     // Check if StaffID already exists (excluding current employee)
     // $check_staff_sql = "SELECT COUNT(*) as count FROM tblemployees WHERE StaffID = ? AND CoopID != ?";
     // $check_staff_stmt = $conn->prepare($check_staff_sql);
     // $check_staff_stmt->execute([$staff_id, $coop_id]);
     // $staff_result = $check_staff_stmt->fetch(PDO::FETCH_ASSOC);
-    
+
     // if ($staff_result['count'] > 0) {
     //     echo json_encode(['success' => false, 'message' => 'Staff ID already exists']);
     //     return;
     // }
-    
+
     // Get the original StaffID for the WHERE clause
     $original_staff_sql = "SELECT StaffID FROM tblemployees WHERE CoopID = ?";
     $original_staff_stmt = $conn->prepare($original_staff_sql);
     $original_staff_stmt->execute([$coop_id]);
     $original_staff = $original_staff_stmt->fetch(PDO::FETCH_ASSOC);
-    
+
     if (!$original_staff) {
         echo json_encode(['success' => false, 'message' => 'Employee not found']);
         return;
     }
-    
+
     // Update employee
-    $sql = "UPDATE tblemployees SET 
+    $sql = "UPDATE tblemployees SET
             StaffID = ?,
-            FirstName = ?, 
-            LastName = ?, 
-            Department = ?, 
-            JobPosition = ?, 
-            Status = ?, 
-            EmailAddress = ?, 
-            MobileNumber = ?, 
-            StreetAddress = ?, 
-            DateUpdated = CURDATE(), 
+            FirstName = ?,
+            LastName = ?,
+            Department = ?,
+            JobPosition = ?,
+            Status = ?,
+            EmailAddress = ?,
+            MobileNumber = ?,
+            StreetAddress = ?,
+            NOKFirstName = ?,
+            NOKMiddleName = ?,
+            NOKLastName = ?,
+            NOKTel = ?,
+            DateUpdated = CURDATE(),
             UpdatedBy = ?
             WHERE CoopID = ? AND StaffID = ?";
-    
+
     $stmt = $conn->prepare($sql);
     $result = $stmt->execute([
         $staff_id,
@@ -230,6 +246,10 @@ function updateEmployee() {
         $email,
         $phone,
         $address,
+        $nok_first_name,
+        $nok_middle_name,
+        $nok_last_name,
+        $nok_tel,
         $_SESSION['SESS_MEMBER_ID'],
         $coop_id,
         $original_staff['StaffID']

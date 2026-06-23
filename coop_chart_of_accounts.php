@@ -2,6 +2,7 @@
 
 require_once('Connections/coop.php');
 require_once('includes/header.php');
+require_once('includes/accounting_nav.php');
 
 // Get filter parameters
 $filterType = isset($_GET['type']) ? $_GET['type'] : '';

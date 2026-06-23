@@ -4,6 +4,7 @@ require_once('Connections/coop.php');
 require_once('libs/services/BankReconciliationService.php');
 require_once('libs/services/AccountBalanceCalculator.php');
 require_once('includes/header.php');
+require_once('includes/accounting_nav.php');
 
 $reconService = new BankReconciliationService($coop, $database);
 $calculator = new AccountBalanceCalculator($coop, $database);

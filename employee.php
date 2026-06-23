@@ -396,6 +396,34 @@ $nextCoopID = generateNextCoopID($conn);
                         </select>
                     </div>
                 </div>
+
+                <!-- Next of Kin -->
+                <div class="border-t border-gray-200 pt-4">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3">Next of Kin Information</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">NOK First Name</label>
+                            <input type="text" id="add_nok_first_name" name="nok_first_name"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">NOK Middle Name</label>
+                            <input type="text" id="add_nok_middle_name" name="nok_middle_name"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">NOK Last Name</label>
+                            <input type="text" id="add_nok_last_name" name="nok_last_name"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">NOK Phone Number</label>
+                            <input type="text" id="add_nok_tel" name="nok_tel"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                    </div>
+                </div>
+
                 <div class="flex justify-end space-x-4 pt-4">
                     <button type="button" onclick="closeAddModal()"
                         class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
@@ -464,6 +492,34 @@ $nextCoopID = generateNextCoopID($conn);
                         </select>
                     </div>
                 </div>
+
+                <!-- Next of Kin -->
+                <div class="border-t border-gray-200 pt-4">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-3">Next of Kin Information</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">NOK First Name</label>
+                            <input type="text" id="edit_nok_first_name" name="nok_first_name"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">NOK Middle Name</label>
+                            <input type="text" id="edit_nok_middle_name" name="nok_middle_name"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">NOK Last Name</label>
+                            <input type="text" id="edit_nok_last_name" name="nok_last_name"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">NOK Phone Number</label>
+                            <input type="text" id="edit_nok_tel" name="nok_tel"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                    </div>
+                </div>
+
                 <div class="flex justify-end space-x-4 pt-4">
                     <button type="button" onclick="closeEditModal()"
                         class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
@@ -525,9 +581,13 @@ class EmployeeManager {
         document.getElementById('edit_first_name').value = employee.FirstName || '';
         document.getElementById('edit_last_name').value = employee.LastName || '';
         document.getElementById('edit_email').value = employee.EmailAddress || '';
-        document.getElementById('edit_phone').value = employee.PhoneNumber || '';
+        document.getElementById('edit_phone').value = employee.MobileNumber || '';
         document.getElementById('edit_department').value = employee.Department || '';
         document.getElementById('edit_status').value = employee.Status || 'Active';
+        document.getElementById('edit_nok_first_name').value = employee.NOKFirstName || '';
+        document.getElementById('edit_nok_middle_name').value = employee.NOKMiddleName || '';
+        document.getElementById('edit_nok_last_name').value = employee.NOKLastName || '';
+        document.getElementById('edit_nok_tel').value = employee.NOKTel || '';
 
         this.openEditModal();
     }

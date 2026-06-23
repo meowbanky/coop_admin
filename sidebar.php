@@ -29,6 +29,59 @@
          <li <?php if ($currentPage == 'payperiods.php') { ?> class="active" <?php } ?>><a href="payperiods.php"><i
                      class="fa fa-table"></i><span class="hidden-minibar">Periods</span></a></li>
 
+         <?php
+         $acctPages = ['coop_annual_report.php','coop_financial_statements.php','coop_trial_balance.php',
+                       'coop_general_ledger.php','coop_journal_entries.php','coop_chart_of_accounts.php',
+                       'coop_period_closing.php','coop_bank_reconciliation.php','coop_member_statement.php',
+                       'coop_comparative_reports.php'];
+         $acctOpen  = in_array($currentPage, $acctPages);
+         ?>
+         <li class="<?php echo $acctOpen ? 'active' : ''; ?>" id="acct-group">
+             <a href="#" onclick="toggleAcctMenu(event)"
+                style="display:flex;align-items:center;justify-content:space-between;">
+                 <span><i class="fa fa-book"></i><span class="hidden-minibar"> Accounting</span></span>
+                 <i class="fa fa-chevron-<?php echo $acctOpen ? 'down' : 'right'; ?> hidden-minibar"
+                    id="acct-chevron" style="font-size:0.7rem;opacity:0.7;"></i>
+             </a>
+             <ul id="acct-submenu"
+                 style="display:<?php echo $acctOpen ? 'block' : 'none'; ?>;
+                        list-style:none;padding:0;margin:0;background:rgba(0,0,0,0.15);">
+                 <?php
+                 $acctLinks = [
+                     'coop_annual_report.php'       => ['fa-file-text-o', 'Annual Report'],
+                     'coop_financial_statements.php'=> ['fa-bar-chart',   'Financials'],
+                     'coop_trial_balance.php'       => ['fa-balance-scale','Trial Balance'],
+                     'coop_general_ledger.php'      => ['fa-list-alt',    'General Ledger'],
+                     'coop_journal_entries.php'     => ['fa-pencil-square-o','Journal Entries'],
+                     'coop_chart_of_accounts.php'   => ['fa-sitemap',     'Chart of Accounts'],
+                     'coop_member_statement.php'    => ['fa-user-o',      'Member Statement'],
+                     'coop_comparative_reports.php' => ['fa-line-chart',  'Comparative'],
+                     'coop_bank_reconciliation.php' => ['fa-exchange',    'Bank Reconciliation'],
+                     'coop_period_closing.php'      => ['fa-lock',        'Period Closing'],
+                 ];
+                 foreach ($acctLinks as $file => [$icon, $label]):
+                 ?>
+                 <li <?php echo ($currentPage == $file) ? 'class="active"' : ''; ?>>
+                     <a href="<?php echo $file; ?>" style="padding-left:28px;font-size:0.85em;">
+                         <i class="fa <?php echo $icon; ?>"></i>
+                         <span class="hidden-minibar"> <?php echo $label; ?></span>
+                     </a>
+                 </li>
+                 <?php endforeach; ?>
+             </ul>
+         </li>
+         <script>
+         function toggleAcctMenu(e) {
+             e.preventDefault();
+             var menu    = document.getElementById('acct-submenu');
+             var chevron = document.getElementById('acct-chevron');
+             var open    = menu.style.display !== 'none';
+             menu.style.display = open ? 'none' : 'block';
+             if (chevron) chevron.className = open ? 'fa fa-chevron-right hidden-minibar' : 'fa fa-chevron-down hidden-minibar';
+             chevron.style.fontSize = '0.7rem'; chevron.style.opacity = '0.7';
+         }
+         </script>
+
          <li <?php if ($currentPage == 'Users.php') { ?> class="active" <?php } ?>><a href="Users.php"><i
                      class="fa fa-group"></i><span class="hidden-minibar">users</span></a></li>
 

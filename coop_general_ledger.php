@@ -3,6 +3,7 @@
 require_once('Connections/coop.php');
 require_once('libs/services/AccountBalanceCalculator.php');
 require_once('includes/header.php');
+require_once('includes/accounting_nav.php');
 
 // Get all accounts for dropdown
 $accountsQuery = "SELECT id, account_code, account_name, account_type 

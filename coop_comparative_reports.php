@@ -5,6 +5,7 @@ require_once('libs/reports/IncomeExpenditureStatement.php');
 require_once('libs/reports/BalanceSheet.php');
 require_once('libs/reports/CashflowStatement.php');
 require_once('includes/header.php');
+require_once('includes/accounting_nav.php');
 
 // Get all periods
 $periods = [];

@@ -1,7 +1,7 @@
 <?php
 session_start();
 header('Content-Type: application/json');
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['SESS_MEMBER_ID']) || trim($_SESSION['SESS_MEMBER_ID']) === '') {
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit;
 }
@@ -18,7 +18,7 @@ try {
     $entry_type = $_POST['entry_type'] ?? 'manual';
     $description = trim($_POST['description']);
     $source_document = !empty($_POST['source_document']) ? trim($_POST['source_document']) : null;
-    $created_by = $_SESSION['user_id'];
+    $created_by = $_SESSION['SESS_MEMBER_ID'];
     
     // Parse journal lines
     $lines = [];

@@ -3,6 +3,7 @@
 require_once('Connections/coop.php');
 require_once('libs/services/MemberAccountManager.php');
 require_once('includes/header.php');
+require_once('includes/accounting_nav.php');
 
 // Initialize manager
 $memberAccountManager = new MemberAccountManager($coop, $database);
@@ -18,10 +19,10 @@ if ($stmt) {
 }
 
 // Get members for search
-$membersQuery = "SELECT CoopID as memberid, CONCAT(LastName, ', ', FirstName, ' ', IFNULL(MiddleName, '')) as full_name 
-                 FROM tblemployees 
-                 WHERE Status = 'Active'
-                 ORDER BY CoopID";
+$membersQuery = "SELECT StaffID as memberid, CONCAT(LastName, ', ', FirstName, ' ', IFNULL(MiddleName, '')) as full_name
+                 FROM tblemployees
+                 WHERE Status = 'Active' AND StaffID IS NOT NULL
+                 ORDER BY LastName, FirstName";
 $stmt = $coop->query($membersQuery);
 $members = [];
 if ($stmt) {
@@ -30,7 +31,7 @@ if ($stmt) {
     }
 }
 
-// Get parameters
+// Get parameters (StaffID is INT)
 $selectedMember = isset($_GET['memberid']) ? intval($_GET['memberid']) : 0;
 $fromPeriod = isset($_GET['from_period']) ? intval($_GET['from_period']) : 0;
 $toPeriod = isset($_GET['to_period']) ? intval($_GET['to_period']) : 0;

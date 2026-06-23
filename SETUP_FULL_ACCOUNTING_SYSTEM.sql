@@ -457,6 +457,7 @@ INSERT INTO coop_accounts (account_code, account_name, parent_id, account_type, 
 ('3401', 'Accumulated Profit/Loss', 45, 'equity', 'reserves', 'credit', FALSE, TRUE, 'Cumulative retained earnings');
 
 -- REVENUE (4000-4999)
+
 INSERT INTO coop_accounts (account_code, account_name, parent_id, account_type, account_category, normal_balance, is_control_account, is_system_account, description) VALUES
 ('4000', 'REVENUE', NULL, 'revenue', NULL, 'credit', TRUE, TRUE, 'All revenue and income'),
 

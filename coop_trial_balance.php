@@ -3,6 +3,7 @@
 require_once('Connections/coop.php');
 require_once('libs/services/AccountBalanceCalculator.php');
 require_once('includes/header.php');
+require_once('includes/accounting_nav.php');
 
 // Initialize calculator
 $balanceCalculator = new AccountBalanceCalculator($coop, $database);

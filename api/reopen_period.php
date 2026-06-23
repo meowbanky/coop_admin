@@ -1,7 +1,7 @@
 <?php
 session_start();
 header('Content-Type: application/json');
-if (!isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['SESS_MEMBER_ID'])) {
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit;
 }
@@ -22,7 +22,7 @@ try {
     }
     
     $processor = new PeriodClosingProcessor($coop, $database);
-    $result = $processor->reopenPeriod($periodid, $_SESSION['user_id'], $reason);
+    $result = $processor->reopenPeriod($periodid, $_SESSION['SESS_MEMBER_ID'], $reason);
     
     echo json_encode($result);
     

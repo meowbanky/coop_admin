@@ -498,24 +498,28 @@ class AccountingEngine {
      * @param string $new_values New values (JSON)
      */
     private function logAuditTrail($user_id, $action_type, $table_name, $record_id, $old_values = null, $new_values = null) {
-        $sql = "INSERT INTO coop_audit_trail 
-                (user_id, action_type, table_name, record_id, old_values, new_values, ip_address, user_agent) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        
-        $ip_address = $_SERVER['REMOTE_ADDR'] ?? null;
-        $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? null;
-        
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([
-            $user_id,
-            $action_type,
-            $table_name,
-            $record_id,
-            $old_values,
-            $new_values,
-            $ip_address,
-            $user_agent
-        ]);
+        try {
+            $sql = "INSERT INTO coop_audit_trail
+                    (user_id, action_type, table_name, record_id, old_values, new_values, ip_address, user_agent)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+            $ip_address = $_SERVER['REMOTE_ADDR'] ?? null;
+            $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? null;
+
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([
+                $user_id,
+                $action_type,
+                $table_name,
+                $record_id,
+                $old_values,
+                $new_values,
+                $ip_address,
+                $user_agent
+            ]);
+        } catch (Exception $e) {
+            error_log("AccountingEngine::logAuditTrail - " . $e->getMessage());
+        }
     }
     
     /**

@@ -5,6 +5,7 @@ require_once('libs/reports/IncomeExpenditureStatement.php');
 require_once('libs/reports/BalanceSheet.php');
 require_once('libs/reports/CashflowStatement.php');
 require_once('includes/header.php');
+require_once('includes/accounting_nav.php');
 
 // Get periods for dropdown
 // Get periods for dropdown
@@ -101,7 +102,7 @@ if ($selectedPeriod > 0) {
     <?php if ($selectedPeriod > 0): ?>
 
         <!-- INCOME & EXPENDITURE STATEMENT -->
-        <?php if (($statementType == 'income' || $statementType == 'both') && $incomeStatement && $incomeStatement['success']): ?>
+        <?php if (($statementType == 'income' || $statementType == 'all') && $incomeStatement && $incomeStatement['success']): ?>
             <?php $data = $incomeStatement['statement'][$selectedPeriod]; ?>
             
             <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6" id="incomeStatement">
@@ -219,7 +220,7 @@ if ($selectedPeriod > 0) {
         <?php endif; ?>
 
         <!-- BALANCE SHEET -->
-        <?php if (($statementType == 'balance' || $statementType == 'both') && $balanceSheet && $balanceSheet['success']): ?>
+        <?php if (($statementType == 'balance' || $statementType == 'all') && $balanceSheet && $balanceSheet['success']): ?>
             <?php $data = $balanceSheet['statement'][$selectedPeriod]; ?>
             
             <div class="bg-white rounded-lg shadow-md overflow-hidden" id="balanceSheet">
