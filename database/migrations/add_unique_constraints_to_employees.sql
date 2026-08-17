@@ -31,8 +31,10 @@ HAVING COUNT(*) > 1;
 -- 4. Apply the constraints once the audits above return no rows.
 --    APPLIED — uniq_employees_coop_id is live. This is the index the CoopID
 --    collision retry in api/employee.php depends on.
+--    IF NOT EXISTS makes re-running this file a no-op instead of
+--    "1061 - Duplicate key name". Requires MariaDB 10.0.2+ (server is 10.11).
 ALTER TABLE tblemployees
-ADD UNIQUE INDEX uniq_employees_coop_id (CoopID);
+ADD UNIQUE INDEX IF NOT EXISTS uniq_employees_coop_id (CoopID);
 
 -- NOT APPLICABLE: a UNIQUE index on StaffID. StaffID is half of the composite
 -- PRIMARY KEY (CoopID, StaffID), so duplicate StaffID values are legal by design
@@ -44,5 +46,6 @@ ADD UNIQUE INDEX uniq_employees_coop_id (CoopID);
 -- Email is intentionally a plain index, not unique: historical records may share
 -- a blank value, and MySQL treats '' as a real duplicate (unlike NULL).
 -- Uniqueness for non-blank emails is enforced in api/employee.php.
+-- APPLIED.
 ALTER TABLE tblemployees
-ADD INDEX idx_employees_email (EmailAddress);
+ADD INDEX IF NOT EXISTS idx_employees_email (EmailAddress);
