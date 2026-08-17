@@ -93,10 +93,19 @@ function collectEmployeeInput() {
 /**
  * Returns an error message for the first failed rule, or null when valid.
  * $excludeCoopId skips the member being edited during uniqueness checks.
+ *
+ * $requireEmail is true when creating: new members must have an address, since
+ * it is what lets them register in the mobile app. It is false when editing, so
+ * that legacy members with no address on file can still be corrected — an admin
+ * fixing a StaffID should not be forced to invent an email first.
  */
-function validateEmployeeInput($conn, $input, $excludeCoopId = null) {
+function validateEmployeeInput($conn, $input, $excludeCoopId = null, $requireEmail = true) {
     if (empty($input['staff_id']) || empty($input['first_name']) ||
-        empty($input['last_name']) || empty($input['department']) || empty($input['email'])) {
+        empty($input['last_name']) || empty($input['department'])) {
+        return 'Required fields are missing';
+    }
+
+    if ($requireEmail && $input['email'] === '') {
         return 'Required fields are missing';
     }
 
@@ -109,7 +118,8 @@ function validateEmployeeInput($conn, $input, $excludeCoopId = null) {
         return 'Staff ID must be greater than zero';
     }
 
-    if (!isValidEmailAddress($input['email'])) {
+    // Format and uniqueness are checked only when an address was supplied.
+    if ($input['email'] !== '' && !isValidEmailAddress($input['email'])) {
         return 'Please enter a valid email address';
     }
 
@@ -117,7 +127,7 @@ function validateEmployeeInput($conn, $input, $excludeCoopId = null) {
         return 'Invalid status selected';
     }
 
-    if (emailExists($conn, $input['email'], $excludeCoopId)) {
+    if ($input['email'] !== '' && emailExists($conn, $input['email'], $excludeCoopId)) {
         return 'Email address is already assigned to another member';
     }
 
@@ -280,7 +290,7 @@ function updateEmployee() {
         return;
     }
 
-    $error = validateEmployeeInput($conn, $input, $coop_id);
+    $error = validateEmployeeInput($conn, $input, $coop_id, false);
     if ($error !== null) {
         echo json_encode(['success' => false, 'message' => $error]);
         return;
