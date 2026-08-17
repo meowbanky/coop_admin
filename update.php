@@ -19,7 +19,6 @@ function sendMail($coop_no){
             tblemployees.LastName,
             tblemployees.FirstName,
             tblemployees.MiddleName,
-            tblusers_online.PlainPassword,
             tblusers_online.Username,
             tblemployees.EmailAddress
             FROM
@@ -37,11 +36,10 @@ function sendMail($coop_no){
 
         $email_register = $row_period["EmailAddress"];
         $username = $row_period["Username"];
-        $password = $row_period["PlainPassword"];
         $first_name = $row_period["FirstName"];
         $last_name = $row_period["LastName"];
         
-        $sendmessage = "Dear {$first_name} {$last_name}, Password change process has occured on your coop account. Your login details can be found below: <br>username = {$username}<br> Password = {$password} <br />If you did not carry out this change, Please login and change your password immediately.";
+        $sendmessage = "Dear {$first_name} {$last_name}, a password change has occurred on your coop account.<br />Your username is {$username}.<br />If you did not carry out this change, please reset your password immediately.";
 
         require "mail/vendor/autoload.php";
         
@@ -94,7 +92,6 @@ function resetMail($coop_no){
             tblemployees.LastName,
             tblemployees.FirstName,
             tblemployees.MiddleName,
-            tblusers_online.PlainPassword,
             tblusers_online.Username,
             tblemployees.EmailAddress
             FROM
@@ -112,11 +109,10 @@ function resetMail($coop_no){
 
         $email_register = $row_period["EmailAddress"];
         $username = $row_period["Username"];
-        $password = $row_period["PlainPassword"];
         $first_name = $row_period["FirstName"];
         $last_name = $row_period["LastName"];
         
-        $sendmessage = "Dear {$first_name} {$last_name}, your login details can be found below: <br>username = {$username}<br> Password = {$password}";
+        $sendmessage = "Dear {$first_name} {$last_name}, your username is {$username}.<br />Use the Forgot Password option in the app to set a new password.";
         
         require "mail/vendor/autoload.php";
         

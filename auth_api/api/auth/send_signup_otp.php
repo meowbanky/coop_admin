@@ -29,7 +29,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require_once __DIR__ . '/../../config/Database.php';
 require_once __DIR__ . '/../../utils/EmailService.php';
+require_once __DIR__ . '/../../utils/Validator.php';
+require_once __DIR__ . '/../../utils/OtpThrottle.php';
 header('Content-Type: application/json');
+
+const OTP_VALIDITY_MINUTES = 15;
 
 try {
     $data = json_decode(file_get_contents('php://input'));
@@ -37,41 +41,62 @@ try {
         throw new Exception('Email is required');
     }
 
+    $email = trim($data->email);
+
+    if (!Validator::isValidEmail($email)) {
+        throw new Exception('Please enter a valid email address');
+    }
+
     $database = new Database();
     $db = $database->getConnection();
 
     // Check if email already exists
-    $sql = "SELECT EmailAddress FROM tblemployees 
-            WHERE EmailAddress = :email AND EmailAddress IN 
+    $sql = "SELECT EmailAddress FROM tblemployees
+            WHERE EmailAddress = :email AND EmailAddress IN
             (SELECT Username FROM tblusers_online)";
 
     $stmt = $db->prepare($sql);
-    $stmt->bindParam(':email', $data->email);
+    $stmt->bindParam(':email', $email);
     $stmt->execute();
 
     if ($stmt->rowCount() > 0) {
         throw new Exception('Email already registered');
     }
 
-    // Generate OTP
-    $otp = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
+    $throttle = new OtpThrottle($db, 'tbl_signup_otp');
+    $throttle->assertCanSend($email);
+
+    // Generate OTP from a cryptographically secure source
+    $otp = OtpThrottle::generateCode();
     $expiryTime = (new DateTime('now', new DateTimeZone('UTC'))) // Current time in UTC
-    ->add(new DateInterval('PT15M')) // Add 15 minutes
+    ->add(new DateInterval('PT' . OTP_VALIDITY_MINUTES . 'M'))
     ->format('Y-m-d H:i:s');
 
-    // Store OTP
-    $sql = "INSERT INTO tbl_signup_otp (email, otp, expiry_time) 
-            VALUES (:email, :otp, :expiry_time)";
+    // Store and send together: if the mail fails, roll back so we do not leave
+    // an OTP the member never received (which would still count against them).
+    $db->beginTransaction();
 
-    $stmt = $db->prepare($sql);
-    $stmt->bindParam(':email', $data->email);
-    $stmt->bindParam(':otp', $otp);
-    $stmt->bindParam(':expiry_time', $expiryTime);
-    $stmt->execute();
+    try {
+        $sql = "INSERT INTO tbl_signup_otp (email, otp, expiry_time)
+                VALUES (:email, :otp, :expiry_time)";
 
-    // Send email
-    $emailService = new EmailService();
-    $emailService->sendOTP($data->email, $otp);
+        $stmt = $db->prepare($sql);
+        $stmt->bindParam(':email', $email);
+        $stmt->bindParam(':otp', $otp);
+        $stmt->bindParam(':expiry_time', $expiryTime);
+        $stmt->execute();
+
+        $emailService = new EmailService();
+        $emailService->sendOTP($email, $otp);
+
+        $db->commit();
+    } catch (Exception $e) {
+        if ($db->inTransaction()) {
+            $db->rollBack();
+        }
+        error_log('Signup OTP delivery failed for ' . $email . ': ' . $e->getMessage());
+        throw new Exception('Could not send the verification code. Please try again.');
+    }
 
     echo json_encode([
         'success' => true,

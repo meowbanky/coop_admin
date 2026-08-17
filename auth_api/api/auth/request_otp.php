@@ -21,7 +21,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require_once __DIR__ . '/../../config/Database.php';
 require_once __DIR__ .'/../../utils/EmailService.php';
+require_once __DIR__ . '/../../utils/Validator.php';
+require_once __DIR__ . '/../../utils/OtpThrottle.php';
 header('Content-Type: application/json');
+
+const OTP_VALIDITY_MINUTES = 15;
 
 try {
     $data = json_decode(file_get_contents('php://input'));
@@ -29,28 +33,49 @@ try {
         throw new Exception('Email is required');
     }
 
+    $email = trim($data->email);
+
+    if (!Validator::isValidEmail($email)) {
+        throw new Exception('Please enter a valid email address');
+    }
+
     $database = new Database();
     $db = $database->getConnection();
 
-    $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+    $throttle = new OtpThrottle($db, 'tbl_password_resets');
+    $throttle->assertCanSend($email);
 
-// Calculate expiry time in UTC
+    $otp = OtpThrottle::generateCode();
+
+    // Calculate expiry time in UTC
     $expiryTime = (new DateTime('now', new DateTimeZone('UTC'))) // Current time in UTC
-    ->add(new DateInterval('PT15M')) // Add 15 minutes
+    ->add(new DateInterval('PT' . OTP_VALIDITY_MINUTES . 'M'))
     ->format('Y-m-d H:i:s');
-    // Store OTP in database
-    $sql = "INSERT INTO tbl_password_resets (email, otp, expiry_time) 
-            VALUES (:email, :otp, :expiry_time)";
 
-    $stmt = $db->prepare($sql);
-    $stmt->bindParam(':email', $data->email);
-    $stmt->bindParam(':otp', $otp);
-    $stmt->bindParam(':expiry_time', $expiryTime);
-    $stmt->execute();
+    // Store and send together so a failed mail does not leave a stranded OTP.
+    $db->beginTransaction();
 
-    // Send email
-    $emailSender = new EmailService();
-    $emailSender->sendOTP($data->email, $otp);
+    try {
+        $sql = "INSERT INTO tbl_password_resets (email, otp, expiry_time)
+                VALUES (:email, :otp, :expiry_time)";
+
+        $stmt = $db->prepare($sql);
+        $stmt->bindParam(':email', $email);
+        $stmt->bindParam(':otp', $otp);
+        $stmt->bindParam(':expiry_time', $expiryTime);
+        $stmt->execute();
+
+        $emailSender = new EmailService();
+        $emailSender->sendOTP($email, $otp);
+
+        $db->commit();
+    } catch (Exception $e) {
+        if ($db->inTransaction()) {
+            $db->rollBack();
+        }
+        error_log('Reset OTP delivery failed for ' . $email . ': ' . $e->getMessage());
+        throw new Exception('Could not send the verification code. Please try again.');
+    }
 
     echo json_encode([
         'success' => true,

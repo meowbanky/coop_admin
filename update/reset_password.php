@@ -32,8 +32,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         if ($user_result->num_rows > 0) {
             // User exists, update the password
-            $stmt = $conn->prepare("UPDATE tblusers_online SET UPassword = ?, CPassword = ?, PlainPassword = ?,first_login = 1 WHERE Username = ?");
-            $stmt->bind_param("ssss", $hashed_password, $hashed_password, $password, $reset['coop_id']);
+            $stmt = $conn->prepare("UPDATE tblusers_online SET UPassword = ?, CPassword = ?, first_login = 1 WHERE Username = ?");
+            $stmt->bind_param("sss", $hashed_password, $hashed_password, $reset['coop_id']);
             $stmt->execute();
 
             if ($stmt->affected_rows > 0) {
@@ -42,8 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 echo "No changes made or error updating password.";
             }
         } else {
-            $stmt = $conn->prepare("INSERT INTO tblusers_online (Username, UPassword, CPassword, PlainPassword,first_login,dateofRegistration) VALUES (?, ?, ?, ?,1,now())");
-            $stmt->bind_param("ssss", $reset['coop_id'], $hashed_password, $hashed_password, $password);
+            $stmt = $conn->prepare("INSERT INTO tblusers_online (Username, UPassword, CPassword, first_login, dateofRegistration) VALUES (?, ?, ?, 1, now())");
+            $stmt->bind_param("sss", $reset['coop_id'], $hashed_password, $hashed_password);
             $stmt->execute();
 
             if ($stmt->affected_rows > 0) {

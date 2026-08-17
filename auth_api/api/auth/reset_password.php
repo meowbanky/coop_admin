@@ -21,12 +21,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require_once '../../config/Database.php';
 require_once '../../utils/EmailService.php';
+require_once '../../utils/Validator.php';
 header('Content-Type: application/json');
 
 try {
     $data = json_decode(file_get_contents('php://input'));
     if (!isset($data->email) || !isset($data->otp) || !isset($data->new_password)) {
         throw new Exception('All fields are required');
+    }
+
+    $passwordError = Validator::passwordError($data->new_password);
+    if ($passwordError !== null) {
+        throw new Exception($passwordError);
     }
 
     $database = new Database();
@@ -66,31 +72,27 @@ try {
 
     // Update password in users_online table
     $hashedPassword = password_hash($data->new_password, PASSWORD_DEFAULT);
-    $plainPassword = $data->new_password; // Store plain password as well
 
-    $sql = "UPDATE tblusers_online 
+    $sql = "UPDATE tblusers_online
             SET UPassword = :hashed_password,
-                PlainPassword = :plain_password,
                 CPassword = :hashed_password
             WHERE Username = :coop_id";
 
     $stmt = $db->prepare($sql);
     $stmt->bindParam(':hashed_password', $hashedPassword);
-    $stmt->bindParam(':plain_password', $plainPassword);
     $stmt->bindParam(':coop_id', $employee['CoopID']);
     $stmt->execute();
 
     if ($stmt->rowCount() === 0) {
         // If update failed, user might not exist in tblusers_online, so insert
-        $sql = "INSERT INTO tblusers_online 
-                (Username, UPassword, PlainPassword, CPassword, first_login, roleid, dateofRegistration) 
-                VALUES (:coop_id, :hashed_password, :plain_password, :hashed_password, 1, 2, CURDATE())";
-        
+        $sql = "INSERT INTO tblusers_online
+                (Username, UPassword, CPassword, first_login, roleid, dateofRegistration)
+                VALUES (:coop_id, :hashed_password, :hashed_password, 1, 2, CURDATE())";
+
         $stmt = $db->prepare($sql);
         $stmt->bindParam(':coop_id', $employee['CoopID']);
         $stmt->bindParam(':hashed_password', $hashedPassword);
-        $stmt->bindParam(':plain_password', $plainPassword);
-        
+
         if (!$stmt->execute()) {
             throw new Exception('Failed to update or create user account');
         }
@@ -106,9 +108,14 @@ try {
     $stmt->bindParam(':otp', $data->otp);
     $stmt->execute();
 
-    // Send password reset success email
-    $emailService = new EmailService();
-    $emailService->sendPasswordResetSuccessNotification($data->email, $employee['CoopID']);
+    // The password is already changed and the OTP consumed, so a failed
+    // notification must not be reported as a failed reset.
+    try {
+        $emailService = new EmailService();
+        $emailService->sendPasswordResetSuccessNotification($data->email, $employee['CoopID']);
+    } catch (Exception $e) {
+        error_log('Password reset email failed for ' . $employee['CoopID'] . ': ' . $e->getMessage());
+    }
 
     echo json_encode([
         'success' => true,
