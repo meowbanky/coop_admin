@@ -29,13 +29,17 @@ GROUP BY EmailAddress
 HAVING COUNT(*) > 1;
 
 -- 4. Apply the constraints once the audits above return no rows.
+--    APPLIED — uniq_employees_coop_id is live. This is the index the CoopID
+--    collision retry in api/employee.php depends on.
 ALTER TABLE tblemployees
 ADD UNIQUE INDEX uniq_employees_coop_id (CoopID);
 
--- The StaffID unique index lives in null_zero_staff_ids.sql, which first clears
--- the placeholder StaffID = 0 rows that would otherwise collide
--- (ERROR 1062: Duplicate entry '0' for key 'uniq_employees_staff_id').
--- Run that migration instead of adding the index here.
+-- NOT APPLICABLE: a UNIQUE index on StaffID. StaffID is half of the composite
+-- PRIMARY KEY (CoopID, StaffID), so duplicate StaffID values are legal by design
+-- and the placeholder zeros cannot be nulled out of the way. Attempting it gives
+-- "1062 - Duplicate entry '0' for key 'uniq_employees_staff_id'". StaffID
+-- uniqueness is enforced in api/employee.php instead — see
+-- fix_placeholder_staff_ids.sql for the full explanation and the remedy.
 
 -- Email is intentionally a plain index, not unique: historical records may share
 -- a blank value, and MySQL treats '' as a real duplicate (unlike NULL).
