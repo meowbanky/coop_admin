@@ -3,5 +3,10 @@
   "build_number": "10",
   "changelog": "- New password rules: at least 8 characters, including a letter and a number\n- Password requirements are now shown as you type on sign up, password reset and change password\n- Security and reliability improvements to sign up and password reset",
   "force_update": false,
-  "download_url": "https://www.emmaggi.com/coop_admin/download.html"
+  "download_url": "https://www.emmaggi.com/coop_admin/download.html",
+  "apk_urls": {
+    "arm64-v8a": "https://www.emmaggi.com/coop_admin/download/oouth_coop_arm64-v8a_2.0.1.apk",
+    "armeabi-v7a": "https://www.emmaggi.com/coop_admin/download/oouth_coop_armeabi-v7a_2.0.1.apk",
+    "x86_64": "https://www.emmaggi.com/coop_admin/download/oouth_coop_x86_64_2.0.1.apk"
+  }
 }
