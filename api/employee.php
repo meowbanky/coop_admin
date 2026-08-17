@@ -104,6 +104,11 @@ function validateEmployeeInput($conn, $input, $excludeCoopId = null) {
         return 'Staff ID must be a number';
     }
 
+    // 0 was historically used as "unknown", which collided across members.
+    if ((int) $input['staff_id'] <= 0) {
+        return 'Staff ID must be greater than zero';
+    }
+
     if (!isValidEmailAddress($input['email'])) {
         return 'Please enter a valid email address';
     }
@@ -245,16 +250,16 @@ function getEmployee() {
     global $conn;
     
     $coop_id = $_POST['coop_id'] ?? '';
-    $staff_id = $_POST['staff_id'] ?? '';
-    
-    if (empty($coop_id) || empty($staff_id)) {
-        echo json_encode(['success' => false, 'message' => 'Employee ID and Staff ID are required']);
+
+    if (empty($coop_id)) {
+        echo json_encode(['success' => false, 'message' => 'Employee ID is required']);
         return;
     }
-    
-    $sql = "SELECT * FROM tblemployees WHERE CoopID = ? AND StaffID = ?";
+
+    // Keyed on CoopID only — StaffID may be NULL and would match nothing.
+    $sql = "SELECT * FROM tblemployees WHERE CoopID = ?";
     $stmt = $conn->prepare($sql);
-    $stmt->execute([$coop_id, $staff_id]);
+    $stmt->execute([$coop_id]);
     $employee = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if ($employee) {
@@ -301,13 +306,13 @@ function updateEmployee() {
         return;
     }
 
-    // Get the original StaffID for the WHERE clause
-    $original_staff_sql = "SELECT StaffID FROM tblemployees WHERE CoopID = ?";
-    $original_staff_stmt = $conn->prepare($original_staff_sql);
-    $original_staff_stmt->execute([$coop_id]);
-    $original_staff = $original_staff_stmt->fetch(PDO::FETCH_ASSOC);
+    // Confirm the member exists. The update keys on CoopID alone: StaffID may be
+    // NULL for members whose payroll ID is not yet assigned, and "StaffID = NULL"
+    // matches nothing, which would make the update a silent no-op.
+    $exists_stmt = $conn->prepare("SELECT 1 FROM tblemployees WHERE CoopID = ?");
+    $exists_stmt->execute([$coop_id]);
 
-    if (!$original_staff) {
+    if ($exists_stmt->fetchColumn() === false) {
         echo json_encode(['success' => false, 'message' => 'Employee not found']);
         return;
     }
@@ -329,7 +334,7 @@ function updateEmployee() {
             NOKTel = ?,
             DateUpdated = CURDATE(),
             UpdatedBy = ?
-            WHERE CoopID = ? AND StaffID = ?";
+            WHERE CoopID = ?";
 
     $stmt = $conn->prepare($sql);
     $result = $stmt->execute([
@@ -347,8 +352,7 @@ function updateEmployee() {
         $nok_last_name,
         $nok_tel,
         $_SESSION['SESS_MEMBER_ID'],
-        $coop_id,
-        $original_staff['StaffID']
+        $coop_id
     ]);
     
     if ($result) {

@@ -32,8 +32,10 @@ HAVING COUNT(*) > 1;
 ALTER TABLE tblemployees
 ADD UNIQUE INDEX uniq_employees_coop_id (CoopID);
 
-ALTER TABLE tblemployees
-ADD UNIQUE INDEX uniq_employees_staff_id (StaffID);
+-- The StaffID unique index lives in null_zero_staff_ids.sql, which first clears
+-- the placeholder StaffID = 0 rows that would otherwise collide
+-- (ERROR 1062: Duplicate entry '0' for key 'uniq_employees_staff_id').
+-- Run that migration instead of adding the index here.
 
 -- Email is intentionally a plain index, not unique: historical records may share
 -- a blank value, and MySQL treats '' as a real duplicate (unlike NULL).
