@@ -47,7 +47,11 @@ class User {
 
             switch ($identifierType) {
                 case 'email':
-                    $query .= "LOWER(e.EmailAddress) = LOWER(:identifier)";
+                    // No LOWER() on the column: tblemployees is utf8mb4_unicode_ci,
+                    // so this comparison is already case-insensitive, and wrapping
+                    // the column in a function would prevent idx_employees_email
+                    // from being used.
+                    $query .= "e.EmailAddress = :identifier";
                     break;
                 case 'phone':
                     $query .= "e.MobileNumber = :identifier";
