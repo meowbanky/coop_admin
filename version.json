@@ -1,12 +1,12 @@
 {
-  "version": "2.0.3",
-  "build_number": "12",
-  "changelog": "- Test release used to verify automatic in-app updates\n- No other changes from 2.0.2",
+  "version": "2.0.5",
+  "build_number": "14",
+  "changelog": "- Verifies automatic in-app updates end to end\n- No other changes from 2.0.4",
   "force_update": false,
   "download_url": "https://www.emmaggi.com/coop_admin/download.html",
   "apk_urls": {
-    "arm64-v8a": "https://www.emmaggi.com/coop_admin/download/oouth_coop_arm64-v8a_2.0.3.apk",
-    "armeabi-v7a": "https://www.emmaggi.com/coop_admin/download/oouth_coop_armeabi-v7a_2.0.3.apk",
-    "x86_64": "https://www.emmaggi.com/coop_admin/download/oouth_coop_x86_64_2.0.3.apk"
+    "arm64-v8a": "https://www.emmaggi.com/coop_admin/download/oouth_coop_arm64-v8a_2.0.5.apk",
+    "armeabi-v7a": "https://www.emmaggi.com/coop_admin/download/oouth_coop_armeabi-v7a_2.0.5.apk",
+    "x86_64": "https://www.emmaggi.com/coop_admin/download/oouth_coop_x86_64_2.0.5.apk"
   }
 }
