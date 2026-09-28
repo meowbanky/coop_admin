@@ -82,7 +82,11 @@ try {
                 
                 if (!empty($staffIds)) {
                     $placeholders = implode(',', array_fill(0, count($staffIds), '?'));
-                    $sql = "SELECT StaffID, CoopID FROM tblemployees WHERE StaffID IN ($placeholders)";
+                    // A returning member shares the StaffID of their old record.
+                    // FETCH_KEY_PAIR keeps the last row per StaffID, so sort the
+                    // active record last to make it the one that is mapped.
+                    $sql = "SELECT StaffID, CoopID FROM tblemployees WHERE StaffID IN ($placeholders)
+                            ORDER BY (Status = 'Active') ASC";
                     $stmt = $coop->prepare($sql);
                     $stmt->execute($staffIds);
                     $coopMap = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);

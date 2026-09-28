@@ -162,12 +162,20 @@ class MemberAccountManager
 
     public function getAllMemberBalances(int $periodid, ?string $account_type = null): array
     {
+        // Several records can share a StaffID (a returning member keeps their old
+        // record). Join to one, preferring the active record, so a balance row
+        // is never listed twice.
         $sql = "SELECT ma.memberid,
                        CONCAT(e.LastName, ', ', e.FirstName, ' ', IFNULL(e.MiddleName,'')) as member_name,
                        ma.account_type, ma.opening_balance, ma.debit_amount,
                        ma.credit_amount, ma.closing_balance
                 FROM coop_member_accounts ma
-                JOIN tblemployees e ON ma.memberid = e.StaffID
+                JOIN tblemployees e ON e.CoopID = (
+                    SELECT e2.CoopID FROM tblemployees e2
+                    WHERE e2.StaffID = ma.memberid
+                    ORDER BY (e2.Status = 'Active') DESC
+                    LIMIT 1
+                )
                 WHERE ma.periodid = ?";
 
         $params = [$periodid];
@@ -278,7 +286,9 @@ class MemberAccountManager
                     EmailAddress,
                     MobileNumber AS Phone
              FROM tblemployees
-             WHERE StaffID = ?"
+             WHERE StaffID = ?
+             ORDER BY (Status = 'Active') DESC
+             LIMIT 1"
         );
         $stmt->execute([$memberid]);
         $member = $stmt->fetch(PDO::FETCH_ASSOC);

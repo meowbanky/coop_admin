@@ -16,9 +16,11 @@
 --
 --   1. Do NOT add a UNIQUE index on StaffID. Nothing in the application needs
 --      one. The CoopID collision retry in api/employee.php depends only on
---      uniq_employees_coop_id, which is already in place. New duplicates are
---      blocked at the application layer by staffIdExists() in api/employee.php,
---      which now also rejects StaffID <= 0.
+--      uniq_employees_coop_id, which is already in place. A StaffID may repeat
+--      across records because a member who withdraws and later rejoins keeps
+--      their old In-Active record. The application allows only one ACTIVE
+--      holder per StaffID (includes/member_identity_helper.php) and rejects
+--      StaffID <= 0.
 --
 --   2. CoopID alone is unique, so keying reads and updates on CoopID alone is
 --      correct. api/employee.php was changed to do this; the old

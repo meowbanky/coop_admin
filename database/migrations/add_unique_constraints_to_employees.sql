@@ -39,13 +39,15 @@ ADD UNIQUE INDEX IF NOT EXISTS uniq_employees_coop_id (CoopID);
 -- NOT APPLICABLE: a UNIQUE index on StaffID. StaffID is half of the composite
 -- PRIMARY KEY (CoopID, StaffID), so duplicate StaffID values are legal by design
 -- and the placeholder zeros cannot be nulled out of the way. Attempting it gives
--- "1062 - Duplicate entry '0' for key 'uniq_employees_staff_id'". StaffID
--- uniqueness is enforced in api/employee.php instead — see
--- fix_placeholder_staff_ids.sql for the full explanation and the remedy.
+-- "1062 - Duplicate entry '0' for key 'uniq_employees_staff_id'". A returning
+-- member also reuses the StaffID of their old In-Active record. The application
+-- allows one ACTIVE holder per StaffID instead
+-- (includes/member_identity_helper.php) — see fix_placeholder_staff_ids.sql for
+-- the full explanation and the remedy.
 
 -- Email is intentionally a plain index, not unique: historical records may share
 -- a blank value, and MySQL treats '' as a real duplicate (unlike NULL).
--- Uniqueness for non-blank emails is enforced in api/employee.php.
+-- One ACTIVE holder per non-blank email is enforced by the same helper.
 -- APPLIED.
 ALTER TABLE tblemployees
 ADD INDEX IF NOT EXISTS idx_employees_email (EmailAddress);

@@ -5,6 +5,7 @@ include_once('../classes/model.php');
 require_once('../includes/session_helper.php');
 require_once('../includes/coop_id_helper.php');
 require_once('../includes/validation_helper.php');
+require_once('../includes/member_identity_helper.php');
 
 // Bounded retry for the rare case where two admins create a member at the same
 // instant and land on the same generated CoopID.
@@ -92,14 +93,14 @@ function collectEmployeeInput() {
 
 /**
  * Returns an error message for the first failed rule, or null when valid.
- * $excludeCoopId skips the member being edited during uniqueness checks.
+ * Uniqueness is checked separately by findInputIdentityConflict().
  *
  * $requireEmail is true when creating: new members must have an address, since
  * it is what lets them register in the mobile app. It is false when editing, so
  * that legacy members with no address on file can still be corrected — an admin
  * fixing a StaffID should not be forced to invent an email first.
  */
-function validateEmployeeInput($conn, $input, $excludeCoopId = null, $requireEmail = true) {
+function validateEmployeeInput($input, $requireEmail = true) {
     if (empty($input['staff_id']) || empty($input['first_name']) ||
         empty($input['last_name']) || empty($input['department'])) {
         return 'Required fields are missing';
@@ -118,7 +119,7 @@ function validateEmployeeInput($conn, $input, $excludeCoopId = null, $requireEma
         return 'Staff ID must be greater than zero';
     }
 
-    // Format and uniqueness are checked only when an address was supplied.
+    // Format is checked only when an address was supplied.
     if ($input['email'] !== '' && !isValidEmailAddress($input['email'])) {
         return 'Please enter a valid email address';
     }
@@ -127,47 +128,23 @@ function validateEmployeeInput($conn, $input, $excludeCoopId = null, $requireEma
         return 'Invalid status selected';
     }
 
-    if ($input['email'] !== '' && emailExists($conn, $input['email'], $excludeCoopId)) {
-        return 'Email address is already assigned to another member';
-    }
-
     return null;
 }
 
 /**
- * True when the email is already on another member's record.
+ * Returns an error message when saving $input would give two ACTIVE members the
+ * same StaffID or email, or null when it is safe to save.
+ *
+ * Records of withdrawn members are kept as In-Active and may share a StaffID or
+ * email with the record a returning member is given, so only an active record
+ * has to hold them exclusively. $excludeCoopId skips the member being edited.
  */
-function emailExists($conn, $email, $excludeCoopId = null) {
-    $sql = "SELECT COUNT(*) FROM tblemployees WHERE EmailAddress = ?";
-    $params = [$email];
-
-    if ($excludeCoopId !== null) {
-        $sql .= " AND CoopID != ?";
-        $params[] = $excludeCoopId;
+function findInputIdentityConflict($conn, $input, $excludeCoopId = null) {
+    if ($input['status'] !== EMPLOYEE_STATUS_ACTIVE) {
+        return null;
     }
 
-    $stmt = $conn->prepare($sql);
-    $stmt->execute($params);
-
-    return (int) $stmt->fetchColumn() > 0;
-}
-
-/**
- * True when the StaffID is already on another member's record.
- */
-function staffIdExists($conn, $staffId, $excludeCoopId = null) {
-    $sql = "SELECT COUNT(*) FROM tblemployees WHERE StaffID = ?";
-    $params = [$staffId];
-
-    if ($excludeCoopId !== null) {
-        $sql .= " AND CoopID != ?";
-        $params[] = $excludeCoopId;
-    }
-
-    $stmt = $conn->prepare($sql);
-    $stmt->execute($params);
-
-    return (int) $stmt->fetchColumn() > 0;
+    return findActiveIdentityConflict($conn, $input['staff_id'], $input['email'], $excludeCoopId);
 }
 
 function createEmployee() {
@@ -175,14 +152,9 @@ function createEmployee() {
 
     $input = collectEmployeeInput();
 
-    $error = validateEmployeeInput($conn, $input);
+    $error = validateEmployeeInput($input) ?? findInputIdentityConflict($conn, $input);
     if ($error !== null) {
         echo json_encode(['success' => false, 'message' => $error]);
-        return;
-    }
-
-    if (staffIdExists($conn, $input['staff_id'])) {
-        echo json_encode(['success' => false, 'message' => 'Staff ID already exists']);
         return;
     }
 
@@ -290,7 +262,7 @@ function updateEmployee() {
         return;
     }
 
-    $error = validateEmployeeInput($conn, $input, $coop_id, false);
+    $error = validateEmployeeInput($input, false) ?? findInputIdentityConflict($conn, $input, $coop_id);
     if ($error !== null) {
         echo json_encode(['success' => false, 'message' => $error]);
         return;
@@ -309,12 +281,6 @@ function updateEmployee() {
     $nok_middle_name = $input['nok_middle_name'];
     $nok_last_name = $input['nok_last_name'];
     $nok_tel = $input['nok_tel'];
-
-    // Check if StaffID already exists (excluding current employee)
-    if (staffIdExists($conn, $staff_id, $coop_id)) {
-        echo json_encode(['success' => false, 'message' => 'Staff ID already exists']);
-        return;
-    }
 
     // Confirm the member exists. The update keys on CoopID alone: StaffID may be
     // NULL for members whose payroll ID is not yet assigned, and "StaffID = NULL"
@@ -383,7 +349,7 @@ function changeEmployeeStatus() {
     }
     
     // Get current status
-    $sql = "SELECT Status FROM tblemployees WHERE CoopID = ?";
+    $sql = "SELECT Status, StaffID, EmailAddress FROM tblemployees WHERE CoopID = ?";
     $stmt = $conn->prepare($sql);
     $stmt->execute([$coop_id]);
     $employee = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -394,8 +360,26 @@ function changeEmployeeStatus() {
     }
 
     // Toggle status
-    $new_status = ($employee['Status'] === 'Active') ? 'In-Active' : 'Active';
-    
+    $new_status = ($employee['Status'] === EMPLOYEE_STATUS_ACTIVE)
+        ? EMPLOYEE_STATUS_INACTIVE
+        : EMPLOYEE_STATUS_ACTIVE;
+
+    // Reactivating an old record must not leave a returning member with two
+    // active records sharing one StaffID or email.
+    if ($new_status === EMPLOYEE_STATUS_ACTIVE) {
+        $conflict = findActiveIdentityConflict(
+            $conn,
+            $employee['StaffID'],
+            trim((string) $employee['EmailAddress']),
+            $coop_id
+        );
+
+        if ($conflict !== null) {
+            echo json_encode(['success' => false, 'message' => $conflict]);
+            return;
+        }
+    }
+
     // Update status
     $sql = "UPDATE tblemployees SET 
             Status = ?, 

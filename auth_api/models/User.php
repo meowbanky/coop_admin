@@ -60,7 +60,9 @@ class User {
                     $query .= "e.CoopID = :identifier";
             }
 
-            $query .= " LIMIT 1";
+            // A returning member's old and new records can share an email or
+            // phone number: log them into the active one.
+            $query .= " ORDER BY (e.Status = 'Active') DESC LIMIT 1";
 
             $stmt = $this->conn->prepare($query);
             $stmt->bindParam(':identifier', $identifier);

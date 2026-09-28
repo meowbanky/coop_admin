@@ -4,7 +4,9 @@
  */
 
 const MIN_EMAIL_LENGTH = 6;
-const EMPLOYEE_STATUSES = ['Active', 'In-Active'];
+const EMPLOYEE_STATUS_ACTIVE = 'Active';
+const EMPLOYEE_STATUS_INACTIVE = 'In-Active';
+const EMPLOYEE_STATUSES = [EMPLOYEE_STATUS_ACTIVE, EMPLOYEE_STATUS_INACTIVE];
 
 /**
  * Validates an email address beyond PHP's default filter: rejects consecutive
