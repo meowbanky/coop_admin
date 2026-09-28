@@ -1,8 +1,21 @@
 <?php
+require_once('../includes/session_helper.php');
+require_once('../includes/admin_access_helper.php');
+
+initSession();
+
+// This import rewrites members' contributions: admins only. Checked before the
+// upload or the database is touched.
+$accessError = findAdminAccessError($_SESSION);
+if ($accessError !== null) {
+    http_response_code(403);
+    echo '<script>parent.document.getElementById("information").innerHTML="' . addslashes($accessError) . '";</script>';
+    exit;
+}
+
 ini_set('max_execution_time', '0');
 require_once('../Connections/coop.php');
 $recordtime = date('Y-m-d H:i:s');
-session_start();
 require 'vendor/autoload.php'; // Load Composer autoloader
 
 use PhpOffice\PhpSpreadsheet\IOFactory;

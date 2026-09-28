@@ -3,6 +3,7 @@ header('Content-Type: application/json');
 require_once('../Connections/coop.php');
 include_once('../classes/model.php');
 require_once('../includes/session_helper.php');
+require_once('../includes/admin_access_helper.php');
 require_once('../includes/coop_id_helper.php');
 require_once('../includes/validation_helper.php');
 require_once('../includes/member_identity_helper.php');
@@ -15,31 +16,10 @@ const MYSQL_DUPLICATE_KEY = '23000';
 // Initialize session properly
 initSession();
 
-// Check authentication
-if (!isset($_SESSION['SESS_MEMBER_ID']) || (trim($_SESSION['SESS_MEMBER_ID']) == '')) {
-    echo json_encode(['success' => false, 'message' => 'Unauthorized access: Session not found. Please login.']);
-    exit();
-}
-
-// Check role - allow Admin or any admin type (more flexible)
-$userRole = $_SESSION['role'] ?? $_SESSION['admin_type'] ?? '';
-$isAdmin = false;
-
-// Check if role contains 'admin' (case-insensitive) or matches common admin types
-if (!empty($userRole)) {
-    $roleLower = strtolower($userRole);
-    $isAdmin = (
-        $roleLower === 'admin' || 
-        $roleLower === 'administrator' ||
-        strpos($roleLower, 'admin') !== false
-    );
-}
-
-if (!$isAdmin) {
-    echo json_encode([
-        'success' => false, 
-        'message' => 'Unauthorized access: Admin privileges required.'
-    ]);
+// Check authentication and admin role
+$accessError = findAdminAccessError($_SESSION);
+if ($accessError !== null) {
+    echo json_encode(['success' => false, 'message' => $accessError]);
     exit();
 }
 

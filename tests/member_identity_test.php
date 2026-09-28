@@ -6,14 +6,8 @@
  * Uses an in-memory SQLite database, so it never touches real member data.
  */
 
-if (PHP_SAPI !== 'cli') {
-    http_response_code(404);
-    exit;
-}
-
+require_once __DIR__ . '/helpers.php';
 require_once __DIR__ . '/../includes/member_identity_helper.php';
-
-$failures = [];
 
 function createMemberTable()
 {
@@ -38,37 +32,6 @@ function addMember($conn, $coopId, $staffId, $status, $email = '')
         'INSERT INTO tblemployees (CoopID, StaffID, Status, EmailAddress) VALUES (?, ?, ?, ?)'
     );
     $stmt->execute([$coopId, $staffId, $status, $email]);
-}
-
-function test($name, callable $body)
-{
-    global $failures;
-
-    try {
-        $body();
-        echo "PASS  {$name}\n";
-    } catch (Throwable $e) {
-        $failures[] = $name;
-        echo "FAIL  {$name}\n      " . $e->getMessage() . "\n";
-    }
-}
-
-function assertSameValue($expected, $actual)
-{
-    if ($expected !== $actual) {
-        throw new RuntimeException(
-            'Expected ' . var_export($expected, true) . ', got ' . var_export($actual, true)
-        );
-    }
-}
-
-function assertContains($needle, $haystack)
-{
-    if (!is_string($haystack) || strpos($haystack, $needle) === false) {
-        throw new RuntimeException(
-            'Expected text containing ' . var_export($needle, true) . ', got ' . var_export($haystack, true)
-        );
-    }
 }
 
 test('allows a returning member to reuse the Staff ID of their withdrawn record', function () {
@@ -141,5 +104,4 @@ test('never treats the legacy placeholder Staff ID 0 as a conflict', function ()
     assertSameValue(null, $conflict);
 });
 
-echo "\n" . (count($failures) === 0 ? 'All tests passed' : count($failures) . ' test(s) failed') . "\n";
-exit(count($failures) === 0 ? 0 : 1);
+finishTests();
