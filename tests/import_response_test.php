@@ -7,6 +7,7 @@
 
 require_once __DIR__ . '/helpers.php';
 require_once __DIR__ . '/../includes/import_response_helper.php';
+require_once __DIR__ . '/../excel_import/vendor/autoload.php';
 
 function captureImportFailure($statusCode, $reason)
 {
@@ -56,6 +57,35 @@ test('still reports the reason when the response has already started', function 
     $output = captureImportFailure(500, 'Error during import: late failure');
 
     assertContains('Error during import: late failure', $output);
+});
+
+test('hides database error details from the person uploading', function () {
+    // Arrange
+    $error = new RuntimeException("Table 'coop.tbl_monthlycontribution' doesn't exist");
+
+    // Act
+    $message = describeImportFailure($error);
+
+    // Assert
+    assertSameValue(IMPORT_FAILED_MESSAGE, $message);
+    assertSameValue(false, strpos($message, 'tbl_monthlycontribution'));
+});
+
+test('hides details of a low-level PHP error', function () {
+    $error = new TypeError('mysqli_stmt_bind_param(): Argument #1 ($statement) must be of type mysqli_stmt');
+
+    $message = describeImportFailure($error);
+
+    assertSameValue(IMPORT_FAILED_MESSAGE, $message);
+});
+
+test('tells the uploader when the file itself could not be read', function () {
+    $error = new PhpOffice\PhpSpreadsheet\Reader\Exception('Unable to identify a reader for /tmp/phpA1b2C3');
+
+    $message = describeImportFailure($error);
+
+    assertSameValue(IMPORT_UNREADABLE_FILE_MESSAGE, $message);
+    assertSameValue(false, strpos($message, '/tmp/phpA1b2C3'));
 });
 
 finishTests();

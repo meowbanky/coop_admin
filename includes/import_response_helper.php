@@ -8,6 +8,23 @@
  * "message" as the sign that the import did not finish.
  */
 
+const IMPORT_FAILED_MESSAGE = 'The import could not be completed. Please try again or contact support.';
+const IMPORT_UNREADABLE_FILE_MESSAGE = 'The file could not be read. Please upload a valid Excel file.';
+
+/**
+ * Returns the message to show the uploader for a failed import. It is always
+ * one of the fixed messages above: the error's own text can name tables, file
+ * paths or queries, so it belongs in the server log only.
+ */
+function describeImportFailure(Throwable $error)
+{
+    if ($error instanceof \PhpOffice\PhpSpreadsheet\Exception) {
+        return IMPORT_UNREADABLE_FILE_MESSAGE;
+    }
+
+    return IMPORT_FAILED_MESSAGE;
+}
+
 /**
  * Reports a failed import: sets the HTTP status when the response has not
  * started yet, and always writes the reason for the page to show.

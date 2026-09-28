@@ -201,8 +201,9 @@ try {
     // Throwable, not Exception: a TypeError from a failed prepare must also
     // roll back and be reported instead of ending the response mid-import.
     mysqli_rollback($coop);
-    error_log("Import failed: " . $e->getMessage());
-    reportImportFailure(500, 'Error during import: ' . $e->getMessage());
+    // The detail goes to the log; the browser gets a fixed message only.
+    error_log('Import failed (' . get_class($e) . ' at ' . $e->getFile() . ':' . $e->getLine() . '): ' . $e->getMessage());
+    reportImportFailure(500, describeImportFailure($e));
 }
 
 ob_flush();
