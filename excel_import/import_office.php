@@ -1,6 +1,7 @@
 <?php
 require_once('../includes/session_helper.php');
 require_once('../includes/admin_access_helper.php');
+require_once('../includes/import_response_helper.php');
 
 initSession();
 
@@ -8,8 +9,7 @@ initSession();
 // upload or the database is touched.
 $accessError = findAdminAccessError($_SESSION);
 if ($accessError !== null) {
-    http_response_code(403);
-    echo '<script>parent.document.getElementById("information").innerHTML="' . addslashes($accessError) . '";</script>';
+    reportImportFailure(403, $accessError);
     exit;
 }
 
@@ -29,7 +29,7 @@ $startRow = $hasHeaders ? 3 : 0; // Adjust starting row based on headers
 
 // Validate PeriodID
 if ($periodID <= 0) {
-    echo '<script>parent.document.getElementById("information").innerHTML="Invalid or missing PeriodID.";</script>';
+    reportImportFailure(400, 'Invalid or missing PeriodID.');
     exit;
 }
 
@@ -194,15 +194,15 @@ try {
     $displayNF = !empty($notfound) ? implode(', ', $notfound) : 'All records processed successfully.';
     echo str_repeat(' ', 1024 * 64);
     echo '<script>
-        parent.document.getElementById("information").innerHTML="' . addslashes($displayNF) . '";
+        parent.document.getElementById("information").innerHTML="' . escapeForInlineScript($displayNF) . '";
         parent.document.getElementById("message").innerHTML="Import completed successfully.";
     </script>';
-} catch (Exception $e) {
+} catch (Throwable $e) {
+    // Throwable, not Exception: a TypeError from a failed prepare must also
+    // roll back and be reported instead of ending the response mid-import.
     mysqli_rollback($coop);
     error_log("Import failed: " . $e->getMessage());
-    echo '<script>
-        parent.document.getElementById("information").innerHTML="Error during import: ' . addslashes($e->getMessage()) . '";
-    </script>';
+    reportImportFailure(500, 'Error during import: ' . $e->getMessage());
 }
 
 ob_flush();

@@ -210,23 +210,56 @@ document.addEventListener('DOMContentLoaded', function() {
     const resetFormBtn = document.getElementById('resetForm');
 
     const DEFAULT_UPLOAD_ERROR = 'An error occurred during upload.';
+    const IMPORT_INCOMPLETE_ERROR = 'The import did not finish.';
     // import_office.php reports through scripts that write to these elements.
-    const INFORMATION_PATTERN = /parent\.document\.getElementById\("information"\)\.innerHTML="([^"]+)"/;
-    const MESSAGE_PATTERN = /parent\.document\.getElementById\("message"\)\.innerHTML="([^"]+)"/;
+    // The text is escaped by the server, so it can contain \" and other \x pairs.
+    const INFORMATION_PATTERN = /parent\.document\.getElementById\("information"\)\.innerHTML="((?:[^"\\]|\\.)*)"/;
+    const MESSAGE_PATTERN = /parent\.document\.getElementById\("message"\)\.innerHTML="((?:[^"\\]|\\.)*)"/;
 
-    // The server refused the upload and said why (e.g. not logged in as an admin).
-    class UploadRefusedError extends Error {}
+    // The import was refused or failed, and the message says why.
+    class ImportFailedError extends Error {}
 
-    // Helper: Read the response, turning a refusal into an error carrying its reason
+    // Helper: Text the import wrote to an element, unescaped, or '' when absent
+    function readReportedText(body, pattern) {
+        const match = body.match(pattern);
+        return match ? match[1].replace(/\\(.)/g, '$1') : '';
+    }
+
+    // Helper: Read the import's report. The import streams progress before it
+    // finishes, so a failure part-way through still arrives with status 200:
+    // only the completion message proves that it succeeded.
     function readImportResponse(response) {
         return response.text().then(body => {
-            if (response.ok) {
-                return body;
+            const report = {
+                information: readReportedText(body, INFORMATION_PATTERN),
+                message: readReportedText(body, MESSAGE_PATTERN)
+            };
+
+            if (!response.ok) {
+                throw new ImportFailedError(report.information || DEFAULT_UPLOAD_ERROR);
+            }
+            if (!report.message) {
+                throw new ImportFailedError(report.information || IMPORT_INCOMPLETE_ERROR);
             }
 
-            const reasonMatch = body.match(INFORMATION_PATTERN);
-            throw new UploadRefusedError(reasonMatch ? reasonMatch[1] : DEFAULT_UPLOAD_ERROR);
+            return report;
         });
+    }
+
+    // Helper: Add a line of plain text with an icon to the status list
+    function appendStatusLine(lineClasses, iconClasses, text, textClasses) {
+        const icon = document.createElement('i');
+        icon.className = iconClasses;
+
+        const label = document.createElement('span');
+        label.className = textClasses || '';
+        label.textContent = text;
+
+        const line = document.createElement('div');
+        line.className = lineClasses;
+        line.appendChild(icon);
+        line.appendChild(label);
+        statusMessages.appendChild(line);
     }
 
     // Helper: Display selected file info
@@ -327,29 +360,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: formData
             })
             .then(readImportResponse)
-            .then(result => {
+            .then(report => {
                 progressBar.style.width = '100%';
                 progressPercent.textContent = '100%';
                 progressText.textContent = 'Upload completed successfully!';
 
-                // Extract information from the response
-                const infoMatch = result.match(INFORMATION_PATTERN);
-                const messageMatch = result.match(MESSAGE_PATTERN);
-
-                const infoText = infoMatch ? infoMatch[1] : 'File processed successfully';
-                const messageText = messageMatch ? messageMatch[1] : 'Import completed successfully';
-
-                const messageDiv = document.createElement('div');
-                messageDiv.className = 'flex items-center text-sm';
-                messageDiv.innerHTML = '<i class="fas fa-check-circle text-green-500 mr-2"></i><span>' + messageText + '</span>';
-                statusMessages.appendChild(messageDiv);
+                appendStatusLine('flex items-center text-sm',
+                    'fas fa-check-circle text-green-500 mr-2', report.message);
 
                 // Add detailed information if available
-                if (infoText && infoText !== 'File processed successfully') {
-                    const infoDiv = document.createElement('div');
-                    infoDiv.className = 'flex items-start text-sm mt-2';
-                    infoDiv.innerHTML = '<i class="fas fa-info-circle text-blue-500 mr-2 mt-1"></i><span class="text-gray-700">' + infoText + '</span>';
-                    statusMessages.appendChild(infoDiv);
+                if (report.information) {
+                    appendStatusLine('flex items-start text-sm mt-2',
+                        'fas fa-info-circle text-blue-500 mr-2 mt-1', report.information, 'text-gray-700');
                 }
 
                 uploadResults.classList.remove('hidden');
@@ -363,16 +385,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Show the server's reason when it gave one; a network failure
                 // has no useful message for the user, so it gets the default.
-                const reasonSpan = document.createElement('span');
-                reasonSpan.textContent = error instanceof UploadRefusedError
-                    ? error.message
-                    : DEFAULT_UPLOAD_ERROR;
-
-                const messageDiv = document.createElement('div');
-                messageDiv.className = 'flex items-center text-sm';
-                messageDiv.innerHTML = '<i class="fas fa-exclamation-circle text-red-500 mr-2"></i>';
-                messageDiv.appendChild(reasonSpan);
-                statusMessages.appendChild(messageDiv);
+                appendStatusLine('flex items-center text-sm',
+                    'fas fa-exclamation-circle text-red-500 mr-2',
+                    error instanceof ImportFailedError ? error.message : DEFAULT_UPLOAD_ERROR);
 
                 errorResults.classList.remove('hidden');
                 uploadBtn.disabled = false;
