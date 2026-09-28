@@ -13,15 +13,18 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Check authentication
-if (!isset($_SESSION['SESS_MEMBER_ID']) || (trim($_SESSION['SESS_MEMBER_ID']) == '')) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-    exit();
-}
+require_once(__DIR__ . '/../includes/admin_access_helper.php');
 
 // Set headers
 header('Content-Type: application/json');
+
+// This upload rewrites members' contributions: admins only.
+$accessError = findAdminAccessError($_SESSION);
+if ($accessError !== null) {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => $accessError]);
+    exit();
+}
 
 // Database connection
 require_once(__DIR__ . '/../Connections/coop.php');
