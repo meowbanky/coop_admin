@@ -209,6 +209,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const uploadBtn = document.getElementById('uploadBtn');
     const resetFormBtn = document.getElementById('resetForm');
 
+    const DEFAULT_UPLOAD_ERROR = 'An error occurred during upload.';
+    // import_office.php reports through scripts that write to these elements.
+    const INFORMATION_PATTERN = /parent\.document\.getElementById\("information"\)\.innerHTML="([^"]+)"/;
+    const MESSAGE_PATTERN = /parent\.document\.getElementById\("message"\)\.innerHTML="([^"]+)"/;
+
+    // The server refused the upload and said why (e.g. not logged in as an admin).
+    class UploadRefusedError extends Error {}
+
+    // Helper: Read the response, turning a refusal into an error carrying its reason
+    function readImportResponse(response) {
+        return response.text().then(body => {
+            if (response.ok) {
+                return body;
+            }
+
+            const reasonMatch = body.match(INFORMATION_PATTERN);
+            throw new UploadRefusedError(reasonMatch ? reasonMatch[1] : DEFAULT_UPLOAD_ERROR);
+        });
+    }
+
     // Helper: Display selected file info
     function displayFileInfo(file) {
         uploadContent.classList.add('hidden');
@@ -306,16 +326,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.ok ? response.text() : Promise.reject('Upload failed'))
+            .then(readImportResponse)
             .then(result => {
                 progressBar.style.width = '100%';
                 progressPercent.textContent = '100%';
                 progressText.textContent = 'Upload completed successfully!';
 
                 // Extract information from the response
-                const infoMatch = result.match(/parent\.document\.getElementById\("information"\)\.innerHTML="([^"]+)"/);
-                const messageMatch = result.match(/parent\.document\.getElementById\("message"\)\.innerHTML="([^"]+)"/);
-                
+                const infoMatch = result.match(INFORMATION_PATTERN);
+                const messageMatch = result.match(MESSAGE_PATTERN);
+
                 const infoText = infoMatch ? infoMatch[1] : 'File processed successfully';
                 const messageText = messageMatch ? messageMatch[1] : 'Import completed successfully';
 
@@ -341,10 +361,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 progressPercent.textContent = '0%';
                 progressText.textContent = 'Upload failed';
 
+                // Show the server's reason when it gave one; a network failure
+                // has no useful message for the user, so it gets the default.
+                const reasonSpan = document.createElement('span');
+                reasonSpan.textContent = error instanceof UploadRefusedError
+                    ? error.message
+                    : DEFAULT_UPLOAD_ERROR;
+
                 const messageDiv = document.createElement('div');
                 messageDiv.className = 'flex items-center text-sm';
-                messageDiv.innerHTML =
-                    '<i class="fas fa-exclamation-circle text-red-500 mr-2"></i><span>An error occurred during upload.</span>';
+                messageDiv.innerHTML = '<i class="fas fa-exclamation-circle text-red-500 mr-2"></i>';
+                messageDiv.appendChild(reasonSpan);
                 statusMessages.appendChild(messageDiv);
 
                 errorResults.classList.remove('hidden');
